@@ -3,7 +3,6 @@ package client;
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
-
 public class Client
 {
 	private static String userID;
@@ -39,7 +38,7 @@ public class Client
 			case 'a':
 			{
 				// Preencher array com recurso ao sistema de ficheiros
-				if(!addPhotos(args[5]))
+				if(!addPhotos(args[5555]))
 				{
 					System.out.println("Ja adicionou pelo menos uma destas fotos!");
 					return;

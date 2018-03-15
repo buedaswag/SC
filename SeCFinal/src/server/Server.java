@@ -25,7 +25,8 @@ public class Server {
 
 	/**
 	 * Constructor for the Server class
-	 * initiates the server... TO COMPLETE
+	 * initiates the server which represents the system
+	 * ... TO COMPLETE
 	 * Inicia o servidor, criando directorios e ficheiros de registo se necessario.
 	 * Nao cria interfaces de rede; tudo o que diz respeito a portos, TCP e outras
 	 * coisas giras fica ao encargo do handler.
@@ -48,7 +49,9 @@ public class Server {
 		Server server = new Server();
 		int port = new Integer(args[1]);
 		
-		// Ouvir os ports
+		/*
+		 * listen to the TCP port and set up a thread for each request
+		 */
 		ServerSocket sSoc = null;
 		try {
 			sSoc = new ServerSocket(port);
@@ -59,6 +62,7 @@ public class Server {
 		while(true) {
 			try {
 				Socket inSoc = sSoc.accept();
+				//set up a thread
 				ServerThread newServerThread = new ServerThread(inSoc);
 				newServerThread.start();
 		    }
@@ -69,79 +73,7 @@ public class Server {
 		}
 		//sSoc.close();
 
-		String[] message = coisa.split("-");
-		char opt = message.charAt(0);
-		String answer;
-		// Executar operacao - este bloco so le e passa argumentos
-		switch (opt) {
-		// Acrescentar fotos
-		case 'a': {
-
-		}
-		// Listar fotos
-		case 'l': {
-			String user = message[1];
-			answer = listPhotos(user);
-			// Enviar resposta
-		}
-		// Informacao foto
-		case 'i': {
-			String user = message[1];
-			String photo = message[2];
-			answer = infoPhoto(user, photo);
-			// Enviar resposta
-		}
-		// Copiar fotos
-		case 'g': {
-			String user = message[1];
-			answer = savePhotos(user);
-			// Enviar resposta
-		}
-		// Comentar foto
-		case 'c': {
-			String comment = message[1];
-			String user = message[2];
-			String photo = message[3];
-			answer = addComment(comment, user, photo);
-			// Enviar resposta
-		}
-		// Botar like
-		case 'L': {
-			String user = message[1];
-			String photo = message[2];
-			answer = addLike(user, photo);
-			// Enviar resposta
-		}
-		// Botar dislike
-		case 'D': {
-			String user = message[1];
-			String photo = message[2];
-			answer = addDislike(user, photo);
-		}
-		// Adicionar seguidores
-		case 'f': {
-			String user = message[1];
-			String[] followers = message[2].split(",");
-			// Followers e do tipo "user1,user2,user3..."
-			answer = addFollowers(user, followers);
-		}
-		// Remover seguidores
-		case 'r': {
-			String user = message[1];
-			String followers[] = message[2].split(",");
-			answer = removeFollowers(user, followers);
-		}
-		// Operacao ilegal
-		default: {
-			System.out.println("Foi recebida uma operacao invalida");
-		}
-
-		}
-		// Realizar operacao
-
-		// Fechar tudo
-
-	}
+		
 
 	// ================== OPERACOES =================== //
 	// Estes metodos comunicam com o FileManager e //
@@ -152,13 +84,12 @@ public class Server {
 	 * Autentica um utilizador, se este existir Caso contrario, cria-o e regista-o
 	 * na base de dados
 	 * 
-	 * @param name
-	 *            - O nome do utilizador
+	 * @param userid
 	 * @param password
-	 *            - A sua password
+	 * @throws IOException
 	 * @throws IOException
 	 */
-	public static boolean authenticate(String name, String password) throws IOException {
+	public boolean authenticate(String name, String password) throws IOException {
 		// Caso 1: cliente existe
 		for (User u : userList) {
 			// Password certa?
@@ -183,7 +114,7 @@ public class Server {
 	 *            - O utilizador
 	 * @return A String com informacao caso tenha sucesso, null caso contrario
 	 */
-	public static String listPhotos(String user) {
+	public String listPhotos(String user) {
 		// User existe?
 		User temp = getByName(user);
 		if (temp == null)
@@ -214,7 +145,7 @@ public class Server {
 	 *            - O nome da foto
 	 * @return A String com informacao se teve sucesso, null em caso contrario
 	 */
-	public static String infoPhoto(String user, String photo) {
+	public String infoPhoto(String user, String photo) {
 		if (isFollower(user)) {
 
 		} else {
@@ -243,7 +174,7 @@ public class Server {
 	 *            - A foto
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
-	public static String addComment(String comment, String user, String photo) {
+	public String addComment(String comment, String user, String photo) {
 		if (!isFollower(user)) {
 			return null;
 		} else {
@@ -261,7 +192,7 @@ public class Server {
 	 *            - A foto
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
-	public static String addLike(String user, String photo) {
+	public String addLike(String user, String photo) {
 		if (!isFollower(user)) {
 			return null;
 		} else {
@@ -279,7 +210,7 @@ public class Server {
 	 *            - A foto
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
-	public static String addDislike(String user, String photo) {
+	public String addDislike(String user, String photo) {
 		if (!isFollower(user)) {
 			return null;
 		} else {
@@ -297,7 +228,7 @@ public class Server {
 	 *            - Os futuros seguidores
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
-	public static String addFollowers(String user, String[] users) {
+	public String addFollowers(String user, String[] users) {
 		// Conversao da lista de nomes uma lista de seguidores
 		ArrayList<String> temp = new ArrayList<String>();
 		@SuppressWarnings("unused")
@@ -335,7 +266,7 @@ public class Server {
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
 	@SuppressWarnings("unused")
-	public static String removeFollowers(String user, String[] users) {
+	public String removeFollowers(String user, String[] users) {
 		// Conversao da lista de nomes uma lista de seguidores
 		ArrayList<String> temp = new ArrayList<String>();
 		User u;
@@ -364,7 +295,7 @@ public class Server {
 
 	// ================== UTILIDADES ================== //
 
-	public static User getByName(String id) {
+	public User getByName(String id) {
 		for (User u : userList) {
 			if (u.getName().equals(id))
 				return u;
@@ -377,7 +308,7 @@ public class Server {
 	 * 
 	 * @return - idem
 	 */
-	public static boolean isFollower(String user) {
+	public boolean isFollower(String user) {
 		for (String f : currUser.getFollowers()) {
 			if (f.equals(user))
 				return true;
