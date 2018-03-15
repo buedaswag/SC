@@ -14,7 +14,7 @@ import myServer4.ServerThread;
 public class Server {
 	private int port;
 	private String address;
-	private static FileManager fm;
+	private static FileManager fileManager;
 	// Lista de utilizadores (permite manipulacao facil em runtime)
 	private static List<User> users;
 
@@ -37,7 +37,7 @@ public class Server {
 		fm = new FileManager();
 		users = fm.loadUsers();
 	}
-	
+
 	/**
 	 * TODO
 	 * 
@@ -48,7 +48,7 @@ public class Server {
 		//set up the server, and get the port
 		Server server = new Server();
 		int port = new Integer(args[1]);
-		
+
 		/*
 		 * listen to the TCP port and set up a thread for each request
 		 */
@@ -63,17 +63,16 @@ public class Server {
 			try {
 				Socket inSoc = sSoc.accept();
 				//set up a thread
-				ServerThread newServerThread = new ServerThread(inSoc);
+				ServerThread newServerThread = new ServerThread(inSoc, server);
 				newServerThread.start();
-		    }
-		    catch (IOException e) {
-		        e.printStackTrace();
-		    }
-		    
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
 		}
 		//sSoc.close();
+	}
 
-		
 
 	// ================== OPERACOES =================== //
 	// Estes metodos comunicam com o FileManager e //
@@ -105,6 +104,30 @@ public class Server {
 		// Caso 2: cliente nao existe
 		fm.FMaddUser(name, password);
 		return true;
+	}
+	
+	/**
+	 * checks the photos of the user with the given userid
+	 * if he already has a photo with any of the names given in photos,
+	 * returns false, otherwise, returns true
+	 * @param userid
+	 * @param password
+	 * @return
+	 */
+	public boolean checkDuplicatePhotos(String userid, String password, String[] photos) {
+		
+		//TODO INCOMPLETE!
+		
+		return false;
+		
+	}
+	
+	/**
+	 * adds the photos with the given names to the user with the given userid
+	 * @param photo
+	 */
+	public void addPhoto(Photo photo) {
+		//TODO
 	}
 
 	/**

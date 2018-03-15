@@ -2,42 +2,51 @@ package server;
 
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 
-public class Photo
-{
+public class Photo {
 	private String name;
-	private String path;
 	private Date uploadDate;
 	private long size;
-	private LinkedList<Comment> comments;
-	private int likes;
-	private int dislikes;
-	
-	public Photo(String name)
-	{
+	private List<Comment> comments;
+	//private List<Like> likes;
+	private int like;
+
+	public Photo(String name) {
 		this.name = name;
 		this.uploadDate = new Date();
 		this.comments = new LinkedList<Comment>();
 	}
-	
-	// Metodos de informacao
-	public String getName()
-	{
+
+	/**
+	 * 
+	 * @return the name of this photo
+	 */
+	public String getName() {
 		return this.name;
 	}
-	
-	public Date getDate()
-	{
+
+	/**
+	 * 
+	 * @return the publish date of this photo
+	 */
+	public Date getDate() {
 		return this.uploadDate;
 	}
-	
-	public long getSize()
-	{
+
+	/**
+	 * 
+	 * @return the size of this photo
+	 */
+	public long getSize() {
 		return this.size;
 	}
-	
-	public LinkedList<Comment> getComments()
-	{
-		return this.comments;
+
+	/**
+	 * 
+	 * @return a list of this photo's comments
+	 */
+	public List<Comment> getComments() {
+		return comments;
 	}
 }
