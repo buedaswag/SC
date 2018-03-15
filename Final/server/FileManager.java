@@ -1,0 +1,321 @@
+package server;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+
+/**
+ * Biblioteca de manipulacao de ficheiros para a classe Server
+ * Extende Server para tirar partido de algumas variaveis da classe
+ * @author António
+ */
+public class FileManager extends Server
+{
+	private static final String path = new String("database");
+	private static final String userDB = new String("users.txt");
+	private static final File database = new File(path + "\\" + userDB);
+	private static FileReader fr;
+	private static BufferedReader br;
+	private static FileWriter fw;
+	private static BufferedWriter bw;
+	
+	/**
+	 * Cria o handler de gestao de ficheiros
+	 * @throws IOException
+	 */
+	public FileManager() throws IOException
+	{
+		File dir = new File("database");
+		if(!dir.exists())
+		{
+			dir.mkdir();
+		}
+		// Ja existe uma base de dados?
+		if(!database.exists())
+		{
+			database.createNewFile();
+		}
+		loadUsers();
+	}
+	
+	/**
+	 * Le e devolve uma lista dos utilizadores registados
+	 * @return - A lista dos utilizadores na base de dados
+	 * @throws IOException
+	 */
+	public ArrayList<User> loadUsers() throws IOException
+	{
+		fr = new FileReader(database.getAbsoluteFile());
+		br = new BufferedReader(fr);
+		fw = new FileWriter(database.getAbsoluteFile(), true);
+		bw = new BufferedWriter(fw);
+		User temp;
+		ArrayList<User> tempList = new ArrayList<User>();
+
+		// Le os seguidores actuais
+		for(String line; (line = br.readLine()) != null;)
+		{
+			String[] data = line.split(":");
+			temp = new User(data[0], data[1]);
+			loadFollowers(temp);
+			loadPhotos(temp);
+			tempList.add(new User(data[0], data[1]));
+		}
+		closeBuffers();
+		return tempList;
+	}
+	
+	/**
+	 * Fecha os leitores/escritores de ficheiros
+	 * @throws IOException
+	 */
+	private static void closeBuffers() throws IOException
+	{
+		bw.close();
+		fw.close();
+		br.close();
+		fr.close();
+	}
+	
+	
+	// =================== OPERACOES =================== //
+	
+	/**
+	 * Acrescenta um utilizador novo a base de dados
+	 * Este metodo so e chamado quando nao houver registo
+	 * previo desse utilizador
+	 * @param user - O ID de utilizador
+	 * @param pass - A password
+	 * @param userList - A lista de utilizadores registados
+	 * @throws IOException
+	 */
+	public void addUser (String user, String pass) throws IOException
+	{
+		// Se nao, preparar buffers para registo
+		File file = new File(path + "\\" + userDB);
+
+		fw = new FileWriter(file.getAbsoluteFile(), true);
+		bw = new BufferedWriter(fw);
+
+		// Registar utilizador no ficheiro de base de dados
+		String temp = user + ":" + pass;
+		bw.write(temp);
+		bw.newLine();
+		
+		// Criar directoria de fotos do utilizador
+		new File(path + "\\" + user).mkdir();
+		// Criar lista de seguidores
+		File followers = new File(path + "\\" + user + "\\" + "followers.txt");
+		if(!followers.exists())
+		{
+			followers.createNewFile();
+		}
+		closeBuffers();
+	}
+	
+	public ArrayList<Photo> getInfo(String photo)
+	{
+		return null;
+	}
+	
+	// info
+	
+	public static boolean getPhotos(String user)
+	{
+		
+	}
+
+	/**
+	 * Acrescenta uma lista de seguidores a um utilizador
+	 * @param followers - O array com os seguidores a acrescentar
+	 * @throws IOException
+	 */
+	public boolean addFollowers (String[] followers, String user) throws IOException
+	{
+		// Abre recursos e streams necessarios
+		File file = new File(path + "\\" + user + "\\" + "followers.txt");
+
+		fw = new FileWriter(file.getAbsoluteFile(), true);
+		bw = new BufferedWriter(fw);
+
+		fr = new FileReader(file.getAbsoluteFile());
+		br = new BufferedReader(fr);
+
+		// Acrescentar seguidores
+		for(int i = 0; i < followers.length; i++)
+		{
+			bw.write(followers[i]);
+			bw.newLine();
+		}
+		
+		// Fechar streams
+		closeBuffers();
+		return true;
+	}
+
+	public boolean removeFollowers (String[] followers) throws IOException
+	{
+		// Abre recursos e streams necessarios
+		File file = new File(path + "\\" + currUser + "\\" + "followers.txt");
+
+		fr = new FileReader(file.getAbsoluteFile());
+		br = new BufferedReader(fr);
+
+		ArrayList<String> currFollowers = new ArrayList<String>();
+
+		// Le os seguidores actuais
+		String line;
+		while((line = br.readLine()) != null)
+		{
+			currFollowers.add(line);
+		}
+
+		// Remove os utilizadores
+		for(int i = 0; i < followers.length; i++)
+		{
+			if(!currFollowers.remove(followers[i]))
+			{
+				return false;
+			}
+		}
+
+		// Criar lista de seguidores
+		closeBuffers();
+		System.gc();
+		file.delete();
+		
+		// Abre buffers para novo ficheiro de seguidores
+		File newFollowers = new File(path + "\\" + currUser + "\\" + "followers.txt");
+		fw = new FileWriter(newFollowers.getAbsoluteFile(), true);
+		bw = new BufferedWriter(fw);
+		
+		for(String s : currFollowers)
+		{
+			bw.write(s);
+			bw.newLine();
+		}
+		bw.close();
+		fw.close();
+		return true;
+	}
+	
+	/** TODO
+	 * 
+	 * @param user
+	 */
+	public static void listPhotos(String user)
+	{
+		File file = new File("/path/to/directory");
+		String[] directories = file.list(new FilenameFilter() 
+		{
+			@Override
+			public boolean accept(File current, String name) 
+			{
+				return new File(current, name).isDirectory();
+			}
+		});
+		System.out.println(Arrays.toString(directories));
+	}
+	
+	//====================================================================================================
+
+	/**
+	 * Verifica se o utilizador local segue "user"
+	 * @param user - O user
+	 * @return - Se o utilizador local segue "user"
+	 * @throws IOException
+	 */
+	public static boolean follows (String user) throws IOException 
+	{
+		File file = new File(path + "\\" + user + "\\" + "followers.txt");
+
+		br = new BufferedReader(new FileReader(file));
+
+		String userLido;
+		while ((userLido = br.readLine()) != null)
+		{
+			if (userLido.equals(currUser))
+			{
+				br.close();
+				return true;
+			}
+		}
+		br.close();
+		return false;
+	}
+	
+	
+	public void loadFollowers(User u) throws IOException {
+		// load followers
+		File followersFile = new File(path + "\\" + u.getUserid() + "\\" + "followers.txt");
+
+		br = new BufferedReader(new FileReader(followersFile));
+
+		String userid;
+		while ((userid = br.readLine()) != null)
+			u.addFollower(userid);
+
+		
+		br.close();
+	}
+
+	/**
+	 *  load photos from database to the user
+	 */
+	public void loadPhotos(User u) {
+		// load photos
+		String photosFile = path + "\\" + u.getUserid() + "\\" + "Photos";
+		// todas as pastas de fotos
+		File[] directories = new File(photosFile).listFiles(File::isDirectory);
+
+		// buscar as fotos presentes em cada directoria
+		for (File photo : directories) {
+			Photo p = new Photo(photo.getName());
+			// colocar a foto na lista de fotos do utilizador
+			u.addPhoto(p);
+		}
+
+	}
+
+	/** TODO DATA (PENULTIMA LINHA)
+	 * 
+	 * @param p a foto de onde vamos fazer load dos comentarios 
+	 * @throws IOException
+	 */
+	public void loadComments(User u,Photo p) throws IOException {
+
+		// localizacao da foto 
+		String photoFile = path + "\\" + u.getUserid() + "\\" + "Photos" + "\\" + p.getName();
+		
+		// localizacao do ficheiro comentarios 
+		String comentarios = photoFile + "comments.txt";
+
+		//ficheiro "comments.txt" da foto
+		File ficheiroComments = new File(comentarios);
+
+		List<Comment> listaComentarios = new LinkedList<Comment>();
+
+		// buffer para ler o ficheiro "comments.txt"
+		br = new BufferedReader(new FileReader(ficheiroComments));
+
+		// adicionar cada linha do ficheiro comments.txt para 
+		// a estrutura listaComentarios da foto p
+		String comment;
+		while ((comment = br.readLine()) != null)
+			//TODO DATA!!!!
+			listaComentarios.add(new Comment(u, new Date(), comment));
+
+		p.addComments(listaComentarios);
+		br.close();
+
+	}
+}
