@@ -183,7 +183,7 @@ public class Server
 	
 	/**
 	 * Obtem a informacao de uma foto
-	 * @param user - O autor da foto
+	 * @param user - O autortttttt da foto
 	 * @param photo - O nome da foto
 	 * @return A String com informacao se teve sucesso, null em caso contrario
 	 */
