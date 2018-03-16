@@ -275,4 +275,36 @@ public class FileManager extends Server
 		br.close();
 		return false;
 	}
+	
+	public void loadFollowers(User u) throws IOException {
+		// load followers
+		File followersFile = new File(path + "\\" + u.getUserid() + "\\" + "followers.txt");
+
+		br = new BufferedReader(new FileReader(followersFile));
+
+		String userid;
+		while ((userid = br.readLine()) != null)
+			u.addFollower(userid);
+
+		
+		br.close();
+	}
+
+	/**
+	 *  load photos from database to the user
+	 */
+	public void loadPhotos(User u) {
+		// load photos
+		String photosFile = path + "\\" + u.getUserid() + "\\" + "Photos";
+		// todas as pastas de fotos
+		File[] directories = new File(photosFile).listFiles(File::isDirectory);
+
+		// buscar as fotos presentes em cada directoria
+		for (File photo : directories) {
+			Photo p = new Photo(photo.getName());
+			// colocar a foto na lista de fotos do utilizador
+			u.addPhoto(p);
+		}
+
+	}
 }
