@@ -14,6 +14,7 @@ import java.util.Iterator;
 //Threads utilizadas para comunicacao com os clientes
 /**
  * Performs user authentication and the requested operation
+ * 
  * @author antonio, max, miguel
  *
  */
@@ -27,6 +28,7 @@ class ServerThread extends Thread {
 
 	/**
 	 * Constructor, initializes this ServerThread
+	 * 
 	 * @param inSoc
 	 * @param server
 	 */
@@ -39,14 +41,13 @@ class ServerThread extends Thread {
 	}
 
 	/**
-	 * Runs this thread. Performs user authentication and the 
-	 * requested operation
+	 * Runs this thread. Performs user authentication and the requested operation
 	 */
 	public void run() {
 		try {
 			ObjectInputStream inStream = new ObjectInputStream(inSoc.getInputStream());
-			
-			//get the user's credentials
+
+			// get the user's credentials
 			String userid = null;
 			String password = null;
 			String[] args = null;
@@ -55,17 +56,17 @@ class ServerThread extends Thread {
 				password = (String) inStream.readObject();
 				System.out.println("thread: depois de receber a password e o userid");
 				authenticate(userid, password);
-			//get the arguments for the operation
+				// get the arguments for the operation
 				args = (String[]) inStream.readObject();
 			} catch (ClassNotFoundException e1) {
 				e1.printStackTrace();
 			}
 			authenticate(userid, password);
-			
-			//Execute the requested operation
+
+			// Execute the requested operation
 			executeOperation(userid, password, args, inStream);
-			
-			//close stream and socket
+
+			// close stream and socket
 			inStream.close();
 			inSoc.close();
 
@@ -73,7 +74,7 @@ class ServerThread extends Thread {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Authenticates this user towards the System
 	 * 

@@ -22,12 +22,10 @@ public class Server {
 	// HH:mm");
 
 	/**
-	 * Constructor for the Server class
-	 * initiates the server which represents the system
-	 * ... TO COMPLETE
-	 * Inicia o servidor, criando directorios e ficheiros de registo se necessario.
-	 * Nao cria interfaces de rede; tudo o que diz respeito a portos, TCP e outras
-	 * coisas giras fica ao encargo do handler.
+	 * Constructor for the Server class initiates the server which represents the
+	 * system ... TO COMPLETE Inicia o servidor, criando directorios e ficheiros de
+	 * registo se necessario. Nao cria interfaces de rede; tudo o que diz respeito a
+	 * portos, TCP e outras coisas giras fica ao encargo do handler.
 	 * 
 	 * @throws IOException
 	 */
@@ -43,7 +41,7 @@ public class Server {
 	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IOException {
-		//set up the server, and get the port
+		// set up the server, and get the port
 		Server server = new Server();
 		int port = new Integer(args[1]);
 
@@ -57,10 +55,10 @@ public class Server {
 			System.err.println(e.getMessage());
 			System.exit(-1);
 		}
-		while(true) {
+		while (true) {
 			try {
 				Socket inSoc = sSoc.accept();
-				//set up a thread
+				// set up a thread
 				ServerThread newServerThread = new ServerThread(inSoc, server);
 				newServerThread.start();
 			} catch (IOException e) {
@@ -68,9 +66,8 @@ public class Server {
 			}
 
 		}
-		//sSoc.close();
+		// sSoc.close();
 	}
-
 
 	// ================== OPERACOES =================== //
 	// Estes metodos comunicam com o FileManager e //
@@ -138,36 +135,58 @@ public class Server {
 		fm.FMaddUser(name, password);
 		return true;
 	}
-	
+
 	/**
+<<<<<<< HEAD
 	 * @requires all the photos have been loaded from the file system
 	 * @requires the user is authenticated
 	 * 
 	 * checks the photos of the user with the given userid
 	 * if he already has a photo with any of the names given in photos,
 	 * returns false, otherwise, returns true
+=======
+	 * checks the photos of the user with the given userid if he already has a photo
+	 * with any of the names given in photos, returns false, otherwise, returns true
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 	 * 
 	 * @param userid
 	 * @param password
 	 * @return
 	 */
+<<<<<<< HEAD
 	public boolean checkDuplicatePhotos(String userid, String password, String[] names) {
 		User user = getUser(userid, password);
 		return user.hasPhotos(names);
+=======
+	public boolean checkDuplicatePhotos(String userid, String password, String[] photos) {
+
+		// TODO INCOMPLETE!
+
+		return false;
+
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 	}
-	
+
 	/**
 	 * adds the photos with the given names to the user with the given userid
 	 * 
+<<<<<<< HEAD
 	 * the user will get to the temp file path given and fetch the file
 	 * 
+=======
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 	 * @param photo
 	 */
+<<<<<<< HEAD
 	public void addPhotos(String userid, String password, String[] names,
 			File photosPath) {
 		User user = getUser(userid, password);
 		//adds the photos to this user
 		user.addPhotos(names, photosPath);
+=======
+	public void addPhoto(Photo photo) {
+		// TODO
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 	}
 
 	/**
