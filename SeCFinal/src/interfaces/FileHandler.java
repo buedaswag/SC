@@ -1,5 +1,4 @@
 package interfaces;
 
-public interface FileHandler
-{
+public interface FileHandler {
 }

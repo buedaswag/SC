@@ -6,24 +6,24 @@ import java.net.UnknownHostException;
 import interfaces.NetworkHandler;
 
 public class ServerNetworkHandler implements NetworkHandler {
-	
+
 	/*
-	 * the socket, ObjectInputStream
-	 *  for the TCP communication
+	 * the socket, ObjectInputStream for the TCP communication
 	 * 
 	 */
 	ServerSocket sSoc;
 	ObjectInputStream dis;
-	
+
 	/**
 	 * Constructor for the ServerNetworkHandler
 	 * 
-	 * @param port the TCP port where the connection is made
+	 * @param port
+	 *            the TCP port where the connection is made
 	 */
 	public ServerNetworkHandler(int port) {
 		startConnection(port);
 	}
-	
+
 	@Override
 	public void startConnection(int port) throws IOException, UnknownHostException {
 		sSoc = null;

@@ -43,7 +43,7 @@ public class Photo {
 	public long getSize() {
 		return this.size;
 	}
-	
+
 	public int getTotalLikes() {
 		return this.likes;
 	}
@@ -55,11 +55,11 @@ public class Photo {
 	public List<Comment> getComments() {
 		return comments;
 	}
-	
+
 	public void addComments(List<Comment> comments) {
 
-		for (Comment comment : comments) 
+		for (Comment comment : comments)
 			this.comments.add(comment);
-		
+
 	}
 }

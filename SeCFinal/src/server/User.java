@@ -36,7 +36,6 @@ public class User {
 
 	public void addFollowers(List<String> followers) {
 		this.followers.addAll(followers);
-		}
 	}
 
 	public void removeFollowers(List<String> followers) {
@@ -44,15 +43,14 @@ public class User {
 			this.followers.remove(u);
 		}
 	}
-	
+
 	public void addFollower(String follower) {
-			this.followers.add(follower);
+		this.followers.add(follower);
 	}
-	
+
 	public void removeFollower(String follower) {
 		this.followers.remove(follower);
-}
-
+	}
 
 	/**
 	 * adds this user's photo
