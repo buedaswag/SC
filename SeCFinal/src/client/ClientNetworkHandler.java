@@ -89,4 +89,10 @@ public class ClientNetworkHandler implements NetworkHandler {
 		String answer = (String) in.readObject();
 		return answer;
 	}
+
+	@Override
+	public void startConnection(int port) throws IOException, UnknownHostException {
+		// TODO Auto-generated method stub
+		
+	}
 }

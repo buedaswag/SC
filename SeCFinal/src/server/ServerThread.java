@@ -107,7 +107,7 @@ class ServerThread extends Thread {
 				System.out.println("duplicate photos");
 			else {
 				//adicionar as fotos ao sistema de ficheiros
-				File photosPath = recievePhotos(userid, newArgs, inStream);
+				File photosPath = receivePhotos(userid, newArgs, inStream);
 				/*
 				 * pedir ao server para ir buscar á temp
 				 */
@@ -187,13 +187,13 @@ class ServerThread extends Thread {
 	}
 
 	/**
-	 * Recieves the photos from the TCP port and stores them in the
+	 * Receives the photos from the TCP port and stores them in the
 	 * given user's temp folder
 	 * @param userid
 	 * @param newArgs
 	 * @throws IOException 
 	 */
-	private File recievePhotos(String userid, String[] newArgs, 
+	private File receivePhotos(String userid, String[] newArgs, 
 			ObjectInputStream inStream) throws IOException {
 		//create path for this user and for his/her photos
 		File useridPath = new File (tempPath + "\\" + userid);

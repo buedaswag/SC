@@ -34,28 +34,46 @@ public class User {
 		this.photos = new ArrayList<>();
 	}
 
+	/**
+	 * adds followers to this User큦 list of followers
+	 * 
+	 * @param followers - the followers to be added 
+	 */
 	public void addFollowers(List<String> followers) {
 		this.followers.addAll(followers);
 	}
 
+	/**
+	 * removes followers from this User큦 list of followers
+	 * 
+	 * @param followers - the followers to be removed 
+	 */
 	public void removeFollowers(List<String> followers) {
-		for (String u : followers) {
-			this.followers.remove(u);
-		}
+		this.followers.removeAll(followers);
 	}
 
+	/**
+	 *  adds a single follower to this User큦 followers list
+	 *  
+	 * @param follower the follower to be added
+	 */
 	public void addFollower(String follower) {
 		this.followers.add(follower);
 	}
 
+	/**
+	 *  removes a single followers to this User큦 followers list
+	 *  
+	 * @param follower the follower to be removed
+	 */
 	public void removeFollower(String follower) {
 		this.followers.remove(follower);
 	}
 	
 	/**
 	 * checks if the user has a photo with the given name
-	 * @param photo
-	 * @return
+	 * @param name - the name to check
+	 * @return true if the User does has a photo with the given name 
 	 */
 	public boolean hasPhoto(String name) {
 		for(Photo p : photos)
@@ -66,8 +84,8 @@ public class User {
 	
 	/**
 	 * checks if the user has any photo with any of the given names
-	 * @param names
-	 * @return
+	 * @param names of the photos given
+	 * @return true if the User does have a photo with the given names
 	 */
 	public boolean hasPhotos(String[] names) {
 		for(String name : names)
@@ -77,13 +95,9 @@ public class User {
 	}
 
 	/**
-<<<<<<< HEAD
-	 * adds this user's photo s
-=======
-	 * adds this user's photo
-	 * 
->>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
-	 * @param photo
+	 * TODO
+	 * @param names
+	 * @param photosPath
 	 */
 	public void addPhotos(String[] names, File photosPath) {
 		//adds the photos to the file system and to memory
@@ -111,9 +125,4 @@ public class User {
 		return password;
 	}
 
-	/**
-	 * @throws IOException
-	 * @requires this is an existing user in the file system
-	 * @requires exists a followers.txt file in this user's directory
-	 */
 }
