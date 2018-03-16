@@ -50,12 +50,42 @@ public class User {//implements Persistent{
 		followers.addAll(aux);
 		return true;
 	}
+	
+	/**
+	 * checks if the user has a photo with the given name
+	 * @param photo
+	 * @return
+	 */
+	public boolean hasPhoto(String name) {
+		for(Photo p : photos)
+			if(p.getName().equals(name))
+				return true;
+		return false;
+	}
+	
+	/**
+	 * checks if the user has any photo with any of the given names
+	 * @param names
+	 * @return
+	 */
+	public boolean hasPhotos(String[] names) {
+		for(String name : names)
+			if(hasPhoto(name))
+				return true;
+		return false;
+	}
 
 	/**
-	 * adds this user's photo
+	 * adds this user's photo s
 	 * @param photo
 	 */
-	public void addPhoto(Photo photo) {
+	public void addPhotos(String[] names, File photosPath) {
+		//adds the photos to the file system and to memory
+		for (String name : names) {
+			photos.add(new Photo(name, photosPath));
+		}
+		
+		Photo photo = new Photo()
 		photos.add(photo);
 	}
 

@@ -9,8 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import myServer4.ServerThread;
-
 public class Server {
 	private int port;
 	private String address;
@@ -78,6 +76,41 @@ public class Server {
 	// Estes metodos comunicam com o FileManager e //
 	// actualizam tanto a memoria fisica como a do //
 	// programa. //
+	
+	/**
+	 * gets the user with the given credentials from the List users
+	 * @requires the user is authenticated
+	 * @param userid
+	 * @param password
+	 * @return the user, or null if its not on the List
+	 */
+	private User getUser(String userid, String password) {
+		for (User u : users)
+			if (u.getUserid().equals(userid))
+				return u;
+		return null;
+	}
+	
+	/**
+	 * @requires the user is authenticated
+	 * 
+	 * @param userid
+	 * @param password
+	 * @return user the 
+	 */
+	private boolean checkPassword(String userid, String password) {
+		boolean result = false;
+		for (User u : users) {
+			// Password certa?
+			if (u.getUserid().equals(userid)) {
+				if (u.getPassword().equals(password))
+					result = true;
+				else
+					result = false;
+			}
+		}
+		return result;
+	}
 
 	/**
 	 * Autentica um utilizador, se este existir Caso contrario, cria-o e regista-o
@@ -88,7 +121,7 @@ public class Server {
 	 * @throws IOException
 	 * @throws IOException
 	 */
-	public boolean authenticate(String name, String password) throws IOException {
+	public boolean authenticate(String userid, String password) throws IOException {
 		// Caso 1: cliente existe
 		for (User u : userList) {
 			// Password certa?
@@ -107,27 +140,34 @@ public class Server {
 	}
 	
 	/**
+	 * @requires all the photos have been loaded from the file system
+	 * @requires the user is authenticated
+	 * 
 	 * checks the photos of the user with the given userid
 	 * if he already has a photo with any of the names given in photos,
 	 * returns false, otherwise, returns true
+	 * 
 	 * @param userid
 	 * @param password
 	 * @return
 	 */
-	public boolean checkDuplicatePhotos(String userid, String password, String[] photos) {
-		
-		//TODO INCOMPLETE!
-		
-		return false;
-		
+	public boolean checkDuplicatePhotos(String userid, String password, String[] names) {
+		User user = getUser(userid, password);
+		return user.hasPhotos(names);
 	}
 	
 	/**
 	 * adds the photos with the given names to the user with the given userid
+	 * 
+	 * the user will get to the temp file path given and fetch the file
+	 * 
 	 * @param photo
 	 */
-	public void addPhoto(Photo photo) {
-		//TODO
+	public void addPhotos(String userid, String password, String[] names,
+			File photosPath) {
+		User user = getUser(userid, password);
+		//adds the photos to this user
+		user.addPhotos(names, photosPath);
 	}
 
 	/**
@@ -137,6 +177,7 @@ public class Server {
 	 *            - O utilizador
 	 * @return A String com informacao caso tenha sucesso, null caso contrario
 	 */
+	/*
 	public String listPhotos(String user) {
 		// User existe?
 		User temp = getByName(user);
@@ -158,7 +199,7 @@ public class Server {
 		}
 		return list;
 	}
-
+	*/
 	/**
 	 * Obtem a informacao de uma foto
 	 * 
@@ -168,6 +209,7 @@ public class Server {
 	 *            - O nome da foto
 	 * @return A String com informacao se teve sucesso, null em caso contrario
 	 */
+	/*
 	public String infoPhoto(String user, String photo) {
 		if (isFollower(user)) {
 
@@ -175,7 +217,7 @@ public class Server {
 			return null;
 		}
 	}
-
+	*/
 	/**
 	 * Copia as fotos de um utilizador para o cliente actual
 	 * 
@@ -233,6 +275,7 @@ public class Server {
 	 *            - A foto
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
+	/*
 	public String addDislike(String user, String photo) {
 		if (!isFollower(user)) {
 			return null;
@@ -241,7 +284,7 @@ public class Server {
 		}
 		return "success";
 	}
-
+	*/
 	/**
 	 * Adiciona uma lista de utilizadores como seguidores
 	 * 
@@ -288,7 +331,7 @@ public class Server {
 	 *            - Os seguidores a remover
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
-	@SuppressWarnings("unused")
+	/*
 	public String removeFollowers(String user, String[] users) {
 		// Conversao da lista de nomes uma lista de seguidores
 		ArrayList<String> temp = new ArrayList<String>();
@@ -325,7 +368,7 @@ public class Server {
 		}
 		return null;
 	}
-
+	*/
 	/**
 	 * Verifica se o utilizador actual tem user como seguidor
 	 * 
