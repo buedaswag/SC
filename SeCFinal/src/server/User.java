@@ -51,13 +51,47 @@ public class User {
 	public void removeFollower(String follower) {
 		this.followers.remove(follower);
 	}
+	
+	/**
+	 * checks if the user has a photo with the given name
+	 * @param photo
+	 * @return
+	 */
+	public boolean hasPhoto(String name) {
+		for(Photo p : photos)
+			if(p.getName().equals(name))
+				return true;
+		return false;
+	}
+	
+	/**
+	 * checks if the user has any photo with any of the given names
+	 * @param names
+	 * @return
+	 */
+	public boolean hasPhotos(String[] names) {
+		for(String name : names)
+			if(hasPhoto(name))
+				return true;
+		return false;
+	}
 
 	/**
+<<<<<<< HEAD
+	 * adds this user's photo s
+=======
 	 * adds this user's photo
 	 * 
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 	 * @param photo
 	 */
-	public void addPhoto(Photo photo) {
+	public void addPhotos(String[] names, File photosPath) {
+		//adds the photos to the file system and to memory
+		for (String name : names) {
+			photos.add(new Photo(name, photosPath));
+		}
+		
+		Photo photo = new Photo()
 		photos.add(photo);
 	}
 

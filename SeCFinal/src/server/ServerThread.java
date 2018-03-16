@@ -1,11 +1,15 @@
 package server;
 
+import java.io.DataInput;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Iterator;
 
 //Threads utilizadas para comunicacao com os clientes
 /**
@@ -15,7 +19,10 @@ import java.util.Arrays;
  *
  */
 class ServerThread extends Thread {
-
+	
+	private File tempPath;
+	
+	
 	private Socket inSoc;
 	private Server server;
 
@@ -28,6 +35,9 @@ class ServerThread extends Thread {
 	public ServerThread(Socket inSoc, Server server) {
 		this.inSoc = inSoc;
 		this.server = server;
+		//create the temp directory
+		tempPath = new File("temp");
+		
 	}
 
 	/**
@@ -79,7 +89,7 @@ class ServerThread extends Thread {
 	/**
 	 * Executes the operation requested in args
 	 * @param args the operation name and parameters looks like this 
-	 * ["addPhoto","sex","drugs","leagueOfLegends"]
+	 * ["a","sex","drugs","leagueOfLegends"]
 	 */
 	private void executeOperation(String userid, String password, String[] args, 
 			ObjectInputStream inStream) {
@@ -94,8 +104,16 @@ class ServerThread extends Thread {
 			//check for duplicate photos
 			if (server.checkDuplicatePhotos(userid, password, newArgs))
 				//TODO enviar erro para  o cliente
-			else
-				server.addPhoto
+				System.out.println("duplicate photos");
+			else {
+				//adicionar as fotos ao sistema de ficheiros
+				File photosPath = recievePhotos(userid, newArgs, inStream);
+				/*
+				 * pedir ao server para ir buscar á temp
+				 */
+				server.addPhotos(userid, password, newArgs, photosPath);
+				
+			}
 			break;
 		}
 		// Listar fotos
@@ -166,5 +184,52 @@ class ServerThread extends Thread {
 
 		// Fechar tudo
 
+	}
+
+	/**
+	 * Recieves the photos from the TCP port and stores them in the
+	 * given user's temp folder
+	 * @param userid
+	 * @param newArgs
+	 * @throws IOException 
+	 */
+	private File recievePhotos(String userid, String[] newArgs, 
+			ObjectInputStream inStream) throws IOException {
+		//create path for this user and for his/her photos
+		File useridPath = new File (tempPath + "\\" + userid);
+		File photosPath = new File (useridPath + "\\photos");
+		
+		/* create the buffer to receive the chunks and the 
+		 * FileOutputStream to write to the file
+		 */
+		FileOutputStream fos;
+		byte[] buffer = new byte[1024];
+		int filesize = 0, read = 0, remaining = 0, totalRead = 0;
+		
+		for (String name : newArgs) {
+			/*
+			 * create FileOutputStream that writes to this user's 
+			 * photo temp directory
+			 */
+			fos = new FileOutputStream(photosPath + "\\" + name);
+			
+			//read the file size
+			filesize = inStream.readInt();
+			
+			/*
+			 * reads the file in chunks and writes the chunks to the 
+			 * specified directory
+			 */
+			remaining = filesize;
+			while((read = inStream.read(buffer, 0, Math.min(buffer.length, remaining))) > 0) {
+				totalRead += read;
+				remaining -= read;
+				fos.write(buffer, 0, read);
+			}
+			//close FileOutputStream, reset variavles
+			fos.close();
+			totalRead = 0;
+		}
+		return photosPath;
 	}
 }
