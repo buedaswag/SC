@@ -1,6 +1,8 @@
 package server;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.net.ServerSocket;
 import java.net.UnknownHostException;
 
 import interfaces.NetworkHandler;
@@ -19,8 +21,10 @@ public class ServerNetworkHandler implements NetworkHandler {
 	 * 
 	 * @param port
 	 *            the TCP port where the connection is made
+	 * @throws IOException 
+	 * @throws UnknownHostException 
 	 */
-	public ServerNetworkHandler(int port) {
+	public ServerNetworkHandler(int port) throws UnknownHostException, IOException {
 		startConnection(port);
 	}
 
@@ -28,7 +32,7 @@ public class ServerNetworkHandler implements NetworkHandler {
 	public void startConnection(int port) throws IOException, UnknownHostException {
 		sSoc = null;
 		try {
-			sSoc = new ServerSocket(23456);
+			sSoc = new ServerSocket(port);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
@@ -46,5 +50,6 @@ public class ServerNetworkHandler implements NetworkHandler {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 
 }

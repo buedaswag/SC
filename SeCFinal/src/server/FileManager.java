@@ -3,6 +3,7 @@ package server;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
@@ -59,8 +60,8 @@ public class FileManager extends Server {
 		for (String line; (line = br.readLine()) != null;) {
 			String[] data = line.split(":");
 			temp = new User(data[0], data[1]);
-			temp.loadFollowers();
-			temp.loadPhotos();
+			loadFollowers(temp);
+			loadPhotos(temp);
 			tempList.add(new User(data[0], data[1]));
 		}
 		closeBuffers();
@@ -126,9 +127,39 @@ public class FileManager extends Server {
 
 	// info
 
-	public String FMgetInfo(String user, String photo) {
-		// Ler directorios
-		return null;
+	public String[] FMgetInfo(String user, String photo) throws IOException {
+		
+		File reactions = new File(path + "\\" + userDB + "\\" + user + "\\"
+				+ photo + "\\" + "reactions.txt");
+		File comments = new File(path + "\\" + userDB + "\\" + user + "\\"
+				+ photo + "\\" + "comments.txt");
+
+		// Leitura dos likes/dislikes
+		fr = new FileReader(reactions.getAbsoluteFile());
+		br = new BufferedReader(fr);
+		String likes = br.readLine();
+		String dislikes = br.readLine();
+
+		// Leitura dos comentarios
+		fr = new FileReader(comments.getAbsoluteFile());
+		br = new BufferedReader(fr);
+
+		// Acrescento do numero de likes e dislikes
+		ArrayList<String> commentList = new ArrayList<String>();
+		commentList.add(likes);
+		commentList.add(dislikes);
+
+		// Acrescento dos comentarios
+		String line;
+		while ((line = br.readLine()) != null) {
+			commentList.add(line);
+		}
+
+		// Conversao da ArrayList para String[]
+		String[] info = commentList.toArray(new String[commentList.size()]);
+		closeBuffers();
+		return info;
+	
 	}
 
 	public String FMaddComment(String comment, String user, String photo) {
