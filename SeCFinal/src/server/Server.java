@@ -30,8 +30,8 @@ public class Server {
 	 * @throws IOException
 	 */
 	public Server() throws IOException {
-		fm = new FileManager();
-		users = fm.loadUsers();
+		fileManager = new FileManager();
+		users = fileManager.loadUsers();
 	}
 
 	/**
@@ -118,55 +118,94 @@ public class Server {
 	 * @throws IOException
 	 * @throws IOException
 	 */
+	//TODO
 	public boolean authenticate(String userid, String password) throws IOException {
+<<<<<<< HEAD
 		
 		if (checkPassword(userid, password)) {			
 			currUser = getUser(userid, password);
 			return true;
 			}else {
 				return false;
+=======
+		// Caso 1: cliente existe
+		for (User u : users) {
+			// Password certa?
+			if (u.getUserid().equals(userid)) {
+				if (u.getPassword().equals(password)) {
+					currUser = u;
+					return true;
+				} else {
+					return false;
+				}
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 			}
 		
 		// Caso 2: cliente nao existe
+<<<<<<< HEAD
 		fm.FMaddUser(userid, password);
+=======
+		fileManager.addUser(userid, password);
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 		return true;
 	}
 
 	/**
-<<<<<<< HEAD
 	 * @requires all the photos have been loaded from the file system
 	 * @requires the user is authenticated
 	 * 
 	 * checks the photos of the user with the given userid
 	 * if he already has a photo with any of the names given in photos,
 	 * returns false, otherwise, returns true
-=======
-	 * checks the photos of the user with the given userid if he already has a photo
-	 * with any of the names given in photos, returns false, otherwise, returns true
->>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
-	 * 
 	 * @param userid
 	 * @param password
 	 * @return
+<<<<<<< HEAD
 	 */
+=======
+	 */
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 	public boolean checkDuplicatePhotos(String userid, String password, String[] names) {
 		User user = getUser(userid, password);
 		return user.hasPhotos(names);
+<<<<<<< HEAD
 		
 	}	
 
 
 
+=======
+	}
+
+	/**
+	 * adds the photos with the given names to the user with the given userid,
+	 * and after its done, deletes the photos from the given directory
+	 * 
+	 * @param userid 
+	 * @param password
+	 * @param names
+	 * @param photosPath the path to the photos in the user's temp folder
+	 */
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 	public void addPhotos(String userid, String password, String[] names,
 			File photosPath) {
 		User user = getUser(userid, password);
 		//adds the photos to this user
 		user.addPhotos(names, photosPath);
+<<<<<<< HEAD
 
 	}
 	
+=======
+	}
+
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 	public void addPhoto(Photo photo) {
+<<<<<<< HEAD
 		// TODO
+=======
+		// TODO
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 	}
 
 	/**
@@ -186,7 +225,7 @@ public class Server {
 
 		// Utilizador segue user?
 		if (isFollower(user)) {
-			photos = fm.FMlistPhotos(user);
+			photos = fileManager.fileManagerlistPhotos(user);
 		} else {
 			return null;
 		}
@@ -242,7 +281,7 @@ public class Server {
 		if (!isFollower(user)) {
 			return null;
 		} else {
-			fm.FMaddComment(comment, user, photo);
+			fileManager.addComment(comment, user, photo);
 		}
 		return "success";
 	}
@@ -260,7 +299,7 @@ public class Server {
 		if (!isFollower(user)) {
 			return null;
 		} else {
-			fm.FMaddLike(user, photo);
+			fileManager.addLike(user, photo);
 		}
 		return "success";
 	}
@@ -279,7 +318,7 @@ public class Server {
 		if (!isFollower(user)) {
 			return null;
 		} else {
-			fm.addDislike(user, photo);
+			fileManager.addDislike(user, photo);
 		}
 		return "success";
 	}
@@ -293,6 +332,7 @@ public class Server {
 	 *            - Os futuros seguidores
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
+	//TODO
 	public String addFollowers(String user, String[] users) {
 		// Conversao da lista de nomes uma lista de seguidores
 		ArrayList<String> temp = new ArrayList<String>();
@@ -317,7 +357,7 @@ public class Server {
 		// Actualizacao na memoria de execucao
 		currUser.addFollowers(temp);
 		// Actualizacao na memoria fisica
-		fm.addFollowers(user, users);
+		fileManager.addFollowers(user, users);
 		return "success";
 	}
 
@@ -354,7 +394,7 @@ public class Server {
 		// Actualizacao na memoria de execucao
 		currUser.addFollowers(temp);
 		// Actualizacao na memoria fisica
-		fm.addFollowers(user, users);
+		fileManager.addFollowers(user, users);
 		return "success";
 	}
 
@@ -362,7 +402,11 @@ public class Server {
 
 	public User getByName(String id) {
 		for (User u : users) {
+<<<<<<< HEAD
 			if (u.getUserid().equals(id))
+=======
+			if (u.getName().equals(id))
+>>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 				return u;
 		}
 		return null;
@@ -373,6 +417,7 @@ public class Server {
 	 * 
 	 * @return - idem
 	 */
+	//TODO
 	public boolean isFollower(String user) {
 		for (String f : currUser.getFollowers()) {
 			if (f.equals(user))
