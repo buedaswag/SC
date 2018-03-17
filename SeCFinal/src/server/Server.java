@@ -12,7 +12,7 @@ import java.util.List;
 public class Server {
 	private int port;
 	private String address;
-	private static FileManager fileManager;
+	private static FileManager fm;
 	// Lista de utilizadores (permite manipulacao facil em runtime)
 	private static List<User> users;
 
@@ -43,7 +43,7 @@ public class Server {
 	public static void main(String[] args) throws IOException {
 		// set up the server, and get the port
 		Server server = new Server();
-		int port = new Integer(args[1]);
+		int port = Integer.parseInt(args[1]);
 
 		/*
 		 * listen to the TCP port and set up a thread for each request
@@ -89,11 +89,11 @@ public class Server {
 	}
 	
 	/**
-	 * @requires the user is authenticated
+	 * @requires the user exists
 	 * 
-	 * @param userid
-	 * @param password
-	 * @return user the 
+	 * @param userid the userid to be checked
+	 * @param password the password to be checked
+	 * @return true if the password is correct
 	 */
 	private boolean checkPassword(String userid, String password) {
 		boolean result = false;
@@ -119,20 +119,16 @@ public class Server {
 	 * @throws IOException
 	 */
 	public boolean authenticate(String userid, String password) throws IOException {
-		// Caso 1: cliente existe
-		for (User u : userList) {
-			// Password certa?
-			if (u.getName().equals(name)) {
-				if (u.getPassword().equals(password)) {
-					currUser = u;
-					return true;
-				} else {
-					return false;
-				}
+		
+		if (checkPassword(userid, password)) {			
+			currUser = getUser(userid, password);
+			return true;
+			}else {
+				return false;
 			}
-		}
+		
 		// Caso 2: cliente nao existe
-		fm.FMaddUser(name, password);
+		fm.FMaddUser(userid, password);
 		return true;
 	}
 
@@ -153,40 +149,24 @@ public class Server {
 	 * @param password
 	 * @return
 	 */
-<<<<<<< HEAD
 	public boolean checkDuplicatePhotos(String userid, String password, String[] names) {
 		User user = getUser(userid, password);
 		return user.hasPhotos(names);
-=======
-	public boolean checkDuplicatePhotos(String userid, String password, String[] photos) {
+		
+	}	
 
-		// TODO INCOMPLETE!
 
-		return false;
 
->>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
-	}
-
-	/**
-	 * adds the photos with the given names to the user with the given userid
-	 * 
-<<<<<<< HEAD
-	 * the user will get to the temp file path given and fetch the file
-	 * 
-=======
->>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
-	 * @param photo
-	 */
-<<<<<<< HEAD
 	public void addPhotos(String userid, String password, String[] names,
 			File photosPath) {
 		User user = getUser(userid, password);
 		//adds the photos to this user
 		user.addPhotos(names, photosPath);
-=======
+
+	}
+	
 	public void addPhoto(Photo photo) {
 		// TODO
->>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 	}
 
 	/**
@@ -350,7 +330,7 @@ public class Server {
 	 *            - Os seguidores a remover
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
-	/*
+	
 	public String removeFollowers(String user, String[] users) {
 		// Conversao da lista de nomes uma lista de seguidores
 		ArrayList<String> temp = new ArrayList<String>();
@@ -378,16 +358,16 @@ public class Server {
 		return "success";
 	}
 
-	// ================== UTILIDADES ================== //
+	// ================== UTILIDADES ==================
 
 	public User getByName(String id) {
-		for (User u : userList) {
-			if (u.getName().equals(id))
+		for (User u : users) {
+			if (u.getUserid().equals(id))
 				return u;
 		}
 		return null;
 	}
-	*/
+	
 	/**
 	 * Verifica se o utilizador actual tem user como seguidor
 	 * 

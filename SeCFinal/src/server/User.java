@@ -76,9 +76,9 @@ public class User {
 	 * @return true if the User does has a photo with the given name 
 	 */
 	public boolean hasPhoto(String name) {
-		for(Photo p : photos)
-			if(p.getName().equals(name))
-				return true;
+		if (photos.contains(new Photo(name))) 
+			return true;
+		
 		return false;
 	}
 	
@@ -94,20 +94,6 @@ public class User {
 		return false;
 	}
 
-	/**
-	 * TODO
-	 * @param names
-	 * @param photosPath
-	 */
-	public void addPhotos(String[] names, File photosPath) {
-		//adds the photos to the file system and to memory
-		for (String name : names) {
-			photos.add(new Photo(name, photosPath));
-		}
-		
-		Photo photo = new Photo()
-		photos.add(photo);
-	}
 
 	/**
 	 * 
