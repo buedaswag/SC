@@ -143,12 +143,25 @@ public class FileManager extends Server {
 		new File(pastaFoto + "\\" + "reactions.txt").createNewFile();
 	}
 
-	public ArrayList<Photo> FMlistPhotos(String user, String photo) {
-		// Ler directorios
-		return null;
+	/**
+	 * Lista as fotos de um utilizador
+	 * 
+	 * @param user
+	 *            - O utilizador
+	 * @return
+	 * @throws IOException
+	 */
+	public String[] FMlistPhotos(String user) throws IOException {
+		File file = new File(path + "\\" + database + "\\" + user);
+		String[] folders = file.list(new FilenameFilter() {
+			@Override
+			public boolean accept(File current, String name) {
+				return new File(current, name).isDirectory();
+			}
+		});
+		closeBuffers();
+		return folders;
 	}
-
-	// info
 
 	public String[] FMgetInfo(String user, String photo) throws IOException {
 		
@@ -184,20 +197,135 @@ public class FileManager extends Server {
 		return info;
 	
 	}
+	
+	/**
+	 * Obtem as fotos de um dado seguidor
+	 * 
+	 * @param user
+	 *            - O utilizador
+	 * @return - A lista de fotos desse utilizador
+	 * @throws IOException
+	 */
+	public ArrayList<File> FMgetPhotos(String user) throws IOException {
+		// Criar variaveis
+		File f;
+		ArrayList<File> photoList = new ArrayList<File>();
 
-	public String FMaddComment(String comment, String user, String photo) {
-		// Ler directorios
-		return null;
+		// Listar as fotos de um utilizador
+		String[] paths = FMlistPhotos(user);
+		for (String p : paths) {
+			// Obter a imagem do directorio (por extensao)
+			f = new File(path + "\\" + user + "\\" + p);
+			File[] files = f.listFiles(new FilenameFilter() {
+				public boolean accept(File dir, String name) {
+					boolean isImage = name.toLowerCase().endsWith(".png") || name.toLowerCase().endsWith(".jpg")
+							|| name.toLowerCase().endsWith(".jpeg");
+					return isImage;
+				}
+			});
+			// Adicionar foto a lista final
+			photoList.add(files[0]);
+		}
+		return photoList;
 	}
 
-	public String FMaddLike(String user, String photo) {
-		// Ler directorios
-		return null;
+	/**
+	 * Acrescenta um comentario a uma foto
+	 * 
+	 * @param comment
+	 *            - O comentario
+	 * @param user
+	 *            - O utilizador
+	 * @param photo
+	 *            - A foto
+	 * @throws IOException
+	 */
+	public void FMaddComment(String comment, String user, String photo) throws IOException {
+		// Constroi linha a escrever no ficheiro
+		Date local = new Date();
+		String finalLine = user + ":" + df.format(local) + ":" + comment;
+
+		// Abre ficheiro de comentarios e buffers respectivos
+		File comments = new File(path + "\\" + user + "\\" + photo + "\\" + "comments.txt");
+		fw = new FileWriter(comments.getAbsoluteFile(), true);
+		bw = new BufferedWriter(fw);
+
+		// Escrita no ficheiro
+		bw.write(finalLine);
+		bw.newLine();
+		closeBuffers();
 	}
 
-	public String FMaddDislike(String photo) {
-		// Ler directorios
-		return null;
+	/**
+	 * Acrescenta um like a uma foto
+	 * 
+	 * @param user
+	 *            - O utilizador
+	 * @param photo
+	 *            - A foto
+	 * @throws IOException
+	 */
+	public static void FMaddLike(String user, String photo) throws IOException {
+		// Abre ficheiro antigo e cria novo
+		File file = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions.txt");
+		File novo = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions2.txt");
+
+		fw = new FileWriter(novo.getAbsoluteFile(), true);
+		bw = new BufferedWriter(fw);
+		br = new BufferedReader(new FileReader(file));
+
+		// Fazer magia!
+		if (follows(user)) {
+			int likesAtuais = Integer.parseInt(br.readLine());
+			String atualizaLikes = String.valueOf(likesAtuais + 1);
+			String disLikesAtuais = br.readLine();
+			bw.write(atualizaLikes);
+			bw.newLine();
+			bw.write(disLikesAtuais);
+			System.out.println(file.getName());
+		}
+
+		closeBuffers();
+		// WTFFF
+		System.gc();
+		file.delete();
+		novo.renameTo(file);
+	}
+
+	/**
+	 * Acrescenta um dislike a uma foto
+	 * 
+	 * @param user
+	 *            - O utilizador
+	 * @param photo
+	 *            - A foto
+	 * @throws IOException
+	 */
+	public static void dislike(String user, String photo) throws IOException {
+		// Abre ficheiro antigo e cria novo
+		File file = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions.txt");
+		File novo = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions2.txt");
+
+		fw = new FileWriter(novo.getAbsoluteFile(), true);
+		bw = new BufferedWriter(fw);
+		br = new BufferedReader(new FileReader(file));
+
+		// Fazer magia!
+		if (follows(user)) {
+			String likesAtuais = br.readLine();
+			int dislikesAtuais = Integer.parseInt(br.readLine());
+			String atualizaDislikes = String.valueOf(dislikesAtuais + 1);
+			bw.write(likesAtuais);
+			bw.newLine();
+			bw.write(atualizaDislikes);
+			System.out.println(file.getName());
+		}
+
+		closeBuffers();
+		// WTFFF
+		System.gc();
+		file.delete();
+		novo.renameTo(file);
 	}
 
 	/**
@@ -267,23 +395,6 @@ public class FileManager extends Server {
 		bw.close();
 		fw.close();
 		return true;
-	}
-
-	/**
-	 * TODO
-	 * 
-	 * @param user
-	 * @return
-	 */
-	public String[] FMlistPhotos(String user) {
-		File file = new File("/path/to/directory");
-		String[] directories = file.list(new FilenameFilter() {
-			@Override
-			public boolean accept(File current, String name) {
-				return new File(current, name).isDirectory();
-			}
-		});
-		return directories;
 	}
 
 	// ====================================================================================================
