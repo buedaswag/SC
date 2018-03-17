@@ -35,7 +35,7 @@ public class User {
 	}
 
 	/**
-	 * adds followers to this User´s list of followers
+	 * adds followers to this UserÂ´s list of followers
 	 * 
 	 * @param followers - the followers to be added 
 	 */
@@ -44,7 +44,7 @@ public class User {
 	}
 
 	/**
-	 * removes followers from this User´s list of followers
+	 * removes followers from this UserÂ´s list of followers
 	 * 
 	 * @param followers - the followers to be removed 
 	 */
@@ -53,7 +53,7 @@ public class User {
 	}
 
 	/**
-	 *  adds a single follower to this User´s followers list
+	 *  adds a single follower to this UserÂ´s followers list
 	 *  
 	 * @param follower the follower to be added
 	 */
@@ -62,7 +62,7 @@ public class User {
 	}
 
 	/**
-	 *  removes a single followers to this User´s followers list
+	 *  removes a single followers to this UserÂ´s followers list
 	 *  
 	 * @param follower the follower to be removed
 	 */
@@ -99,14 +99,31 @@ public class User {
 	 * @param names
 	 * @param photosPath
 	 */
-	public void addPhotos(String[] names, File photosPath) {
-		//adds the photos to the file system and to memory
-		for (String name : names) {
-			photos.add(new Photo(name, photosPath));
+	public void addPhotos(String[] names, File photosPath) 
+	{
+		// Abre directorio temporario, lista ficheiros e cria lista final
+		File dir = new File(photosPath.getAbsolutePath());
+		ArrayList<File> files = new ArrayList<File>(Arrays.asList(dir.listFiles()));
+		ArrayList<File> filesFinal = new ArrayList<File>();
+		
+		// Constroi lista final a partir dos nomes dos ficheiros a mover
+		for(File f: files) {
+			for(String s: names) {
+				if(s.equals(f.getName()))
+					filesFinal.add(f);
+			}
 		}
 		
-		Photo photo = new Photo()
-		photos.add(photo);
+		// Iterar sobre lista de ficheiros a copiar
+		for(File f: filesFinal) {
+			// Colocar na directoria nova
+			FileManager.FMaddPhoto(this.userid, f);
+			// Apaga a foto da directoria antiga
+			f.delete();
+			// Cria objecto abstracto e coloca em memoria temporaria
+			Photo photo = new Photo(f.getName());
+			photos.add(photo);
+		}
 	}
 
 	/**
