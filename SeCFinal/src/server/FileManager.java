@@ -116,8 +116,31 @@ public class FileManager extends Server {
 		closeBuffers();
 	}
 
-	public void FMaddPhotos() {
+	public void FMaddPhotos(String user, File photo) {
+		String[] info = photo.getName().split(".");
+		// remove a parte ".jpg" do nome da foto
+		String nomeFoto = info[0];
 
+		// pasta onde a foto vai ser colocada
+		String pastaFoto = path + "\\" + user + "\\" + nomeFoto;
+
+		// criamos uma nova pasta para guardar la a foto
+		new File(pastaFoto).mkdir();
+
+		// O sitio onde vamos guardar a foto
+		File file = new File(pastaFoto + "\\" + photo.getName());
+
+		// TYPE_INT_ARGB means that we are representing the Alpha,
+		// Red, Green and Blue component of the image pixel using 8 bit integer
+		// value.
+		BufferedImage image = new BufferedImage(1260, 840, BufferedImage.TYPE_INT_ARGB);
+		image = ImageIO.read(photo);
+		ImageIO.write(image, info[2], file);
+
+		// cria ficheiro comments e reactions (para guardar os comentarios e os
+		// likes/dislikes)
+		new File(pastaFoto + "\\" + "comments.txt").createNewFile();
+		new File(pastaFoto + "\\" + "reactions.txt").createNewFile();
 	}
 
 	public ArrayList<Photo> FMlistPhotos(String user, String photo) {
