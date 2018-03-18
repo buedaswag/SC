@@ -358,6 +358,12 @@ public class FileManager extends Server {
 		return true;
 	}
 
+	/**
+	 * Remove uma lista de seguidores a um utilizador
+	 * @param followers
+	 * @return
+	 * @throws IOException
+	 */
 	public boolean FMremoveFollowers(String[] followers) throws IOException {
 		// Abre recursos e streams necessarios
 		File file = new File(path + "\\" + currUser + "\\" + "followers.txt");

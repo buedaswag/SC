@@ -57,9 +57,16 @@ public class Photo {
 	}
 
 	public void addComments(List<Comment> comments) {
+		comments.addAll(comments);
+	}
 
-		for (Comment comment : comments)
-			this.comments.add(comment);
-
+	/**
+	 * Adds a new comment made by the user with the 
+	 * given userid to this Photo
+	 * @param comment
+	 * @param userid
+	 */
+	public void addComment(String comment, String userid) {
+		comments.add(new Comment(userid, comment));
 	}
 }

@@ -132,4 +132,31 @@ public class User {
 		return followers.contains(user);
 	}
 
+	/**
+	 * adds a comment from the user with the given userid to this user's photo
+	 * @param comment
+	 * @param userid the userid of the user who is adding a comment
+	 * @param name the name of the photo that belongs to this user,
+	 * to which the comment is added to
+	 */
+	//TODO enviar erro para  o cliente
+	public void addComment(String comment, String userid, String name) {
+		if (hasPhoto(name))
+			getPhoto(name).addComment(comment, userid);
+		else
+			System.out.println("this user doesnt have any photo with this name");
+	}
+
+	/**
+	 * returns the photo with the given name
+	 * @param name
+	 * @return
+	 */
+	private Photo getPhoto(String name) {
+		for(Photo p : photos)
+			if (p.getName().equals(name))
+				return p;
+		return null;
+	}
+
 }

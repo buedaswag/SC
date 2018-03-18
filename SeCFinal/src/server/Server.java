@@ -215,13 +215,19 @@ public class Server {
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 * @throws IOException 
 	 */
-	public String addComment(String comment, String userid, String photo) throws IOException {
+	public String addComment(String comment, String commentedUserid, 
+			String userid, String photo) throws IOException {
 		//get the user with the given credentials
 		User user = getUser(userid);
-		if (!isFollower(user)) {
+		//get the commented user with the given credentials
+		User commentedUser = getUser(commentedUserid);
+		if (!commentedUser.isFollower(user)) {
 			return null;
 		} else {
-			fileManager.FMaddComment(comment, userid, photo);
+			//adds comment to the file system
+			fileManager.FMaddComment(comment, userid, commentedUserid, photo);
+			//adds comment from user to commentedUser's photo 
+			commentedUser.addComment(comment, userid, photo);		
 		}
 		return "success";
 	}
@@ -233,9 +239,14 @@ public class Server {
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 * @throws IOException 
 	 */
-	public String addLike(String userid, String photo) throws IOException {
+	public String addLike(String userid, String likedUserid,
+			String photo) throws IOException {
 		//get the user with the given credentials
 		User user = getUser(userid);
+		//get the liked user with the given credentials
+		User likedUser = getUser(likedUserid);
+		if(likedUser.isFollower(user))
+		
 		if (!isFollower(user)) {
 			return null;
 		} else {
@@ -272,7 +283,7 @@ public class Server {
 	//TODO
 	public boolean isFollower(User user) {
 		
-		return false;
+		return user.isFollower(user);
 	}
 	
 	/**

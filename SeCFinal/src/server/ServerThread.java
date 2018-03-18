@@ -98,8 +98,8 @@ class ServerThread extends Thread {
 			ObjectInputStream inStream) {
 		//get the operation to execute
 		char opt = args[0].charAt(0);
+		//remove the operation from args
 		String[] newArgs = Arrays.copyOfRange(args, 1, args.length);
-		String answer;
 		// execute the operation - este bloco so le e passa argumentos
 		switch (opt) {
 		// Acrescentar fotos
@@ -143,19 +143,22 @@ class ServerThread extends Thread {
 		// Comentar foto
 		case 'c': {
 			//get the operation parameters 
-			String comment = args[1];
-			String photo = args[3];
+			String comment = args[0];
+			String commentedUserid = args[1];
+			String photo = args[2];
 			
 			//ask the server to add this comment
-			server.addComment(comment, userid, photo);
+			server.addComment(comment, commentedUserid, userid, photo);
 			//TODO enviar erro para  o cliente
 			
 		}
 		// Botar like
 		case 'L': {
-			String photo = args[2];
+			//the userid whose photo is to be added a liked
+			String likedUserid = args[0];
+			String photo = args[1];
 			//ask the server to add this comment
-			server.addLike(userid, photo);
+			server.addLike(userid, likedUserid, photo);
 			//TODO enviar erro para  o cliente
 		}
 		// Botar dislike
