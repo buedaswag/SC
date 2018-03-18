@@ -216,9 +216,10 @@ public class Server {
 	 * @param user O utilizador
 	 * @param photo A foto
 	 * @return "success" caso tenha sucesso, null caso contrario
+	 * @throws IOException 
 	 */
-	public String addComment(String comment, String userid, String photo) {
-		if (!isFollower(userid)) {
+	public String addComment(String comment, String userid, String photo) throws IOException {
+		if (currUser.follows(userid)) {
 			return null;
 		} else {
 			fileManager.FMaddComment(comment, userid, photo);
@@ -234,10 +235,11 @@ public class Server {
 	 * @param photo
 	 *            - A foto
 	 * @return "success" caso tenha sucesso, null caso contrario
+	 * @throws IOException 
 	 */
-	public String addLike(String user, String photo) {
+	public String addLike(String user, String photo) throws IOException {
 		//get the user with the given credentials
-		if (!isFollower(user)) {
+		if (currUser.follows(user)) {
 			return null;
 		} else {
 			fileManager.addLike(user, photo);
@@ -273,7 +275,7 @@ public class Server {
 	//TODO
 	public boolean isFollower(User user) {
 		for (String f : currUser.getFollowers()) {
-			if (f.equals(user))
+			if (f.equals(user.getUserid()))
 				return true;
 		}
 		return false;
@@ -302,12 +304,12 @@ public class Server {
 			}
 		}
 		// O utilizador actual e seguidor do currUser?
-		if (isFollower(user)) {
+		if (currUser.follows(user)) {
 			return null;
 		}
 		// Algum dos utilizadores a acrescentar ja e seguidor?
 		for (String s : temp) {
-			if (isFollower(s))
+			if (currUser.follows(s))
 				return null;
 		}
 		// Actualizacao na memoria de execucao

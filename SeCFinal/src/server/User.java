@@ -24,6 +24,10 @@ public class User {
 		this.followers = new ArrayList<>();
 		this.photos = new ArrayList<>();
 	}
+	
+	public ArrayList<String> getFollowers() {
+		return (ArrayList<String>) this.followers;
+	}
 
 	/**
 	 * adds followers to this User´s list of followers
