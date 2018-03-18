@@ -164,9 +164,11 @@ public class Server {
 	 */
 	public void addPhotos(String userid, String password, String[] names,
 			File photosPath) {
+		//get the corresponding user
 		User user = getUser(userid, password);
 		//adds the photos to this user
 		user.addPhotos(names, photosPath);
+		
 	}
 
 	public void addPhoto(Photo photo) {
