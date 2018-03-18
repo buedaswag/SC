@@ -91,9 +91,9 @@ public class Server {
 	/**
 	 * @requires the user is authenticated
 	 * 
-	 * @param userid
-	 * @param password
-	 * @return user the 
+	 * @param userid the userid to be checked
+	 * @param password the password to be checked
+	 * @return true if the password is correct
 	 */
 	private boolean checkPassword(String userid, String password) {
 		boolean result = false;
