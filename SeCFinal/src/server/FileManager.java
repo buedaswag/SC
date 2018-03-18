@@ -337,7 +337,7 @@ public class FileManager extends Server {
 	 *            - O array com os seguidores a acrescentar
 	 * @throws IOException
 	 */
-	public boolean FMaddFollowers(String[] followers, String user) throws IOException {
+	public boolean FMaddFollowers(String user, String[] followers) throws IOException {
 		// Abre recursos e streams necessarios
 		File file = new File(path + "\\" + user + "\\" + "followers.txt");
 
@@ -357,10 +357,16 @@ public class FileManager extends Server {
 		closeBuffers();
 		return true;
 	}
-
+	
+	/**
+	 * Remove uma lista de seguidores a um utilizador
+	 * @param followers
+	 * @return
+	 * @throws IOException
+	 */
 	public boolean FMremoveFollowers(String[] followers) throws IOException {
 		// Abre recursos e streams necessarios
-		File file = new File(path + "\\" + currUser + "\\" + "followers.txt");
+		File file = new File(path + "\\" + currUser.getUserid() + "\\" + "followers.txt");
 
 		fr = new FileReader(file.getAbsoluteFile());
 		br = new BufferedReader(fr);
@@ -386,7 +392,7 @@ public class FileManager extends Server {
 		file.delete();
 
 		// Abre buffers para novo ficheiro de seguidores
-		File newFollowers = new File(path + "\\" + currUser + "\\" + "followers.txt");
+		File newFollowers = new File(path + "\\" + currUser.getUserid() + "\\" + "followers.txt");
 		fw = new FileWriter(newFollowers.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
 
@@ -400,7 +406,13 @@ public class FileManager extends Server {
 	}
 
 	// ====================================================================================================
+	// ====================================================================================================
 
+	/**
+	 * Carrega a lista de seguidores de um utilizador
+	 * @param u - O utilizador
+	 * @throws IOException
+	 */
 	public void FMloadFollowers(User u) throws IOException {
 		// load followers
 		File followersFile = new File(path + "\\" + u.getUserid() + "\\" + "followers.txt");
@@ -411,11 +423,12 @@ public class FileManager extends Server {
 		while ((userid = br.readLine()) != null)
 			u.addFollower(userid);
 
-		br.close();
+		closeBuffers();
 	}
 	
 	/**
-	 * load photos from database to the user
+	 * Carrega as fotos de um utilizador para RAM
+	 * @param u - O utilizador
 	 */
 	public void FMloadPhotos(User u) {
 		// load photos
