@@ -1,20 +1,10 @@
 package server;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 public class User {
-
-	private static final String path = new String("database");
-
 	private String userid;
 	private String password;
 	private List<String> followers;
@@ -105,37 +95,12 @@ public class User {
 		return false;
 	}
 
-
 	/**
-	 * TODO
-	 * @param names
-	 * @param photosPath
+	 * 
+	 * @param photo
 	 */
-	public void addPhotos(String[] names, File photosPath) 
-	{
-		// Abre directorio temporario, lista ficheiros e cria lista final
-		File dir = new File(photosPath.getAbsolutePath());
-		ArrayList<File> files = new ArrayList<File>(Arrays.asList(dir.listFiles()));
-		ArrayList<File> filesFinal = new ArrayList<File>();
-		
-		// Constroi lista final a partir dos nomes dos ficheiros a mover
-		for(File f: files) {
-			for(String s: names) {
-				if(s.equals(f.getName()))
-					filesFinal.add(f);
-			}
-		}
-		
-		// Iterar sobre lista de ficheiros a copiar
-		for(File f: filesFinal) {
-			// Colocar na directoria nova
-			FileManager.FMaddPhoto(this.userid, f);
-			// Apaga a foto da directoria antiga
-			f.delete();
-			// Cria objecto abstracto e coloca em memoria temporaria
-			Photo photo = new Photo(f.getName());
-			photos.add(photo);
-		}
+	public void addPhoto(Photo photo) {
+		photos.add(photo);
 	}
 
 
@@ -153,6 +118,18 @@ public class User {
 	 */
 	public String getPassword() {
 		return password;
+	}
+	
+	/**
+	 * Verifica se o utilizador local segue "user"
+	 * 
+	 * @param user
+	 *            - O utilizador
+	 * @return - Se o utilizador local segue "user"
+	 * @throws IOException
+	 */
+	public boolean follows(String user) throws IOException {
+		return followers.contains(user);
 	}
 
 }

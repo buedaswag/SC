@@ -4,11 +4,11 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -19,12 +19,13 @@ import javax.imageio.ImageIO;
  * Biblioteca de manipulacao de ficheiros para a classe Server Extende Server
  * para tirar partido de algumas variaveis da classe
  * 
- * @author António
+ * @author Antï¿½nio
  */
 public class FileManager extends Server {
 	private static final String path = new String("database");
 	private static final String userDB = new String("users.txt");
 	private static final File database = new File(path + "\\" + userDB);
+	private static final SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH'h'mm");
 	private static FileReader fr;
 	private static BufferedReader br;
 	private static FileWriter fw;
@@ -64,8 +65,8 @@ public class FileManager extends Server {
 		for (String line; (line = br.readLine()) != null;) {
 			String[] data = line.split(":");
 			temp = new User(data[0], data[1]);
-			loadFollowers(temp);
-			loadPhotos(temp);
+			FMloadFollowers(temp);
+			FMloadPhotos(temp);
 			tempList.add(new User(data[0], data[1]));
 		}
 		closeBuffers();
@@ -120,6 +121,7 @@ public class FileManager extends Server {
 		closeBuffers();
 	}
 
+	
 	public void FMaddPhotos(String user, File photo) throws IOException {
 		String[] info = photo.getName().split(".");
 		// remove a parte ".jpg" do nome da foto
@@ -279,15 +281,13 @@ public class FileManager extends Server {
 		br = new BufferedReader(new FileReader(file));
 
 		// Fazer magia!
-		if (follows(userid)) {
-			int likesAtuais = Integer.parseInt(br.readLine());
-			String atualizaLikes = String.valueOf(likesAtuais + 1);
-			String disLikesAtuais = br.readLine();
-			bw.write(atualizaLikes);
-			bw.newLine();
-			bw.write(disLikesAtuais);
-			System.out.println(file.getName());
-		}
+		int likesAtuais = Integer.parseInt(br.readLine());
+		String atualizaLikes = String.valueOf(likesAtuais + 1);
+		String disLikesAtuais = br.readLine();
+		bw.write(atualizaLikes);
+		bw.newLine();
+		bw.write(disLikesAtuais);
+		System.out.println(file.getName());
 
 		closeBuffers();
 		// WTFFF
@@ -315,15 +315,13 @@ public class FileManager extends Server {
 		br = new BufferedReader(new FileReader(file));
 
 		// Fazer magia!
-		if (follows(userid)) {
-			String likesAtuais = br.readLine();
-			int dislikesAtuais = Integer.parseInt(br.readLine());
-			String atualizaDislikes = String.valueOf(dislikesAtuais + 1);
-			bw.write(likesAtuais);
-			bw.newLine();
-			bw.write(atualizaDislikes);
-			System.out.println(file.getName());
-		}
+		String likesAtuais = br.readLine();
+		int dislikesAtuais = Integer.parseInt(br.readLine());
+		String atualizaDislikes = String.valueOf(dislikesAtuais + 1);
+		bw.write(likesAtuais);
+		bw.newLine();
+		bw.write(atualizaDislikes);
+		System.out.println(file.getName());
 
 		closeBuffers();
 		// WTFFF
@@ -403,31 +401,7 @@ public class FileManager extends Server {
 
 	// ====================================================================================================
 
-	/**
-	 * Verifica se o utilizador local segue "user"
-	 * 
-	 * @param user
-	 *            - O utilizador
-	 * @return - Se o utilizador local segue "user"
-	 * @throws IOException
-	 */
-	public static boolean follows(String user) throws IOException {
-		File file = new File(path + "\\" + user + "\\" + "followers.txt");
-
-		BufferedReader br = new BufferedReader(new FileReader(file));
-
-		String userLido;
-		while ((userLido = br.readLine()) != null) {
-			if (userLido.equals(currUser)) {
-				br.close();
-				return true;
-			}
-		}
-		br.close();
-		return false;
-	}
-
-	public void loadFollowers(User u) throws IOException {
+	public void FMloadFollowers(User u) throws IOException {
 		// load followers
 		File followersFile = new File(path + "\\" + u.getUserid() + "\\" + "followers.txt");
 
@@ -439,13 +413,13 @@ public class FileManager extends Server {
 
 		br.close();
 	}
-
+	
 	/**
 	 * load photos from database to the user
 	 */
-	public void loadPhotos(User u) {
+	public void FMloadPhotos(User u) {
 		// load photos
-		String photosFile = path + "\\" + u.getUserid() + "\\" + "Photos";
+		String photosFile = path + "\\" + u + "\\" + "Photos";
 		// todas as pastas de fotos
 		File[] directories = new File(photosFile).listFiles(File::isDirectory);
 
@@ -455,6 +429,46 @@ public class FileManager extends Server {
 			// colocar a foto na lista de fotos do utilizador
 			u.addPhoto(p);
 		}
-
+	}
+	
+	
+	/**
+	 * Move uma lista de fotos para a directoria definitiva
+	 * @param userid - O nome de utilizador
+	 * @param names - Os nomes das fotos
+	 * @param photosPath - A directoria temporaria
+	 * @throws IOException
+	 */
+	public void FMmovePhotos(String userid, String[] names, File photosPath) throws IOException 
+	{
+		// Abre directorio temporario, lista ficheiros e cria lista final
+		File dir = new File(photosPath.getAbsolutePath());
+		ArrayList<File> files = new ArrayList<File>(Arrays.asList(dir.listFiles()));
+		ArrayList<File> filesFinal = new ArrayList<File>();
+		
+		// Constroi lista final a partir dos nomes dos ficheiros a mover
+		for(File f: files) {
+			for(String s: names) {
+				if(s.equals(getFileName(f)))
+					filesFinal.add(f);
+			}
+		}
+		
+		// Iterar sobre lista de ficheiros a copiar
+		for(File f: filesFinal) {
+			// Colocar na directoria nova
+			FMaddPhotos(userid, f);
+			// Apaga a foto da directoria antiga
+			f.delete();
+		}
+	}
+	
+	/**
+	 * Devolve o nome de um ficheiro (sem extensao)
+	 * @param f - O nome do ficheiro (com extensao incluida)
+	 * @return - O nome do ficheiro sem extensao
+	 */
+	public String getFileName(File f) {
+		return f.getName().split(".")[0];
 	}
 }
