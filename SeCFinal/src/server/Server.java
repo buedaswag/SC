@@ -112,7 +112,7 @@ public class Server {
 			}
 		}
 		// Caso 2: cliente nao existe
-		fileManager.addUser(userid, password);
+		fileManager.FMaddUser(userid, password);
 		return true;
 	}
 
@@ -140,13 +140,14 @@ public class Server {
 	 * @param password
 	 * @param names
 	 * @param photosPath the path to the photos in the user's temp folder
+	 * @throws IOException 
 	 */
 	public void addPhotos(String userid, String password, String[] names,
-			File photosPath) {
+			File photosPath) throws IOException {
 		//get the corresponding user
 		User user = getUser(userid, password);
 		//adds the photos to this user
-		user.addPhotos(names, photosPath);
+		fileManager.FMmovePhotos(user, names, photosPath);
 	}
 
 	/**

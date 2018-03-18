@@ -452,8 +452,7 @@ public class FileManager extends Server {
 	 * @param photosPath - A directoria temporaria
 	 * @throws IOException
 	 */
-	public void FMmovePhotos(String userid, String[] names, File photosPath) throws IOException 
-	{
+	public void FMmovePhotos(User u, String[] names, File photosPath) throws IOException {
 		// Abre directorio temporario, lista ficheiros e cria lista final
 		File dir = new File(photosPath.getAbsolutePath());
 		ArrayList<File> files = new ArrayList<File>(Arrays.asList(dir.listFiles()));
@@ -470,9 +469,11 @@ public class FileManager extends Server {
 		// Iterar sobre lista de ficheiros a copiar
 		for(File f: filesFinal) {
 			// Colocar na directoria nova
-			FMaddPhotos(userid, f);
+			FMaddPhotos(u.getUserid(), f);
 			// Apaga a foto da directoria antiga
 			f.delete();
+			Photo p = new Photo(getFileName(f));
+			u.addPhoto(p);
 		}
 	}
 	
