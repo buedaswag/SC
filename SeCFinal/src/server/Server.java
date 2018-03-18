@@ -89,27 +89,6 @@ public class Server {
 	}
 	
 	/**
-	 * @requires the user is authenticated
-	 * 
-	 * @param userid the userid to be checked
-	 * @param password the password to be checked
-	 * @return true if the password is correct
-	 */
-	private boolean checkPassword(String userid, String password) {
-		boolean result = false;
-		for (User u : users) {
-			// Password certa?
-			if (u.getUserid().equals(userid)) {
-				if (u.getPassword().equals(password))
-					result = true;
-				else
-					result = false;
-			}
-		}
-		return result;
-	}
-
-	/**
 	 * Autentica um utilizador, se este existir Caso contrario, cria-o e regista-o
 	 * na base de dados
 	 * 
