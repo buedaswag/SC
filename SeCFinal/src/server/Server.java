@@ -216,7 +216,6 @@ public class Server {
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 * @throws IOException 
 	 */
-<<<<<<< HEAD
 	public String addComment(String comment, String commentedUserid, 
 			String userid, String photo) throws IOException {
 		//get the user with the given credentials
@@ -224,10 +223,6 @@ public class Server {
 		//get the commented user with the given credentials
 		User commentedUser = getUser(commentedUserid);
 		if (!commentedUser.isFollower(user)) {
-=======
-	public String addComment(String comment, String userid, String photo) throws IOException {
-		if (currUser.follows(userid)) {
->>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 			return null;
 		} else {
 			//adds comment to the file system
@@ -245,23 +240,15 @@ public class Server {
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 * @throws IOException 
 	 */
-<<<<<<< HEAD
 	public String addLike(String userid, String likedUserid,
 			String photo) throws IOException {
-=======
-	public String addLike(String user, String photo) throws IOException {
->>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 		//get the user with the given credentials
-<<<<<<< HEAD
 		User user = getUser(userid);
 		//get the liked user with the given credentials
 		User likedUser = getUser(likedUserid);
 		if(likedUser.isFollower(user))
 		
 		if (!isFollower(user)) {
-=======
-		if (currUser.follows(user)) {
->>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 			return null;
 		} else {
 			fileManager.FMaddLike(userid, photo);
@@ -296,16 +283,7 @@ public class Server {
 	 */
 	//TODO
 	public boolean isFollower(User user) {
-<<<<<<< HEAD
-		
 		return user.isFollower(user);
-=======
-		for (String f : currUser.getFollowers()) {
-			if (f.equals(user.getUserid()))
-				return true;
-		}
-		return false;
->>>>>>> branch 'master' of https://github.com/buedaswag/SCprivate.git
 	}
 	
 	/**
