@@ -54,7 +54,7 @@ public class Photo {
 	}
 
 	public void addComments(List<Comment> comments) {
-		comments.addAll(comments);
+		this.comments.addAll(comments);
 	}
 
 	/**
