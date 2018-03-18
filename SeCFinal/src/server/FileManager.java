@@ -269,17 +269,17 @@ public class FileManager extends Server {
 	 *            - A foto
 	 * @throws IOException
 	 */
-	public static void FMaddLike(String user, String photo) throws IOException {
+	public static void FMaddLike(String userid, String photo) throws IOException {
 		// Abre ficheiro antigo e cria novo
-		File file = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions.txt");
-		File novo = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions2.txt");
+		File file = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions.txt");
+		File novo = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions2.txt");
 
 		fw = new FileWriter(novo.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
 		br = new BufferedReader(new FileReader(file));
 
 		// Fazer magia!
-		if (follows(user)) {
+		if (follows(userid)) {
 			int likesAtuais = Integer.parseInt(br.readLine());
 			String atualizaLikes = String.valueOf(likesAtuais + 1);
 			String disLikesAtuais = br.readLine();
@@ -299,23 +299,23 @@ public class FileManager extends Server {
 	/**
 	 * Acrescenta um dislike a uma foto
 	 * 
-	 * @param user
+	 * @param userid
 	 *            - O utilizador
 	 * @param photo
 	 *            - A foto
 	 * @throws IOException
 	 */
-	public static void dislike(String user, String photo) throws IOException {
+	public static void dislike(String userid, String photo) throws IOException {
 		// Abre ficheiro antigo e cria novo
-		File file = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions.txt");
-		File novo = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions2.txt");
+		File file = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions.txt");
+		File novo = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions2.txt");
 
 		fw = new FileWriter(novo.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
 		br = new BufferedReader(new FileReader(file));
 
 		// Fazer magia!
-		if (follows(user)) {
+		if (follows(userid)) {
 			String likesAtuais = br.readLine();
 			int dislikesAtuais = Integer.parseInt(br.readLine());
 			String atualizaDislikes = String.valueOf(dislikesAtuais + 1);
@@ -339,9 +339,9 @@ public class FileManager extends Server {
 	 *            - O array com os seguidores a acrescentar
 	 * @throws IOException
 	 */
-	public boolean FMaddFollowers(String[] followers, String user) throws IOException {
+	public boolean FMaddFollowers(String[] followers, String userid) throws IOException {
 		// Abre recursos e streams necessarios
-		File file = new File(path + "\\" + user + "\\" + "followers.txt");
+		File file = new File(path + "\\" + userid + "\\" + "followers.txt");
 
 		fw = new FileWriter(file.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);

@@ -144,7 +144,6 @@ class ServerThread extends Thread {
 		case 'c': {
 			//get the operation parameters 
 			String comment = args[1];
-			String userid = args[2];
 			String photo = args[3];
 			
 			//ask the server to add this comment
@@ -154,10 +153,10 @@ class ServerThread extends Thread {
 		}
 		// Botar like
 		case 'L': {
-			String user = message[1];
-			String photo = message[2];
-			answer = addLike(user, photo);
-			// Enviar resposta
+			String photo = args[2];
+			//ask the server to add this comment
+			server.addLike(userid, photo);
+			//TODO enviar erro para  o cliente
 		}
 		// Botar dislike
 		/*

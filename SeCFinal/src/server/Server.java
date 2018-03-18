@@ -16,8 +16,6 @@ public class Server {
 	// Lista de utilizadores (permite manipulacao facil em runtime)
 	private static List<User> users;
 
-	// Utilizador actual (temporario; so para testes)
-	protected static User currUser;
 	// private static final DateFormat df = new SimpleDateFormat("dd/MM/yyyy
 	// HH:mm");
 
@@ -81,7 +79,7 @@ public class Server {
 	 * @param password
 	 * @return the user, or null if its not on the List
 	 */
-	private User getUser(String userid, String password) {
+	private User getUser(String userid) {
 		for (User u : users)
 			if (u.getUserid().equals(userid))
 				return u;
@@ -215,9 +213,12 @@ public class Server {
 	 * @param user O utilizador
 	 * @param photo A foto
 	 * @return "success" caso tenha sucesso, null caso contrario
+	 * @throws IOException 
 	 */
-	public String addComment(String comment, String userid, String photo) {
-		if (!isFollower(userid)) {
+	public String addComment(String comment, String userid, String photo) throws IOException {
+		//get the user with the given credentials
+		User user = getUser(userid);
+		if (!isFollower(user)) {
 			return null;
 		} else {
 			fileManager.FMaddComment(comment, userid, photo);
@@ -227,19 +228,18 @@ public class Server {
 
 	/**
 	 * Adiciona um like a uma foto de um utilizador
-	 * 
-	 * @param user
-	 *            - O utilizador
-	 * @param photo
-	 *            - A foto
+	 * @param user O utilizador
+	 * @param photo A foto
 	 * @return "success" caso tenha sucesso, null caso contrario
+	 * @throws IOException 
 	 */
-	public String addLike(String user, String photo) {
+	public String addLike(String userid, String photo) throws IOException {
 		//get the user with the given credentials
+		User user = getUser(userid);
 		if (!isFollower(user)) {
 			return null;
 		} else {
-			fileManager.addLike(user, photo);
+			fileManager.FMaddLike(userid, photo);
 		}
 		return "success";
 	}
@@ -271,10 +271,7 @@ public class Server {
 	 */
 	//TODO
 	public boolean isFollower(User user) {
-		for (String f : currUser.getFollowers()) {
-			if (f.equals(user))
-				return true;
-		}
+		
 		return false;
 	}
 	

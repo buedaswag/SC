@@ -36,6 +36,16 @@ public class User {
 	}
 
 	/**
+	 * Verifica se o utilizador actual tem user como seguidor
+	 * 
+	 * @return - idem
+	 */
+	//TODO
+	public boolean isFollower(User user) {
+		return followers.contains(user.getUserid());
+	}
+	
+	/**
 	 * adds followers to this User´s list of followers
 	 * 
 	 * @param followers - the followers to be added 
