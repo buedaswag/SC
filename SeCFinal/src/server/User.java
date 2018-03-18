@@ -95,40 +95,6 @@ public class User {
 		return false;
 	}
 
-
-	/**
-	 * TODO
-	 * @param names
-	 * @param photosPath
-	 */
-	public void addPhotos(String[] names, File photosPath) 
-	{
-		// Abre directorio temporario, lista ficheiros e cria lista final
-		File dir = new File(photosPath.getAbsolutePath());
-		ArrayList<File> files = new ArrayList<File>(Arrays.asList(dir.listFiles()));
-		ArrayList<File> filesFinal = new ArrayList<File>();
-		
-		// Constroi lista final a partir dos nomes dos ficheiros a mover
-		for(File f: files) {
-			for(String s: names) {
-				if(s.equals(f.getName()))
-					filesFinal.add(f);
-			}
-		}
-		
-		// Iterar sobre lista de ficheiros a copiar
-		for(File f: filesFinal) {
-			// Colocar na directoria nova
-			FileManager.FMaddPhoto(this.userid, f);
-			// Apaga a foto da directoria antiga
-			f.delete();
-			// Cria objecto abstracto e coloca em memoria temporaria
-			Photo photo = new Photo(f.getName());
-			photos.add(photo);
-		}
-	}
-
-
 	/**
 	 * 
 	 * @return this user's userid
@@ -144,5 +110,12 @@ public class User {
 	public String getPassword() {
 		return password;
 	}
+	
+	public List<String> getFollowers (){
+		return this.followers;
+	}
 
+	public void addPhoto (Photo p) {
+		this.photos.add(p);
+	}
 }

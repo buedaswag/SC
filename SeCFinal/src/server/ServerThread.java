@@ -148,7 +148,7 @@ class ServerThread extends Thread {
 			String photo = args[3];
 			
 			//ask the server to add this comment
-			server.addComment(comment, userid, photo)
+			server.addComment(comment, userid, photo);
 			//TODO enviar erro para  o cliente
 			
 		}

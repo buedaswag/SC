@@ -1,5 +1,6 @@
 package server;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -8,8 +9,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import javax.imageio.ImageIO;
 
 /**
  * Biblioteca de manipulacao de ficheiros para a classe Server Extende Server
@@ -116,7 +120,7 @@ public class FileManager extends Server {
 		closeBuffers();
 	}
 
-	public void FMaddPhotos(String user, File photo) {
+	public void FMaddPhoto(String user, File photo) throws IOException {
 		String[] info = photo.getName().split(".");
 		// remove a parte ".jpg" do nome da foto
 		String nomeFoto = info[0];
@@ -396,7 +400,7 @@ public class FileManager extends Server {
 		fw.close();
 		return true;
 	}
-
+	
 	// ====================================================================================================
 
 	/**
@@ -422,7 +426,6 @@ public class FileManager extends Server {
 		br.close();
 		return false;
 	}
-
 	public void loadFollowers(User u) throws IOException {
 		// load followers
 		File followersFile = new File(path + "\\" + u.getUserid() + "\\" + "followers.txt");
