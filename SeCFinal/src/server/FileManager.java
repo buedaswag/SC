@@ -364,9 +364,9 @@ public class FileManager extends Server {
 	 * @return
 	 * @throws IOException
 	 */
-	public boolean FMremoveFollowers(String[] followers) throws IOException {
+	public boolean FMremoveFollowers(String[] followers, String userid) throws IOException {
 		// Abre recursos e streams necessarios
-		File file = new File(path + "\\" + currUser + "\\" + "followers.txt");
+		File file = new File(path + "\\" + userid + "\\" + "followers.txt");
 
 		fr = new FileReader(file.getAbsoluteFile());
 		br = new BufferedReader(fr);
@@ -392,7 +392,7 @@ public class FileManager extends Server {
 		file.delete();
 
 		// Abre buffers para novo ficheiro de seguidores
-		File newFollowers = new File(path + "\\" + currUser + "\\" + "followers.txt");
+		File newFollowers = new File(path + "\\" + userid + "\\" + "followers.txt");
 		fw = new FileWriter(newFollowers.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
 
