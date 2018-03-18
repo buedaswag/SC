@@ -297,7 +297,7 @@ public class Server {
 		@SuppressWarnings("unused")
 		User u;
 		for (String s : users) {
-			if ((u = Server.getByName(s)) != null) {
+			if (getUser(user, "") != null) {
 				temp.add(s);
 			} else {
 				return null;
