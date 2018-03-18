@@ -147,7 +147,6 @@ public class Server {
 		User user = getUser(userid, password);
 		//adds the photos to this user
 		user.addPhotos(names, photosPath);
-		
 	}
 
 	/**
@@ -218,10 +217,10 @@ public class Server {
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
 	public String addComment(String comment, String userid, String photo) {
-		if (!isFollower(user)) {
+		if (!isFollower(userid)) {
 			return null;
 		} else {
-			fileManager.addComment(comment, user, photo);
+			fileManager.FMaddComment(comment, userid, photo);
 		}
 		return "success";
 	}

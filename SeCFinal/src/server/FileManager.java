@@ -1,5 +1,6 @@
 package server;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,6 +11,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import javax.imageio.ImageIO;
 
 /**
  * Biblioteca de manipulacao de ficheiros para a classe Server Extende Server
@@ -116,7 +119,7 @@ public class FileManager extends Server {
 		closeBuffers();
 	}
 
-	public void FMaddPhotos(String user, File photo) {
+	public void FMaddPhotos(String user, File photo) throws IOException {
 		String[] info = photo.getName().split(".");
 		// remove a parte ".jpg" do nome da foto
 		String nomeFoto = info[0];
