@@ -1,7 +1,5 @@
 package server;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,7 +7,6 @@ import java.util.List;
 public class Photo {
 	private String name;
 	private Date uploadDate;
-	private final DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 	private long size;
 	private List<Comment> comments;
 	private int likes;

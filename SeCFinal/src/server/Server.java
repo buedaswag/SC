@@ -112,7 +112,7 @@ public class Server {
 			}
 		}
 		// Caso 2: cliente nao existe
-		fileManager.addUser(userid, password);
+		fileManager.FMaddUser(userid, password);
 		return true;
 	}
 
@@ -140,14 +140,14 @@ public class Server {
 	 * @param password
 	 * @param names
 	 * @param photosPath the path to the photos in the user's temp folder
+	 * @throws IOException 
 	 */
 	public void addPhotos(String userid, String password, String[] names,
-			File photosPath) {
+			File photosPath) throws IOException {
 		//get the corresponding user
 		User user = getUser(userid, password);
 		//adds the photos to this user
-		user.addPhotos(names, photosPath);
-		
+		fileManager.FMmovePhotos(user, names, photosPath);
 	}
 
 	/**
@@ -216,12 +216,13 @@ public class Server {
 	 * @param user O utilizador
 	 * @param photo A foto
 	 * @return "success" caso tenha sucesso, null caso contrario
+	 * @throws IOException 
 	 */
-	public String addComment(String comment, String userid, String photo) {
-		if (!isFollower(user)) {
+	public String addComment(String comment, String userid, String photo) throws IOException {
+		if (currUser.follows(userid)) {
 			return null;
 		} else {
-			fileManager.addComment(comment, user, photo);
+			fileManager.FMaddComment(comment, userid, photo);
 		}
 		return "success";
 	}
@@ -234,10 +235,11 @@ public class Server {
 	 * @param photo
 	 *            - A foto
 	 * @return "success" caso tenha sucesso, null caso contrario
+	 * @throws IOException 
 	 */
-	public String addLike(String user, String photo) {
+	public String addLike(String user, String photo) throws IOException {
 		//get the user with the given credentials
-		if (!isFollower(user)) {
+		if (currUser.follows(user)) {
 			return null;
 		} else {
 			fileManager.addLike(user, photo);
@@ -273,7 +275,7 @@ public class Server {
 	//TODO
 	public boolean isFollower(User user) {
 		for (String f : currUser.getFollowers()) {
-			if (f.equals(user))
+			if (f.equals(user.getUserid()))
 				return true;
 		}
 		return false;
@@ -302,12 +304,12 @@ public class Server {
 			}
 		}
 		// O utilizador actual e seguidor do currUser?
-		if (isFollower(user)) {
+		if (currUser.follows(user)) {
 			return null;
 		}
 		// Algum dos utilizadores a acrescentar ja e seguidor?
 		for (String s : temp) {
-			if (isFollower(s))
+			if (currUser.follows(s))
 				return null;
 		}
 		// Actualizacao na memoria de execucao

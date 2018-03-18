@@ -19,10 +19,10 @@ import java.util.Iterator;
  *
  */
 class ServerThread extends Thread {
-	
+
 	private File tempPath;
-	
-	
+
+
 	private Socket inSoc;
 	private Server server;
 
@@ -37,7 +37,7 @@ class ServerThread extends Thread {
 		this.server = server;
 		//create the temp directory
 		tempPath = new File("temp");
-		
+
 	}
 
 	/**
@@ -92,10 +92,11 @@ class ServerThread extends Thread {
 	 * ["a","sex","drugs","leagueOfLegends"]
 	 * or
 	 * ["c","miguel","ferias","que foto tao linda das tuas ferias"]
+	 * @throws IOException 
 	 */
 	//TODO enviar erro para  o cliente
 	private void executeOperation(String userid, String password, String[] args, 
-			ObjectInputStream inStream) {
+			ObjectInputStream inStream) throws IOException {
 		//get the operation to execute
 		char opt = args[0].charAt(0);
 		String[] newArgs = Arrays.copyOfRange(args, 1, args.length);
@@ -112,10 +113,10 @@ class ServerThread extends Thread {
 				//adicionar as fotos ao sistema de ficheiros
 				File photosPath = receivePhotos(userid, newArgs, inStream);
 				/*
-				 * pedir ao server para ir buscar á temp
+				 * pedir ao server para ir buscar ï¿½ temp
 				 */
 				server.addPhotos(userid, password, newArgs, photosPath);
-				
+
 			}
 			break;
 		}
@@ -139,24 +140,24 @@ class ServerThread extends Thread {
 			answer = savePhotos(user);
 			// Enviar resposta
 		}
-		*/
+		 */
 		// Comentar foto
 		case 'c': {
 			//get the operation parameters 
 			String comment = args[1];
-			String userid = args[2];
+			String user = args[2];
 			String photo = args[3];
-			
+
 			//ask the server to add this comment
 			server.addComment(comment, userid, photo);
 			//TODO enviar erro para  o cliente
-			
+
 		}
 		// Botar like
 		case 'L': {
-			String user = message[1];
-			String photo = message[2];
-			answer = addLike(user, photo);
+			String user = args[1];
+			String photo = args[2];
+			answer = server.addLike(user, photo);
 			// Enviar resposta
 		}
 		// Botar dislike
@@ -166,13 +167,13 @@ class ServerThread extends Thread {
 			String photo = message[2];
 			answer = addDislike(user, photo);
 		}
-		*/
+		 */
 		// Adicionar seguidores
 		case 'f': {
-			String user = message[1];
-			String[] followers = message[2].split(",");
+			String user = args[1];
+			String[] followers = args[2].split(",");
 			// Followers e do tipo "user1,user2,user3..."
-			answer = addFollowers(user, followers);
+			answer = server.addFollowers(user, followers);
 		}
 		// Remover seguidores
 		/*
@@ -185,7 +186,7 @@ class ServerThread extends Thread {
 		default: {
 			System.out.println("Foi recebida uma operacao invalida");
 		}
-		*/
+		 */
 		}
 		// Realizar operacao
 
@@ -205,24 +206,24 @@ class ServerThread extends Thread {
 		//create path for this user and for his/her photos
 		File useridPath = new File (tempPath + "\\" + userid);
 		File photosPath = new File (useridPath + "\\photos");
-		
+
 		/* create the buffer to receive the chunks and the 
 		 * FileOutputStream to write to the file
 		 */
 		FileOutputStream fos;
 		byte[] buffer = new byte[1024];
 		int filesize = 0, read = 0, remaining = 0, totalRead = 0;
-		
+
 		for (String name : newArgs) {
 			/*
 			 * create FileOutputStream that writes to this user's 
 			 * photo temp directory
 			 */
 			fos = new FileOutputStream(photosPath + "\\" + name);
-			
+
 			//read the file size
 			filesize = inStream.readInt();
-			
+
 			/*
 			 * reads the file in chunks and writes the chunks to the 
 			 * specified directory
@@ -240,3 +241,4 @@ class ServerThread extends Thread {
 		return photosPath;
 	}
 }
+

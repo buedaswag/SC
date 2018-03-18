@@ -11,6 +11,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 public class User {
 
 	private static final String path = new String("database");
@@ -70,7 +74,7 @@ public class User {
 	public void removeFollower(String follower) {
 		this.followers.remove(follower);
 	}
-	
+
 	/**
 	 * checks if the user has a photo with the given name
 	 * @param name - the name to check
@@ -79,10 +83,10 @@ public class User {
 	public boolean hasPhoto(String name) {
 		if (photos.contains(new Photo(name))) 
 			return true;
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * checks if the user has any photo with any of the given names
 	 * @param names of the photos given
@@ -110,7 +114,7 @@ public class User {
 	public String getPassword() {
 		return password;
 	}
-	
+
 	public List<String> getFollowers (){
 		return this.followers;
 	}
