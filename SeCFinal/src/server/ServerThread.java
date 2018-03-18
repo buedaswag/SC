@@ -90,7 +90,10 @@ class ServerThread extends Thread {
 	 * Executes the operation requested in args
 	 * @param args the operation name and parameters looks like this 
 	 * ["a","sex","drugs","leagueOfLegends"]
+	 * or
+	 * ["c","miguel","ferias","que foto tao linda das tuas ferias"]
 	 */
+	//TODO enviar erro para  o cliente
 	private void executeOperation(String userid, String password, String[] args, 
 			ObjectInputStream inStream) {
 		//get the operation to execute
@@ -139,11 +142,15 @@ class ServerThread extends Thread {
 		*/
 		// Comentar foto
 		case 'c': {
-			String comment = message[1];
-			String user = message[2];
-			String photo = message[3];
-			answer = addComment(comment, user, photo);
-			// Enviar resposta
+			//get the operation parameters 
+			String comment = args[1];
+			String userid = args[2];
+			String photo = args[3];
+			
+			//ask the server to add this comment
+			server.addComment(comment, userid, photo)
+			//TODO enviar erro para  o cliente
+			
 		}
 		// Botar like
 		case 'L': {

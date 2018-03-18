@@ -171,10 +171,6 @@ public class Server {
 		
 	}
 
-	public void addPhoto(Photo photo) {
-		// TODO
-	}
-
 	/**
 	 * Lista as fotos de um utilizador
 	 * 
@@ -236,15 +232,13 @@ public class Server {
 	/**
 	 * Acrescenta um comentario a uma foto de um utilizador
 	 * 
-	 * @param comment
-	 *            - O comentario
-	 * @param user
-	 *            - O utilizador
-	 * @param photo
-	 *            - A foto
+	 * @requires the user with the given credentials is authenticated
+	 * @param comment O comentario
+	 * @param user O utilizador
+	 * @param photo A foto
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
-	public String addComment(String comment, String user, String photo) {
+	public String addComment(String comment, String userid, String photo) {
 		if (!isFollower(user)) {
 			return null;
 		} else {
@@ -263,6 +257,7 @@ public class Server {
 	 * @return "success" caso tenha sucesso, null caso contrario
 	 */
 	public String addLike(String user, String photo) {
+		//get the user with the given credentials
 		if (!isFollower(user)) {
 			return null;
 		} else {
@@ -290,6 +285,21 @@ public class Server {
 		return "success";
 	}
 	*/
+	
+	/**
+	 * Verifica se o utilizador actual tem user como seguidor
+	 * 
+	 * @return - idem
+	 */
+	//TODO
+	public boolean isFollower(User user) {
+		for (String f : currUser.getFollowers()) {
+			if (f.equals(user))
+				return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * Adiciona uma lista de utilizadores como seguidores
 	 * 
@@ -375,17 +385,5 @@ public class Server {
 		return null;
 	}
 	*/
-	/**
-	 * Verifica se o utilizador actual tem user como seguidor
-	 * 
-	 * @return - idem
-	 */
-	//TODO
-	public boolean isFollower(String user) {
-		for (String f : currUser.getFollowers()) {
-			if (f.equals(user))
-				return true;
-		}
-		return false;
-	}
+	
 }
