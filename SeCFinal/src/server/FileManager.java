@@ -91,9 +91,12 @@ public class FileManager extends Server {
 	 * Acrescenta um utilizador novo a base de dados Este metodo so e chamado quando
 	 * nao houver registo previo desse utilizador
 	 * 
-	 * @param user - O ID de utilizador
-	 * @param pass - A password
-	 * @param userList - A lista de utilizadores registados
+	 * @param user
+	 *            - O ID de utilizador
+	 * @param pass
+	 *            - A password
+	 * @param userList
+	 *            - A lista de utilizadores registados
 	 * @throws IOException
 	 */
 	public void FMaddUser(String user, String pass) throws IOException {
@@ -118,15 +121,8 @@ public class FileManager extends Server {
 		closeBuffers();
 	}
 
-	/**
-	 * Faz upload de uma lista de fotos
-	 * 
-	 * @param user - O utilizador
-	 * @param photo - A foto
-	 * @requires - Existe um utilizador autenticado que segue user
-	 * @throws IOException
-	 */
-	public void FMaddPhoto(String user, File photo) throws IOException {
+	
+	public void FMaddPhotos(String user, File photo) throws IOException {
 		String[] info = photo.getName().split(".");
 		// remove a parte ".jpg" do nome da foto
 		String nomeFoto = info[0];
@@ -156,9 +152,9 @@ public class FileManager extends Server {
 	/**
 	 * Lista as fotos de um utilizador
 	 * 
-	 * @param user - O utilizador
-	 * @requires - Existe um utilizador autenticado que segue user
-	 * @return - A lista de fotos de user
+	 * @param user
+	 *            - O utilizador
+	 * @return
 	 * @throws IOException
 	 */
 	public String[] FMlistPhotos(String user) throws IOException {
@@ -173,15 +169,6 @@ public class FileManager extends Server {
 		return folders;
 	}
 
-	/**
-	 * Devolve a informacao de uma foto
-	 * 
-	 * @param user - O utilizador
-	 * @param photo - A foto
-	 * @requires - Existe um utilizador autenticado que segue user
-	 * @return - A informacao da foto com o formato {likes,dislikes,comentario1,comentario2...}
-	 * @throws IOException
-	 */
 	public String[] FMgetInfo(String user, String photo) throws IOException {
 		
 		File reactions = new File(path + "\\" + userDB + "\\" + user + "\\"
@@ -220,9 +207,9 @@ public class FileManager extends Server {
 	/**
 	 * Obtem as fotos de um dado seguidor
 	 * 
-	 * @param user - O utilizador
+	 * @param user
+	 *            - O utilizador
 	 * @return - A lista de fotos desse utilizador
-	 * @requires - Existe um utilizador autenticado que segue user
 	 * @throws IOException
 	 */
 	public ArrayList<File> FMgetPhotos(String user) throws IOException {
@@ -251,10 +238,12 @@ public class FileManager extends Server {
 	/**
 	 * Acrescenta um comentario a uma foto
 	 * 
-	 * @param comment - O comentario
-	 * @param user - O utilizador
-	 * @param photo - A foto
-	 * @requires - Existe um utilizador autenticado que segue user
+	 * @param comment
+	 *            - O comentario
+	 * @param user
+	 *            - O utilizador
+	 * @param photo
+	 *            - A foto
 	 * @throws IOException
 	 */
 	public void FMaddComment(String comment, String user, String photo) throws IOException {
@@ -276,15 +265,16 @@ public class FileManager extends Server {
 	/**
 	 * Acrescenta um like a uma foto
 	 * 
-	 * @param user - O utilizador
-	 * @param photo - A foto
-	 * @requires - Existe um utilizador autenticado que segue user
+	 * @param user
+	 *            - O utilizador
+	 * @param photo
+	 *            - A foto
 	 * @throws IOException
 	 */
-	public static void FMaddLike(String user, String photo) throws IOException {
+	public static void FMaddLike(String userid, String photo) throws IOException {
 		// Abre ficheiro antigo e cria novo
-		File file = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions.txt");
-		File novo = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions2.txt");
+		File file = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions.txt");
+		File novo = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions2.txt");
 
 		fw = new FileWriter(novo.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
@@ -309,15 +299,16 @@ public class FileManager extends Server {
 	/**
 	 * Acrescenta um dislike a uma foto
 	 * 
-	 * @param user - O utilizador
-	 * @param photo - A foto
-	 * @requires - Existe um utilizador autenticado que segue user
+	 * @param userid
+	 *            - O utilizador
+	 * @param photo
+	 *            - A foto
 	 * @throws IOException
 	 */
-	public static void FMaddDislike(String user, String photo) throws IOException {
+	public static void dislike(String userid, String photo) throws IOException {
 		// Abre ficheiro antigo e cria novo
-		File file = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions.txt");
-		File novo = new File(path + "\\" + user + "\\" + photo + "\\" + "reactions2.txt");
+		File file = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions.txt");
+		File novo = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions2.txt");
 
 		fw = new FileWriter(novo.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
@@ -342,13 +333,13 @@ public class FileManager extends Server {
 	/**
 	 * Acrescenta uma lista de seguidores a um utilizador
 	 * 
-	 * @param followers - O array com os seguidores a acrescentar
-	 * @requires - Existe um utilizador autenticado que segue user
+	 * @param followers
+	 *            - O array com os seguidores a acrescentar
 	 * @throws IOException
 	 */
-	public void FMaddFollowers(String user, String[] followers) throws IOException {
+	public boolean FMaddFollowers(String[] followers, String userid) throws IOException {
 		// Abre recursos e streams necessarios
-		File file = new File(path + "\\" + user + "\\" + "followers.txt");
+		File file = new File(path + "\\" + userid + "\\" + "followers.txt");
 
 		fw = new FileWriter(file.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
@@ -364,17 +355,18 @@ public class FileManager extends Server {
 
 		// Fechar streams
 		closeBuffers();
+		return true;
 	}
-	
+
 	/**
 	 * Remove uma lista de seguidores a um utilizador
 	 * @param followers
-	 * @requires - Existe um utilizador autenticado
+	 * @return
 	 * @throws IOException
 	 */
-	public void FMremoveFollowers(String[] followers) throws IOException {
+	public boolean FMremoveFollowers(String[] followers) throws IOException {
 		// Abre recursos e streams necessarios
-		File file = new File(path + "\\" + currUser.getUserid() + "\\" + "followers.txt");
+		File file = new File(path + "\\" + currUser + "\\" + "followers.txt");
 
 		fr = new FileReader(file.getAbsoluteFile());
 		br = new BufferedReader(fr);
@@ -389,7 +381,9 @@ public class FileManager extends Server {
 
 		// Remove os utilizadores
 		for (int i = 0; i < followers.length; i++) {
-			currFollowers.remove(followers[i]) ;
+			if (!currFollowers.remove(followers[i])) {
+				return false;
+			}
 		}
 
 		// Criar lista de seguidores
@@ -398,7 +392,7 @@ public class FileManager extends Server {
 		file.delete();
 
 		// Abre buffers para novo ficheiro de seguidores
-		File newFollowers = new File(path + "\\" + currUser.getUserid() + "\\" + "followers.txt");
+		File newFollowers = new File(path + "\\" + currUser + "\\" + "followers.txt");
 		fw = new FileWriter(newFollowers.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
 
@@ -408,9 +402,9 @@ public class FileManager extends Server {
 		}
 		bw.close();
 		fw.close();
+		return true;
 	}
 
-	// ====================================================================================================
 	// ====================================================================================================
 
 	/**
@@ -428,7 +422,7 @@ public class FileManager extends Server {
 		while ((userid = br.readLine()) != null)
 			u.addFollower(userid);
 
-		closeBuffers();
+		br.close();
 	}
 	
 	/**
@@ -457,7 +451,8 @@ public class FileManager extends Server {
 	 * @param photosPath - A directoria temporaria
 	 * @throws IOException
 	 */
-	public void FMmovePhotos(User u, String[] names, File photosPath) throws IOException {
+	public void FMmovePhotos(String userid, String[] names, File photosPath) throws IOException 
+	{
 		// Abre directorio temporario, lista ficheiros e cria lista final
 		File dir = new File(photosPath.getAbsolutePath());
 		ArrayList<File> files = new ArrayList<File>(Arrays.asList(dir.listFiles()));
@@ -474,11 +469,9 @@ public class FileManager extends Server {
 		// Iterar sobre lista de ficheiros a copiar
 		for(File f: filesFinal) {
 			// Colocar na directoria nova
-			FMaddPhoto(u.getUserid(), f);
+			FMaddPhotos(userid, f);
 			// Apaga a foto da directoria antiga
 			f.delete();
-			Photo p = new Photo(getFileName(f));
-			u.addPhoto(p);
 		}
 	}
 	
@@ -490,5 +483,4 @@ public class FileManager extends Server {
 	public String getFileName(File f) {
 		return f.getName().split(".")[0];
 	}
-	
 }

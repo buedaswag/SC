@@ -241,4 +241,3 @@ class ServerThread extends Thread {
 		return photosPath;
 	}
 }
-

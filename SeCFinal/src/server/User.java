@@ -1,24 +1,10 @@
 package server;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class User {
-
-	private static final String path = new String("database");
-
 	private String userid;
 	private String password;
 	private List<String> followers;
@@ -39,6 +25,16 @@ public class User {
 		this.photos = new ArrayList<>();
 	}
 
+	/**
+	 * Verifica se o utilizador actual tem user como seguidor
+	 * 
+	 * @return - idem
+	 */
+	//TODO
+	public boolean isFollower(User user) {
+		return followers.contains(user.getUserid());
+	}
+	
 	/**
 	 * adds followers to this User´s list of followers
 	 * 
@@ -74,7 +70,7 @@ public class User {
 	public void removeFollower(String follower) {
 		this.followers.remove(follower);
 	}
-
+	
 	/**
 	 * checks if the user has a photo with the given name
 	 * @param name - the name to check
@@ -83,10 +79,10 @@ public class User {
 	public boolean hasPhoto(String name) {
 		if (photos.contains(new Photo(name))) 
 			return true;
-
+		
 		return false;
 	}
-
+	
 	/**
 	 * checks if the user has any photo with any of the given names
 	 * @param names of the photos given
@@ -98,6 +94,15 @@ public class User {
 				return true;
 		return false;
 	}
+
+	/**
+	 * 
+	 * @param photo
+	 */
+	public void addPhoto(Photo photo) {
+		photos.add(photo);
+	}
+
 
 	/**
 	 * 
@@ -114,12 +119,44 @@ public class User {
 	public String getPassword() {
 		return password;
 	}
-
-	public List<String> getFollowers (){
-		return this.followers;
+	
+	/**
+	 * Verifica se o utilizador local segue "user"
+	 * 
+	 * @param user
+	 *            - O utilizador
+	 * @return - Se o utilizador local segue "user"
+	 * @throws IOException
+	 */
+	public boolean follows(String user) throws IOException {
+		return followers.contains(user);
 	}
 
-	public void addPhoto (Photo p) {
-		this.photos.add(p);
+	/**
+	 * adds a comment from the user with the given userid to this user's photo
+	 * @param comment
+	 * @param userid the userid of the user who is adding a comment
+	 * @param name the name of the photo that belongs to this user,
+	 * to which the comment is added to
+	 */
+	//TODO enviar erro para  o cliente
+	public void addComment(String comment, String userid, String name) {
+		if (hasPhoto(name))
+			getPhoto(name).addComment(comment, userid);
+		else
+			System.out.println("this user doesnt have any photo with this name");
 	}
+
+	/**
+	 * returns the photo with the given name
+	 * @param name
+	 * @return
+	 */
+	private Photo getPhoto(String name) {
+		for(Photo p : photos)
+			if (p.getName().equals(name))
+				return p;
+		return null;
+	}
+
 }
