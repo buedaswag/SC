@@ -1,14 +1,10 @@
 package server;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class User {
-
-	private static final String path = new String("database");
-
 	private String userid;
 	private String password;
 	private List<String> followers;
@@ -112,24 +108,6 @@ public class User {
 	 */
 	public String getPassword() {
 		return password;
-	}
-	
-	/**
-	 * load photos from database to the user
-	 */
-	public void loadPhotos() {
-		// load photos
-		String photosFile = path + "\\" + this.getUserid() + "\\" + "Photos";
-		// todas as pastas de fotos
-		File[] directories = new File(photosFile).listFiles(File::isDirectory);
-
-		// buscar as fotos presentes em cada directoria
-		for (File photo : directories) {
-			Photo p = new Photo(photo.getName());
-			// colocar a foto na lista de fotos do utilizador
-			this.addPhoto(p);
-		}
-
 	}
 	
 	/**

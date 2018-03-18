@@ -65,8 +65,8 @@ public class FileManager extends Server {
 		for (String line; (line = br.readLine()) != null;) {
 			String[] data = line.split(":");
 			temp = new User(data[0], data[1]);
-			loadFollowers(temp);
-			temp.loadPhotos();
+			FMloadFollowers(temp);
+			FMloadPhotos(temp);
 			tempList.add(new User(data[0], data[1]));
 		}
 		closeBuffers();
@@ -401,7 +401,7 @@ public class FileManager extends Server {
 
 	// ====================================================================================================
 
-	public void loadFollowers(User u) throws IOException {
+	public void FMloadFollowers(User u) throws IOException {
 		// load followers
 		File followersFile = new File(path + "\\" + u.getUserid() + "\\" + "followers.txt");
 
@@ -413,6 +413,24 @@ public class FileManager extends Server {
 
 		br.close();
 	}
+	
+	/**
+	 * load photos from database to the user
+	 */
+	public void FMloadPhotos(User u) {
+		// load photos
+		String photosFile = path + "\\" + u + "\\" + "Photos";
+		// todas as pastas de fotos
+		File[] directories = new File(photosFile).listFiles(File::isDirectory);
+
+		// buscar as fotos presentes em cada directoria
+		for (File photo : directories) {
+			Photo p = new Photo(photo.getName());
+			// colocar a foto na lista de fotos do utilizador
+			u.addPhoto(p);
+		}
+	}
+	
 	
 	/**
 	 * Move uma lista de fotos para a directoria definitiva
