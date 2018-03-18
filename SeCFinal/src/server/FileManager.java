@@ -407,6 +407,11 @@ public class FileManager extends Server {
 
 	// ====================================================================================================
 
+	/**
+	 * Carrega a lista de seguidores de um utilizador
+	 * @param u - O utilizador
+	 * @throws IOException
+	 */
 	public void FMloadFollowers(User u) throws IOException {
 		// load followers
 		File followersFile = new File(path + "\\" + u.getUserid() + "\\" + "followers.txt");
@@ -421,7 +426,8 @@ public class FileManager extends Server {
 	}
 	
 	/**
-	 * load photos from database to the user
+	 * Carrega as fotos de um utilizador para RAM
+	 * @param u - O utilizador
 	 */
 	public void FMloadPhotos(User u) {
 		// load photos
