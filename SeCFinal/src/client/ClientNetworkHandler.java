@@ -29,19 +29,14 @@ public class ClientNetworkHandler implements NetworkHandler {
 		String[] param = serverAddress.split(":");
 		addr = param[0];
 		port = Integer.parseInt(param[1]);
+
+		this.clientSocket = new Socket(addr, port);
+		out = new ObjectOutputStream(clientSocket.getOutputStream());
+		System.out.println("no cliente, depois de se ligar pela socket");
 	}
 
 	public Socket getSocket() {
 		return this.clientSocket;
-	}
-
-	/**
-	 * Abre o socket TCP
-	 */
-	public void startConnection() throws UnknownHostException, IOException {
-		this.clientSocket = new Socket(addr, port);
-		out = new ObjectOutputStream(clientSocket.getOutputStream());
-		in = new ObjectInputStream(clientSocket.getInputStream());
 	}
 
 	/**
@@ -79,20 +74,26 @@ public class ClientNetworkHandler implements NetworkHandler {
 
 	/**
 	 * Envia uma mensagem em bytecode
+	 * @return 
 	 * 
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 * @returns - True se o servidor aceitou a mensagem, False em caso contrario
 	 */
-	public String send(byte[] message) throws IOException, ClassNotFoundException {
+	//TODO
+	public void send(String[] message) throws IOException, ClassNotFoundException {
 		out.writeObject(message);
-		String answer = (String) in.readObject();
-		return answer;
 	}
 
 	@Override
 	public void startConnection(int port) throws IOException, UnknownHostException {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	public void authenticate(String userID, String pass) throws IOException {
+		//ercrever username e password na socket
+		out.writeObject(userID);
+		out.writeObject(pass);
 	}
 }

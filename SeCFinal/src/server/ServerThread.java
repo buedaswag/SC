@@ -121,9 +121,9 @@ class ServerThread extends Thread {
 		// Comentar foto
 		case 'c': {
 			//get the operation parameters 
-			String comment = args[0];
-			String commentedUserid = args[1];
-			String photo = args[2];
+			String comment = newArgs[0];
+			String commentedUserid = newArgs[1];
+			String photo = newArgs[2];
 
 			//ask the server to add this comment
 			server.addComment(comment, commentedUserid, userid, photo);
@@ -132,15 +132,15 @@ class ServerThread extends Thread {
 		}
 		// Botar like
 		case 'L': {
-			String likedUserid = args[0];
-			String name = args[1];
+			String likedUserid = newArgs[0];
+			String name = newArgs[1];
 			server.addLike(userid, likedUserid, name);
 			//TODO enviar erro para  o cliente
 			break;
 		}
 		// Adicionar seguidores
 		case 'f': {
-			server.addFollowers(userid, args);
+			server.addFollowers(userid, newArgs);
 			//TODO enviar erro para  o cliente
 			break;
 		}

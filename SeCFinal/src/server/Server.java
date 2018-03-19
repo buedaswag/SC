@@ -43,7 +43,7 @@ public class Server {
 	public static void main(String[] args) throws IOException {
 		// set up the server, and get the port
 		Server server = new Server();
-		int port = new Integer(args[1]);
+		int port = new Integer(args[0]);
 
 		/*
 		 * listen to the TCP port and set up a thread for each request

@@ -21,15 +21,15 @@ import javax.imageio.ImageIO;
  * 
  * @author Ant�nio
  */
-public class FileManager extends Server {
-	private static final String path = new String("database");
-	private static final String userDB = new String("users.txt");
-	private static final File database = new File(path + "\\" + userDB);
-	private static final SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH'h'mm");
-	private static FileReader fr;
-	private static BufferedReader br;
-	private static FileWriter fw;
-	private static BufferedWriter bw;
+public class FileManager {
+	private String path;
+	private String userDB;
+	private File database;
+	private SimpleDateFormat df;
+	private FileReader fr;
+	private BufferedReader br;
+	private FileWriter fw;
+	private BufferedWriter bw;
 
 	/**
 	 * Cria o handler de gestao de ficheiros
@@ -37,6 +37,11 @@ public class FileManager extends Server {
 	 * @throws IOException
 	 */
 	public FileManager() throws IOException {
+		path = new String("database");
+		userDB = new String("users.txt");
+		database = new File(path + "\\" + userDB);
+		df = new SimpleDateFormat("dd/MM/yyyy HH'h'mm");
+		
 		File dir = new File("database");
 		if (!dir.exists()) {
 			dir.mkdir();
@@ -61,8 +66,9 @@ public class FileManager extends Server {
 		User temp;
 		ArrayList<User> tempList = new ArrayList<User>();
 
-		// Le os seguidores actuais
-		for (String line; (line = br.readLine()) != null;) {
+		// Le os utilizadores actuais
+		String line;
+		while((line = br.readLine()) != null) {
 			String[] data = line.split(":");
 			temp = new User(data[0], data[1]);
 			FMloadFollowers(temp);
@@ -78,7 +84,7 @@ public class FileManager extends Server {
 	 * 
 	 * @throws IOException
 	 */
-	private static void closeBuffers() throws IOException {
+	private void closeBuffers() throws IOException {
 		bw.close();
 		fw.close();
 		br.close();
@@ -100,13 +106,13 @@ public class FileManager extends Server {
 	 * @throws IOException
 	 */
 	public void FMaddUser(String user, String pass) throws IOException {
-		// Se nao, preparar buffers para registo
+		//Se nao, preparar buffers para registo
 		File file = new File(path + "\\" + userDB);
 
 		fw = new FileWriter(file.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
 
-		// Registar utilizador no ficheiro de base de dados
+		//Registar utilizador no ficheiro de base de dados
 		String temp = user + ":" + pass;
 		bw.write(temp);
 		bw.newLine();
@@ -303,7 +309,7 @@ public class FileManager extends Server {
 	 *            - A foto
 	 * @throws IOException
 	 */
-	public static void FMaddDislike(String userid, String dislikedUserId, String photo) throws IOException {
+	public void FMaddDislike(String userid, String dislikedUserId, String photo) throws IOException {
 		// Abre ficheiro antigo e cria novo
 		File file = new File(path + "\\" + dislikedUserId + "\\" + photo + "\\" + "reactions.txt");
 		File novo = new File(path + "\\" + dislikedUserId + "\\" + photo + "\\" + "reactions2.txt");
@@ -437,13 +443,14 @@ public class FileManager extends Server {
 		String photosFile = path + "\\" + u + "\\" + "Photos";
 		// todas as pastas de fotos
 		File[] directories = new File(photosFile).listFiles(File::isDirectory);
-
-		// buscar as fotos presentes em cada directoria
-		for (File photo : directories) {
-			Photo p = new Photo(photo.getName());
-			// colocar a foto na lista de fotos do utilizador
-			u.addPhoto(p);
-		}
+		
+		if (directories != null)
+			// buscar as fotos presentes em cada directoria
+			for (File photo : directories) {
+				Photo p = new Photo(photo.getName());
+				// colocar a foto na lista de fotos do utilizador
+				u.addPhoto(p);
+			}
 	}
 
 	/**
