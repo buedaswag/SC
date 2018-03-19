@@ -2,6 +2,7 @@ package server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class User {
@@ -33,6 +34,22 @@ public class User {
 	//TODO
 	public boolean isFollower(User user) {
 		return followers.contains(user.getUserid());
+	}
+	
+	/**
+	 * Verifica se o utilizador actual tem algum dos followUsers como 
+	 * seguidores
+	 * 
+	 * @return - idem
+	 */
+	//TODO
+	public boolean isFollower(String[] followUserIds) {
+		//check one by one
+		for(String f: followers)
+			for (String u : followUserIds)
+				if (f.equals(u))
+					return true;
+		return false;
 	}
 	
 	/**
