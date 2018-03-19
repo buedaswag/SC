@@ -9,5 +9,5 @@ public interface NetworkHandler {
 
 	public void endConnection() throws IOException;
 
-	public String send(byte[] message) throws IOException, ClassNotFoundException;
+	public String send(String[] message) throws IOException, ClassNotFoundException;
 }
