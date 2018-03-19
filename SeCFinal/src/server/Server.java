@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Server {
@@ -152,66 +153,6 @@ public class Server {
 	}
 
 	/**
-	 * Lista as fotos de um utilizador
-	 * 
-	 * @param user
-	 *            - O utilizador
-	 * @return A String com informacao caso tenha sucesso, null caso contrario
-	 */
-	/*
-	public String listPhotos(String user) {
-		// User existe?
-		User temp = getByName(user);
-		if (temp == null)
-			return null;
-		ArrayList<Photo> photos = null;
-
-		// Utilizador segue user?
-		if (isFollower(user)) {
-			photos = fileManager.fileManagerlistPhotos(user);
-		} else {
-			return null;
-		}
-
-		// Preencher lista de informacao
-		String list = new String();
-		for (Photo p : photos) {
-			list.concat(p.getName() + " - " + p.getDate());// + p.getDate().
-		}
-		return list;
-	}
-	 */
-	/**
-	 * Obtem a informacao de uma foto
-	 * 
-	 * @param user
-	 *            - O autortttttt da foto
-	 * @param photo
-	 *            - O nome da foto
-	 * @return A String com informacao se teve sucesso, null em caso contrario
-	 */
-	/*
-	public String infoPhoto(String user, String photo) {
-		if (isFollower(user)) {
-
-		} else {
-			return null;
-		}
-	}
-	 */
-	/**
-	 * Copia as fotos de um utilizador para o cliente actual
-	 * 
-	 * @param user
-	 *            - O utilizador
-	 */
-	/*
-	public void savePhotos(String user) {
-
-	}
-	*/
-	
-	/**
 	 * Adds a comment made by user in the commentedUser's photo
 	 * 
 	 * @requires the user is authenticated
@@ -256,7 +197,7 @@ public class Server {
 		User user = getUser(userid);
 		//get the liked user with the given credentials
 		User likedUser = getUser(likedUserid);
-		
+
 		if(likedUser.isFollower(user))
 
 			if (!isFollower(user)) {
@@ -271,26 +212,6 @@ public class Server {
 	}
 
 	/**
-	 * Adiciona um dislike a uma foto de um utilizador
-	 * 
-	 * @param user
-	 *            - O utilizador
-	 * @param photo
-	 *            - A foto
-	 * @return "success" caso tenha sucesso, null caso contrario
-	 */
-	/*
-	public String addDislike(String user, String photo) {
-		if (!isFollower(user)) {
-			return null;
-		} else {
-			fileManager.addDislike(user, photo);
-		}
-		return "success";
-	}
-	 */
-
-	/**
 	 * Verifica se o utilizador actual tem user como seguidor
 	 * 
 	 * @return - idem
@@ -301,87 +222,29 @@ public class Server {
 	}
 
 	/**
-	 * Adds the users with the given userids as followers of the 
+	 * Adds the followUsers as followers of the user
 	 * user with the given userid
 	 * 
-	 * @param userid of the user to be added the followers
-	 * @param followers the userids of the users to be added as followers
-	 * @return "success" if it works, null if it doesnt
+	 * @param userid - the userid of the user
+	 * @param followUserIds - the userids of the followUsers
+	 * @return "success" if it all went well, null otherwise
+	 * @throws IOException 
 	 */
 	//TODO
-	public String addFollowers(String user, String[] followers) {
-		// Conversao da lista de nomes uma lista de seguidores
-		List<String> temp = new ArrayList<String>();
-		User u;
-		for (String s : users) {
-			if ((u = Server.getUser(s)) != null) {
-				temp.add(s);
-			} else {
-				return null;
-			}
-		}
-		// O utilizador actual e seguidor do currUser?
-		if (currUser.follows(user)) {
+	public String addFollowers(String userid, String[] followUserIds) throws IOException {
+		//get the user with the given credentials
+		User user = getUser(userid);
+		
+		//check if any of the followUsers is already a follower
+		if(user.isFollower(followUserIds))
 			return null;
-		}
-		// Algum dos utilizadores a acrescentar ja e seguidor?
-		for (String s : temp) {
-			if (currUser.follows(s))
-				return null;
-		}
-		// Actualizacao na memoria fisica
-		fileManager.addFollowers(user, users);
-		// Actualizacao na memoria de execucao
-		currUser.addFollowers(temp);
+		
+		//adds like to the file system
+		fileManager.FMaddFollowers(followUserIds, userid);
+		
+		//add the followers to the user
+		user.addFollowers(Arrays.asList(followUserIds));
+		
 		return "success";
 	}
-
-	/**
-	 * Remove uma lista de utilizadores como seguidores
-	 * 
-	 * @param user
-	 *            - O utilizador
-	 * @param photo
-	 *            - Os seguidores a remover
-	 * @return "success" caso tenha sucesso, null caso contrario
-	 */
-	/*
-	public String removeFollowers(String user, String[] users) {
-		// Conversao da lista de nomes uma lista de seguidores
-		ArrayList<String> temp = new ArrayList<String>();
-		User u;
-		for (String s : users) {
-			if ((u = Server.getByName(s)) != null) {
-				temp.add(s);
-			} else {
-				return null;
-			}
-		}
-		// O utilizador actual e seguidor do currUser?
-		if (isFollower(user)) {
-			return null;
-		}
-		// Algum dos utilizadores a remover nao e seguidor?
-		for (String s : temp) {
-			if (!isFollower(s))
-				return null;
-		}
-		// Actualizacao na memoria de execucao
-		currUser.addFollowers(temp);
-		// Actualizacao na memoria fisica
-		fileManager.addFollowers(user, users);
-		return "success";
-	}
-
-	// ================== UTILIDADES ================== //
-
-	public User getByName(String id) {
-		for (User u : users) {
-			if (u.getName().equals(id))
-				return u;
-		}
-		return null;
-	}
-	 */
-
 }
