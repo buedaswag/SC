@@ -3,6 +3,7 @@ package client;
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 
 public class Client {
 	private static String userID;
@@ -34,7 +35,7 @@ public class Client {
 		// === ADICIONAR FOTOS
 		case 'a': {
 			// Preencher array com recurso ao sistema de ficheiros
-			if (!addPhotos(args[5555])) {
+			if (!addPhotos(args[5])) {
 				System.out.println("Ja adicionou pelo menos uma destas fotos!");
 				return;
 			}
@@ -156,8 +157,11 @@ public class Client {
 		// Lista fotos do repositorio local
 		File local = new File(filePath);
 		File[] files = local.listFiles();
+		String[] op = {"a"};
+		String[] photosList = photos.split(",");
+		String[] message = concat(op,photosList);
 		// Valida fotos no servidor
-		if (handlerTCP.send(("a1" + photos).getBytes()) == null) {
+		if (handlerTCP.send(message) == null) {
 			return false;
 		}
 
@@ -187,8 +191,8 @@ public class Client {
 	 * @throws ClassNotFoundException
 	 */
 	public static String listPhotos(String user) throws IOException, ClassNotFoundException {
-		String message = "l-" + user;
-		return (handlerTCP.send(message.getBytes()));
+		String[] message = {"l",user};
+		return (handlerTCP.send(message));
 	}
 
 	/**
@@ -203,8 +207,8 @@ public class Client {
 	 * @throws ClassNotFoundException
 	 */
 	public static String info(String user, String photo) throws IOException, ClassNotFoundException {
-		String message = "i-" + user + "-" + photo;
-		return (handlerTCP.send(message.getBytes()));
+		String[] message = {"i",user,photo};
+		return (handlerTCP.send(message));
 	}
 
 	/**
@@ -217,8 +221,8 @@ public class Client {
 	 * @throws ClassNotFoundException
 	 */
 	public static boolean savePhotos(String user) throws IOException, ClassNotFoundException {
-		String message = "g-" + user;
-		return (handlerTCP.send(message.getBytes()) != null);
+		String[] message = {"g",user};
+		return (handlerTCP.send(message) != null);
 	}
 
 	/**
@@ -236,8 +240,8 @@ public class Client {
 	 */
 	public static boolean addComment(String comment, String user, String photo)
 			throws IOException, ClassNotFoundException {
-		String message = "l-" + comment + "-" + user + "-" + photo;
-		return (handlerTCP.send(message.getBytes()) != null);
+		String[] message = {"c",comment,user,photo};
+		return (handlerTCP.send(message) != null);
 	}
 
 	/**
@@ -252,8 +256,8 @@ public class Client {
 	 * @throws ClassNotFoundException
 	 */
 	public static boolean addLike(String user, String photo) throws IOException, ClassNotFoundException {
-		String message = "L-" + user + "-" + photo;
-		return (handlerTCP.send(message.getBytes()) != null);
+		String[] message = {"L",user,photo};
+		return (handlerTCP.send(message) != null);
 	}
 
 	/**
@@ -268,8 +272,8 @@ public class Client {
 	 * @throws ClassNotFoundException
 	 */
 	public static boolean addDislike(String user, String photo) throws IOException, ClassNotFoundException {
-		String message = "D-" + user + "-" + photo;
-		return (handlerTCP.send(message.getBytes()) != null);
+		String[] message = {"D",user,photo};
+		return (handlerTCP.send(message) != null);
 	}
 
 	/**
@@ -282,8 +286,10 @@ public class Client {
 	 * @throws ClassNotFoundException
 	 */
 	public static boolean addFollowers(String followers) throws IOException, ClassNotFoundException {
-		String message = "f-" + followers;
-		return (handlerTCP.send(message.getBytes()) != null);
+		String[] op = {"f"};
+		String[] usersList = followers.split(",");
+		String[] message = concat(op,usersList);
+		return (handlerTCP.send(message) != null);
 	}
 
 	/**
@@ -296,8 +302,10 @@ public class Client {
 	 * @throws ClassNotFoundException
 	 */
 	public static boolean removeFollowers(String followers) throws IOException, ClassNotFoundException {
-		String message = "r-" + followers;
-		return (handlerTCP.send(message.getBytes()) != null);
+		String[] op = {"r"};
+		String[] usersList = followers.split(",");
+		String[] message = concat(op,usersList);
+		return (handlerTCP.send(message) != null);
 	}
 
 	// ================== UTILIDADES ================== //
@@ -331,6 +339,13 @@ public class Client {
 					else
 						return true;
 		return true;
+	}
+	
+	public static String[] concat(String[] a, String[] b) {
+		String [] newArray = new String[a.length+b.length];
+		System.arraycopy( a, 0, newArray, 0, a.length);
+		System.arraycopy( b, 0, newArray, a.length, b.length );
+		return newArray;
 	}
 
 }

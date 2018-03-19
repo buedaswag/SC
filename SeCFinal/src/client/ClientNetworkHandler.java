@@ -84,7 +84,7 @@ public class ClientNetworkHandler implements NetworkHandler {
 	 * @throws ClassNotFoundException
 	 * @returns - True se o servidor aceitou a mensagem, False em caso contrario
 	 */
-	public String send(byte[] message) throws IOException, ClassNotFoundException {
+	public String send(String[] message) throws IOException, ClassNotFoundException {
 		out.writeObject(message);
 		String answer = (String) in.readObject();
 		return answer;
