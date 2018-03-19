@@ -88,15 +88,9 @@ public class FileManager extends Server {
 	// =================== OPERACOES =================== //
 
 	/**
-	 * Acrescenta um utilizador novo a base de dados Este metodo so e chamado quando
-	 * nao houver registo previo desse utilizador
-	 * 
-	 * @param user
-	 *            - O ID de utilizador
-	 * @param pass
-	 *            - A password
-	 * @param userList
-	 *            - A lista de utilizadores registados
+	 * Acrescenta um novo utilizador ao sistema de ficheiros
+	 * @param user - O nome do utilizador
+	 * @param pass - A password do utilizador
 	 * @throws IOException
 	 */
 	public void FMaddUser(String user, String pass) throws IOException {
@@ -121,6 +115,12 @@ public class FileManager extends Server {
 		closeBuffers();
 	}
 
+	/**
+	 * Acrescenta uma foto a uma conta de utilizador
+	 * @param user - O nome do utilizador
+	 * @param photo - O nome da foto
+	 * @throws IOException
+	 */
 	public void FMaddPhotos(String user, File photo) throws IOException {
 		String[] info = photo.getName().split(".");
 		// remove a parte ".jpg" do nome da foto
@@ -150,10 +150,8 @@ public class FileManager extends Server {
 
 	/**
 	 * Lista as fotos de um utilizador
-	 * 
-	 * @param user
-	 *            - O utilizador
-	 * @return
+	 * @param user - O nome do utilizador
+	 * @return - A lista das fotos desse utilizador
 	 * @throws IOException
 	 */
 	public String[] FMlistPhotos(String user) throws IOException {
@@ -168,6 +166,13 @@ public class FileManager extends Server {
 		return folders;
 	}
 
+	/**
+	 * Obtem e devolve a informacao de uma foto
+	 * @param user - O nome do utilizador
+	 * @param photo - O nome da foto (sem extensao)
+	 * @return - Um array com o formato {likes,dislikes,comentario1,comentario2...}
+	 * @throws IOException
+	 */
 	public String[] FMgetInfo(String user, String photo) throws IOException {
 
 		File reactions = new File(path + "\\" + userDB + "\\" + user + "\\" + photo + "\\" + "reactions.txt");
@@ -202,11 +207,9 @@ public class FileManager extends Server {
 	}
 
 	/**
-	 * Obtem as fotos de um dado seguidor
-	 * 
-	 * @param user
-	 *            - O utilizador
-	 * @return - A lista de fotos desse utilizador
+	 * Obtem uma lista com as fotos de um utilizador
+	 * @param user - O nome do utilizador
+	 * @return - Uma lista com os objectos File associados as fotos
 	 * @throws IOException
 	 */
 	public ArrayList<File> FMgetPhotos(String user) throws IOException {
@@ -234,13 +237,10 @@ public class FileManager extends Server {
 
 	/**
 	 * Acrescenta um comentario a uma foto
-	 * 
-	 * @param comment
-	 *            - O comentario
-	 * @param user
-	 *            - O utilizador
-	 * @param photo
-	 *            - A foto
+	 * @param comment - O comentario
+	 * @param user - O autor do comentario
+	 * @param commentedUserId - O destinatario do comentario
+	 * @param photo - O nome da foto a comentar
 	 * @throws IOException
 	 */
 	public void FMaddComment(String comment, String user, String commentedUserId, String photo) throws IOException {
@@ -261,14 +261,11 @@ public class FileManager extends Server {
 
 	/**
 	 * Acrescenta um like a uma foto
-	 * 
-	 * @param user
-	 *            - O utilizador
-	 * @param photo
-	 *            - A foto
+	 * @param userid - O remetente do like (necessario mais tarde)
+	 * @param likedUserId - O destinatario do like
+	 * @param photo - O nome da foto para onde vai o like
 	 * @throws IOException
 	 */
-	//TODO documentation and aldo consider the likedUserid
 	public void FMaddLike(String userid, String likedUserId, String photo) throws IOException {
 		// Abre ficheiro antigo e cria novo
 		File file = new File(path + "\\" + likedUserId + "\\" + photo + "\\" + "reactions.txt");
@@ -296,11 +293,9 @@ public class FileManager extends Server {
 
 	/**
 	 * Acrescenta um dislike a uma foto
-	 * 
-	 * @param userid
-	 *            - O utilizador
-	 * @param photo
-	 *            - A foto
+	 * @param userid - O remetente do like (necessario mais tarde)
+	 * @param dislikedUserId - O destinatario do like
+	 * @param photo - O nome da foto para onde vai o like
 	 * @throws IOException
 	 */
 	public static void FMaddDislike(String userid, String dislikedUserId, String photo) throws IOException {
@@ -330,9 +325,9 @@ public class FileManager extends Server {
 
 	/**
 	 * Acrescenta uma lista de seguidores a um utilizador
-	 * 
-	 * @param followers
-	 *            - O array com os seguidores a acrescentar
+	 * @param followers - A lista com os nomes dos seguidores a acrescentar
+	 * @param userid - O utilizador
+	 * @return - True se a operacao teve sucesso, False caso contrario
 	 * @throws IOException
 	 */
 	public boolean FMaddFollowers(String[] followers, String userid) throws IOException {
@@ -358,9 +353,9 @@ public class FileManager extends Server {
 
 	/**
 	 * Remove uma lista de seguidores a um utilizador
-	 * 
-	 * @param followers
-	 * @return
+	 * @param followers - A lista com os nomes dos seguidores a remover
+	 * @param userid - O utilizador
+	 * @return - True se a operacao teve sucesso, False caso contrario
 	 * @throws IOException
 	 */
 	public boolean FMremoveFollowers(String[] followers, String userid) throws IOException {
@@ -407,10 +402,10 @@ public class FileManager extends Server {
 	// ====================================================================================================
 
 	/**
-	 * Carrega a lista de seguidores de um utilizador
-	 * 
-	 * @param u
-	 *            - O utilizador
+	 * Acrescenta uma lista de seguidores a um utilizador
+	 * @param followers - A lista com os nomes dos seguidores a acrescentar
+	 * @param userid - O utilizador
+	 * @return - True se a operacao teve sucesso, False caso contrario
 	 * @throws IOException
 	 */
 	public void FMloadFollowers(User u) throws IOException {
@@ -427,10 +422,8 @@ public class FileManager extends Server {
 	}
 
 	/**
-	 * Carrega as fotos de um utilizador para RAM
-	 * 
-	 * @param u
-	 *            - O utilizador
+	 * Carrega as fotos de um utilizador para memoria
+	 * @param u - O objecto utilizador
 	 */
 	public void FMloadPhotos(User u) {
 		// load photos
@@ -447,14 +440,10 @@ public class FileManager extends Server {
 	}
 
 	/**
-	 * Move uma lista de fotos para a directoria definitiva
-	 * 
-	 * @param userid
-	 *            - O nome de utilizador
-	 * @param names
-	 *            - Os nomes das fotos
-	 * @param photosPath
-	 *            - A directoria temporaria
+	 * Move fotos do directorio temporario para o definitivo
+	 * @param userid - O utilizador
+	 * @param names - Os nomes das fotos a copiar
+	 * @param photosPath - A pasta temporaria onde estao as fotos
 	 * @throws IOException
 	 */
 	public void FMmovePhotos(String userid, String[] names, File photosPath) throws IOException {
@@ -482,10 +471,8 @@ public class FileManager extends Server {
 
 	/**
 	 * Devolve o nome de um ficheiro (sem extensao)
-	 * 
-	 * @param f
-	 *            - O nome do ficheiro (com extensao incluida)
-	 * @return - O nome do ficheiro sem extensao
+	 * @param f - O ficheiro
+	 * @return - O nome do ficheiro
 	 */
 	public String getFileName(File f) {
 		return f.getName().split(".")[0];
