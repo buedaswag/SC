@@ -1,5 +1,6 @@
 package server;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,12 +59,23 @@ public class Photo {
 	}
 
 	/**
-	 * Adds a new comment made by the user with the 
-	 * given userid to this Photo
-	 * @param comment
-	 * @param userid
+	 * Adds a comment made by user in this user's photo
+	 * 
+	 * @param comment - the comment to be made
+	 * @param userid - the userid of the user
 	 */
 	public void addComment(String comment, String userid) {
 		comments.add(new Comment(userid, comment));
+	}
+
+	/**
+	 * Adds a like made by user in this user's photo
+	 * 
+	 * @param userid - the userid of the user
+	 * @param likedUserid - the userid of the likedUser 
+	 */
+	//TODO incomplete, doesnt use Like object, istead uses an int
+	public void addLike(String userid) {
+		likes++;
 	}
 }

@@ -112,11 +112,9 @@ class ServerThread extends Thread {
 			else {
 				//adicionar as fotos ao sistema de ficheiros
 				File photosPath = receivePhotos(userid, newArgs, inStream);
-				/*
-				 * pedir ao server para ir buscar � temp
-				 */
+				
+				//pedir ao server para ir buscar � temp
 				server.addPhotos(userid, password, newArgs, photosPath);
-
 			}
 			break;
 		}
@@ -144,20 +142,20 @@ class ServerThread extends Thread {
 		// Comentar foto
 		case 'c': {
 			//get the operation parameters 
-			String comment = args[1];
-			String user = args[2];
-			String photo = args[3];
-
+			String comment = args[0];
+			String commentedUserid = args[1];
+			String photo = args[2];
+			
 			//ask the server to add this comment
-			server.addComment(comment, userid, photo);
+			server.addComment(comment, commentedUserid, userid, photo);
 			//TODO enviar erro para  o cliente
-
+			
 		}
 		// Botar like
 		case 'L': {
-			String user = args[1];
-			String photo = args[2];
-			answer = server.addLike(user, photo);
+			String likedUserid = args[0];
+			String name = args[1];
+			answer = server.addLike(userid, likedUserid, name);
 			// Enviar resposta
 		}
 		// Botar dislike

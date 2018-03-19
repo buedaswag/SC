@@ -96,22 +96,21 @@ public class Server {
 	 * @throws IOException
 	 * @throws IOException
 	 */
-	//TODO
 	public boolean authenticate(String userid, String password) throws IOException {
 		// Caso 1: cliente existe
 		for (User u : users) {
 			// Password certa?
 			if (u.getUserid().equals(userid)) {
 				if (u.getPassword().equals(password)) {
-					currUser = u;
 					return true;
 				} else {
 					return false;
 				}
 			}
 		}
-		// Caso 2: cliente nao existe
+		// Caso 2: cliente nao existe adicionar ao disco e 'a memoria
 		fileManager.FMaddUser(userid, password);
+		users.add(new User(userid, password));
 		return true;
 	}
 
@@ -127,12 +126,13 @@ public class Server {
 	 * @return
 	 */
 	public boolean checkDuplicatePhotos(String userid, String password, String[] names) {
-		User user = getUser(userid, password);
+		User user = getUser(userid);
 		return user.hasPhotos(names);
 	}
 
 	/**
 	 * adds the photos with the given names to the user with the given userid,
+	 * by adding them to the persistent storange and to the program memory,
 	 * and after its done, deletes the photos from the given directory
 	 * 
 	 * @param userid 
@@ -144,9 +144,11 @@ public class Server {
 	public void addPhotos(String userid, String password, String[] names,
 			File photosPath) throws IOException {
 		//get the corresponding user
-		User user = getUser(userid, password);
-		//adds the photos to this user
-		fileManager.FMmovePhotos(user, names, photosPath);
+		User user = getUser(userid);
+		//adds the photos to the persistent storage
+		fileManager.FMmovePhotos(userid, names, photosPath);
+		//adds the photos to the program memory
+		user.addPhotos(names);
 	}
 
 	/**
@@ -203,22 +205,25 @@ public class Server {
 	 * @param user
 	 *            - O utilizador
 	 */
+	/*
 	public void savePhotos(String user) {
 
 	}
-
+	*/
+	
 	/**
-	 * Acrescenta um comentario a uma foto de um utilizador
+	 * Adds a comment made by user in the commentedUser's photo
 	 * 
-	 * @requires the user with the given credentials is authenticated
-	 * @param comment O comentario
-	 * @param user O utilizador
-	 * @param photo A foto
-	 * @return "success" caso tenha sucesso, null caso contrario
+	 * @requires the user is authenticated
+	 * @param comment - the comment to be made
+	 * @param userid - the userid of the user
+	 * @param commentedUserid - the userid of the commentedUser 
+	 * @param name - the name of the commentedUser's photo
+	 * @return "success" if it all went well, null otherwise
 	 * @throws IOException 
 	 */
-	public String addComment(String comment, String commentedUserid, 
-			String userid, String photo) throws IOException {
+	public String addComment(String comment, String userid, 
+			String commentedUserid, String name) throws IOException {
 		//get the user with the given credentials
 		User user = getUser(userid);
 		//get the commented user with the given credentials
@@ -227,32 +232,40 @@ public class Server {
 			return null;
 		} else {
 			//adds comment to the file system
-			fileManager.FMaddComment(comment, userid, commentedUserid, photo);
+			fileManager.FMaddComment(comment, userid, commentedUserid, name);
 			//adds comment from user to commentedUser's photo 
-			commentedUser.addComment(comment, userid, photo);		
+			commentedUser.addComment(comment, userid, name);		
 		}
 		return "success";
 	}
 
 	/**
-	 * Adiciona um like a uma foto de um utilizador
-	 * @param user O utilizador
-	 * @param photo A foto
-	 * @return "success" caso tenha sucesso, null caso contrario
+	 * Adds a like made by user in the likedUser's photo 
+	 * 
+	 * @requires the user is authenticated
+	 * @param userid - the userid of the user
+	 * @param likedUserid - the userid of the likedUser 
+	 * @param name - the name of the likedUser's photo
+	 * @return "success" if it all went well, null otherwise
 	 * @throws IOException 
 	 */
+	//TODO falta por a responsabilidade de por na ram aqui 
 	public String addLike(String userid, String likedUserid,
-			String photo) throws IOException {
+			String name) throws IOException {
 		//get the user with the given credentials
 		User user = getUser(userid);
 		//get the liked user with the given credentials
 		User likedUser = getUser(likedUserid);
+		
 		if(likedUser.isFollower(user))
 
 			if (!isFollower(user)) {
 				return null;
 			} else {
-				fileManager.FMaddLike(userid, photo);
+				//adds like to the file system
+				fileManager.FMaddLike(userid, likedUserid, name);
+				//adds like from user to likedUser's photo 
+				likedUser.addLike(userid, name);
 			}
 		return "success";
 	}
@@ -288,22 +301,20 @@ public class Server {
 	}
 
 	/**
-	 * Adiciona uma lista de utilizadores como seguidores
+	 * Adds the users with the given userids as followers of the 
+	 * user with the given userid
 	 * 
-	 * @param user
-	 *            - O utilizador
-	 * @param photo
-	 *            - Os futuros seguidores
-	 * @return "success" caso tenha sucesso, null caso contrario
+	 * @param userid of the user to be added the followers
+	 * @param followers the userids of the users to be added as followers
+	 * @return "success" if it works, null if it doesnt
 	 */
 	//TODO
-	public String addFollowers(String user, String[] users) {
+	public String addFollowers(String user, String[] followers) {
 		// Conversao da lista de nomes uma lista de seguidores
-		ArrayList<String> temp = new ArrayList<String>();
-		@SuppressWarnings("unused")
+		List<String> temp = new ArrayList<String>();
 		User u;
 		for (String s : users) {
-			if ((u = Server.getByName(s)) != null) {
+			if ((u = Server.getUser(s)) != null) {
 				temp.add(s);
 			} else {
 				return null;
@@ -318,10 +329,10 @@ public class Server {
 			if (currUser.follows(s))
 				return null;
 		}
-		// Actualizacao na memoria de execucao
-		currUser.addFollowers(temp);
 		// Actualizacao na memoria fisica
 		fileManager.addFollowers(user, users);
+		// Actualizacao na memoria de execucao
+		currUser.addFollowers(temp);
 		return "success";
 	}
 

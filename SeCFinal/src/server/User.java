@@ -38,6 +38,8 @@ public class User {
 	/**
 	 * adds followers to this User´s list of followers
 	 * 
+	 * @requires the followers have been added to this user's 
+	 * persistent storage
 	 * @param followers - the followers to be added 
 	 */
 	public void addFollowers(List<String> followers) {
@@ -56,6 +58,8 @@ public class User {
 	/**
 	 *  adds a single follower to this User´s followers list
 	 *  
+	 * @requires the follower has been added to this user's 
+	 * persistent storage
 	 * @param follower the follower to be added
 	 */
 	public void addFollower(String follower) {
@@ -102,6 +106,18 @@ public class User {
 	public void addPhoto(Photo photo) {
 		photos.add(photo);
 	}
+	
+	/**
+	 * Adds the photos with the given names to this user
+	 * 
+	 * @requires the photos have been added to this user's 
+	 * persistent storage
+	 * @param names
+	 */
+	public void addPhotos(String[] names) {
+		for(String name : names)
+			addPhoto(new Photo(name));
+	}
 
 
 	/**
@@ -133,18 +149,23 @@ public class User {
 	}
 
 	/**
-	 * adds a comment from the user with the given userid to this user's photo
-	 * @param comment
-	 * @param userid the userid of the user who is adding a comment
-	 * @param name the name of the photo that belongs to this user,
-	 * to which the comment is added to
+	 * Adds a comment made by user in the commentedUser's photo
+	 * 
+	 * @requires the comment has been added to this user's 
+	 * persistent storage
+	 * @param comment - the comment to be made
+	 * @param userid - the userid of the user
+	 * @param commentedUserid - the userid of the commentedUser 
+	 * @param name - the name of the commentedUser's photo
+	 * @throws IOException 
 	 */
 	//TODO enviar erro para  o cliente
 	public void addComment(String comment, String userid, String name) {
 		if (hasPhoto(name))
 			getPhoto(name).addComment(comment, userid);
 		else
-			System.out.println("this user doesnt have any photo with this name");
+			System.out.println("this user doesnt have any photo with this "
+					+ "name");
 	}
 
 	/**
@@ -157,6 +178,24 @@ public class User {
 			if (p.getName().equals(name))
 				return p;
 		return null;
+	}
+
+	/**
+	 * Adds a like made by user in the likedUser's photo
+	 * 
+	 * @requires the comment has been added to this user's 
+	 * persistent storage
+	 * @param userid - the userid of the user
+	 * @param likedUserid - the userid of the likedUser 
+	 * param name - the name of the commentedUser's photo
+	 */
+	//TODO enviar erro para  o cliente
+	public void addLike(String userid, String name) {
+		if (hasPhoto(name))
+			getPhoto(name).addLike(userid);
+		else
+			System.out.println("this user doesnt have any photo with this "
+					+ "name");
 	}
 
 }

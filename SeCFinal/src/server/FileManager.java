@@ -121,7 +121,6 @@ public class FileManager extends Server {
 		closeBuffers();
 	}
 
-	
 	public void FMaddPhotos(String user, File photo) throws IOException {
 		String[] info = photo.getName().split(".");
 		// remove a parte ".jpg" do nome da foto
@@ -170,11 +169,9 @@ public class FileManager extends Server {
 	}
 
 	public String[] FMgetInfo(String user, String photo) throws IOException {
-		
-		File reactions = new File(path + "\\" + userDB + "\\" + user + "\\"
-				+ photo + "\\" + "reactions.txt");
-		File comments = new File(path + "\\" + userDB + "\\" + user + "\\"
-				+ photo + "\\" + "comments.txt");
+
+		File reactions = new File(path + "\\" + userDB + "\\" + user + "\\" + photo + "\\" + "reactions.txt");
+		File comments = new File(path + "\\" + userDB + "\\" + user + "\\" + photo + "\\" + "comments.txt");
 
 		// Leitura dos likes/dislikes
 		fr = new FileReader(reactions.getAbsoluteFile());
@@ -201,9 +198,9 @@ public class FileManager extends Server {
 		String[] info = commentList.toArray(new String[commentList.size()]);
 		closeBuffers();
 		return info;
-	
+
 	}
-	
+
 	/**
 	 * Obtem as fotos de um dado seguidor
 	 * 
@@ -246,10 +243,10 @@ public class FileManager extends Server {
 	 *            - A foto
 	 * @throws IOException
 	 */
-	public void FMaddComment(String comment, String user, String photo) throws IOException {
+	public void FMaddComment(String comment, String user, String commentedUserId, String photo) throws IOException {
 		// Constroi linha a escrever no ficheiro
 		Date local = new Date();
-		String finalLine = user + ":" + df.format(local) + ":" + comment;
+		String finalLine = commentedUserId + ":" + df.format(local) + ":" + comment;
 
 		// Abre ficheiro de comentarios e buffers respectivos
 		File comments = new File(path + "\\" + user + "\\" + photo + "\\" + "comments.txt");
@@ -271,7 +268,8 @@ public class FileManager extends Server {
 	 *            - A foto
 	 * @throws IOException
 	 */
-	public static void FMaddLike(String userid, String photo) throws IOException {
+	//TODO documentation and aldo consider the likedUserid
+	public void FMaddLike(String userid, String photo) throws IOException {
 		// Abre ficheiro antigo e cria novo
 		File file = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions.txt");
 		File novo = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions2.txt");
@@ -360,6 +358,7 @@ public class FileManager extends Server {
 
 	/**
 	 * Remove uma lista de seguidores a um utilizador
+	 * 
 	 * @param followers
 	 * @return
 	 * @throws IOException
@@ -409,7 +408,9 @@ public class FileManager extends Server {
 
 	/**
 	 * Carrega a lista de seguidores de um utilizador
-	 * @param u - O utilizador
+	 * 
+	 * @param u
+	 *            - O utilizador
 	 * @throws IOException
 	 */
 	public void FMloadFollowers(User u) throws IOException {
@@ -424,10 +425,12 @@ public class FileManager extends Server {
 
 		br.close();
 	}
-	
+
 	/**
 	 * Carrega as fotos de um utilizador para RAM
-	 * @param u - O utilizador
+	 * 
+	 * @param u
+	 *            - O utilizador
 	 */
 	public void FMloadPhotos(User u) {
 		// load photos
@@ -442,42 +445,46 @@ public class FileManager extends Server {
 			u.addPhoto(p);
 		}
 	}
-	
-	
+
 	/**
 	 * Move uma lista de fotos para a directoria definitiva
-	 * @param userid - O nome de utilizador
-	 * @param names - Os nomes das fotos
-	 * @param photosPath - A directoria temporaria
+	 * 
+	 * @param userid
+	 *            - O nome de utilizador
+	 * @param names
+	 *            - Os nomes das fotos
+	 * @param photosPath
+	 *            - A directoria temporaria
 	 * @throws IOException
 	 */
-	public void FMmovePhotos(String userid, String[] names, File photosPath) throws IOException 
-	{
+	public void FMmovePhotos(String userid, String[] names, File photosPath) throws IOException {
 		// Abre directorio temporario, lista ficheiros e cria lista final
 		File dir = new File(photosPath.getAbsolutePath());
 		ArrayList<File> files = new ArrayList<File>(Arrays.asList(dir.listFiles()));
 		ArrayList<File> filesFinal = new ArrayList<File>();
-		
+
 		// Constroi lista final a partir dos nomes dos ficheiros a mover
-		for(File f: files) {
-			for(String s: names) {
-				if(s.equals(getFileName(f)))
+		for (File f : files) {
+			for (String s : names) {
+				if (s.equals(getFileName(f)))
 					filesFinal.add(f);
 			}
 		}
-		
+
 		// Iterar sobre lista de ficheiros a copiar
-		for(File f: filesFinal) {
+		for (File f : filesFinal) {
 			// Colocar na directoria nova
 			FMaddPhotos(userid, f);
 			// Apaga a foto da directoria antiga
 			f.delete();
 		}
 	}
-	
+
 	/**
 	 * Devolve o nome de um ficheiro (sem extensao)
-	 * @param f - O nome do ficheiro (com extensao incluida)
+	 * 
+	 * @param f
+	 *            - O nome do ficheiro (com extensao incluida)
 	 * @return - O nome do ficheiro sem extensao
 	 */
 	public String getFileName(File f) {
