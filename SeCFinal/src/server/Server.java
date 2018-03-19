@@ -1,4 +1,4 @@
-
+//antes de tentes
 package server;
 
 import java.io.File;
@@ -77,13 +77,13 @@ public class Server {
 	/**
 	 * gets the user with the given credentials from the List users
 	 * @requires the user is authenticated
-	 * @param userid
+	 * @param localUserId
 	 * @param password
 	 * @return the user, or null if its not on the List
 	 */
-	private User getUser(String userid) {
+	private User getUser(String localUserId) {
 		for (User u : users)
-			if (u.getUserid().equals(userid))
+			if (u.getUserid().equals(localUserId))
 				return u;
 		return null;
 	}
@@ -92,16 +92,16 @@ public class Server {
 	 * Autentica um utilizador, se este existir Caso contrario, cria-o e regista-o
 	 * na base de dados
 	 * 
-	 * @param userid
+	 * @param localUserId
 	 * @param password
 	 * @throws IOException
 	 * @throws IOException
 	 */
-	public boolean authenticate(String userid, String password) throws IOException {
+	public boolean authenticate(String localUserId, String password) throws IOException {
 		// Caso 1: cliente existe
 		for (User u : users) {
 			// Password certa?
-			if (u.getUserid().equals(userid)) {
+			if (u.getUserid().equals(localUserId)) {
 				if (u.getPassword().equals(password)) {
 					return true;
 				} else {
@@ -110,8 +110,8 @@ public class Server {
 			}
 		}
 		// Caso 2: cliente nao existe adicionar ao disco e 'a memoria
-		fileManager.FMaddUser(userid, password);
-		users.add(new User(userid, password));
+		fileManager.FMaddUser(localUserId, password);
+		users.add(new User(localUserId, password));
 		return true;
 	}
 
@@ -119,35 +119,35 @@ public class Server {
 	 * @requires all the photos have been loaded from the file system
 	 * @requires the user is authenticated
 	 * 
-	 * checks the photos of the user with the given userid
+	 * checks the photos of the user with the given localUserId
 	 * if he already has a photo with any of the names given in photos,
 	 * returns false, otherwise, returns true
-	 * @param userid
+	 * @param localUserId
 	 * @param password
 	 * @return
 	 */
-	public boolean checkDuplicatePhotos(String userid, String password, String[] names) {
-		User user = getUser(userid);
+	public boolean checkDuplicatePhotos(String localUserId, String password, String[] names) {
+		User user = getUser(localUserId);
 		return user.hasPhotos(names);
 	}
 
 	/**
-	 * adds the photos with the given names to the user with the given userid,
+	 * adds the photos with the given names to the user with the given localUserId,
 	 * by adding them to the persistent storange and to the program memory,
 	 * and after its done, deletes the photos from the given directory
 	 * 
-	 * @param userid 
+	 * @param localUserId 
 	 * @param password
 	 * @param names
 	 * @param photosPath the path to the photos in the user's temp folder
 	 * @throws IOException 
 	 */
-	public void addPhotos(String userid, String password, String[] names,
+	public void addPhotos(String localUserId, String password, String[] names,
 			File photosPath) throws IOException {
 		//get the corresponding user
-		User user = getUser(userid);
+		User user = getUser(localUserId);
 		//adds the photos to the persistent storage
-		fileManager.FMmovePhotos(userid, names, photosPath);
+		fileManager.FMmovePhotos(localUserId, names, photosPath);
 		//adds the photos to the program memory
 		user.addPhotos(names);
 	}
@@ -157,25 +157,25 @@ public class Server {
 	 * 
 	 * @requires the user is authenticated
 	 * @param comment - the comment to be made
-	 * @param userid - the userid of the user
+	 * @param localUserId - the localUserId of the user
 	 * @param commentedUserid - the userid of the commentedUser 
 	 * @param name - the name of the commentedUser's photo
 	 * @return "success" if it all went well, null otherwise
 	 * @throws IOException 
 	 */
-	public String addComment(String comment, String userid, 
+	public String addComment(String comment, String localUserId, 
 			String commentedUserid, String name) throws IOException {
 		//get the user with the given credentials
-		User user = getUser(userid);
+		User user = getUser(localUserId);
 		//get the commented user with the given credentials
 		User commentedUser = getUser(commentedUserid);
 		if (!commentedUser.isFollower(user)) {
 			return null;
 		} else {
 			//adds comment to the file system
-			fileManager.FMaddComment(comment, userid, commentedUserid, name);
+			fileManager.FMaddComment(comment, localUserId, commentedUserid, name);
 			//adds comment from user to commentedUser's photo 
-			commentedUser.addComment(comment, userid, name);		
+			commentedUser.addComment(comment, localUserId, name);		
 		}
 		return "success";
 	}
@@ -184,17 +184,17 @@ public class Server {
 	 * Adds a like made by user in the likedUser's photo 
 	 * 
 	 * @requires the user is authenticated
-	 * @param userid - the userid of the user
+	 * @param localUserId - the localUserId of the user
 	 * @param likedUserid - the userid of the likedUser 
 	 * @param name - the name of the likedUser's photo
 	 * @return "success" if it all went well, null otherwise
 	 * @throws IOException 
 	 */
 	//TODO falta por a responsabilidade de por na ram aqui 
-	public String addLike(String userid, String likedUserid,
+	public String addLike(String localUserId, String likedUserid,
 			String name) throws IOException {
 		//get the user with the given credentials
-		User user = getUser(userid);
+		User user = getUser(localUserId);
 		//get the liked user with the given credentials
 		User likedUser = getUser(likedUserid);
 
@@ -204,9 +204,9 @@ public class Server {
 				return null;
 			} else {
 				//adds like to the file system
-				fileManager.FMaddLike(userid, likedUserid, name);
+				fileManager.FMaddLike(localUserId, likedUserid, name);
 				//adds like from user to likedUser's photo 
-				likedUser.addLike(userid, name);
+				likedUser.addLike(localUserId, name);
 			}
 		return "success";
 	}
@@ -223,24 +223,24 @@ public class Server {
 
 	/**
 	 * Adds the followUsers as followers of the user
-	 * user with the given userid
+	 * user with the given localUserId
 	 * 
-	 * @param userid - the userid of the user
+	 * @param localUserId - the localUserId of the user
 	 * @param followUserIds - the userids of the followUsers
 	 * @return "success" if it all went well, null otherwise
 	 * @throws IOException 
 	 */
 	//TODO
-	public String addFollowers(String userid, String[] followUserIds) throws IOException {
+	public String addFollowers(String localUserId, String[] followUserIds) throws IOException {
 		//get the user with the given credentials
-		User user = getUser(userid);
+		User user = getUser(localUserId);
 		
 		//check if any of the followUsers is already a follower
 		if(user.isFollower(followUserIds))
 			return null;
 		
 		//adds like to the file system
-		fileManager.FMaddFollowers(followUserIds, userid);
+		fileManager.FMaddFollowers(followUserIds, localUserId);
 		
 		//add the followers to the user
 		user.addFollowers(Arrays.asList(followUserIds));
