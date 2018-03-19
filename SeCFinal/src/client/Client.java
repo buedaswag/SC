@@ -64,7 +64,7 @@ public class Client {
 		// === GUARDAR FOTOS DE UM UTILIZADOR
 		case 'g': {
 			String user = args[5];
-			if (savePhotos(user) == null) {
+			if (!savePhotos(user)) {
 				System.out.println("Nao esta registado como seguidor de " + user + "!");
 				return;
 			}
@@ -76,7 +76,7 @@ public class Client {
 			String comment = args[5];
 			String user = args[6];
 			String photo = args[7];
-			if (addComment(comment, user, photo) == null) {
+			if (!addComment(comment, user, photo)) {
 				System.out.println("Nao esta registado como seguidor de " + user + "!");
 				return;
 			}
@@ -87,7 +87,7 @@ public class Client {
 		case 'L': {
 			String user = args[5];
 			String photo = args[6];
-			if (addLike(user, photo) == null) {
+			if (!addLike(user, photo)) {
 				System.out.println("Nao esta registado como seguidor de " + user + "!");
 				return;
 			}
@@ -98,7 +98,7 @@ public class Client {
 		case 'D': {
 			String user = args[5];
 			String photo = args[6];
-			if (addDislike(user, photo) == null) {
+			if (!addDislike(user, photo)) {
 				System.out.println("Nao esta registado como seguidor de " + user + "!");
 				return;
 			}
@@ -108,7 +108,7 @@ public class Client {
 		// === REGISTAR SEGUIDORES
 		case 'f': {
 			String followers = args[5];
-			if (addFollowers(followers) == null) {
+			if (!addFollowers(followers)) {
 				System.out.println("Um dos utilizadores ja faz parte da sua lista de seguidores!");
 				return;
 			}
@@ -118,7 +118,7 @@ public class Client {
 		// === REMOVER SEGUIDORES
 		case 'r': {
 			String followers = args[5];
-			if (removeFollowers(followers) == null) {
+			if (!removeFollowers(followers)) {
 				System.out.println("Um dos utilizadores nao faz parte da sua lista de seguidores!");
 				return;
 			}
@@ -216,9 +216,9 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static String savePhotos(String user) throws IOException, ClassNotFoundException {
+	public static boolean savePhotos(String user) throws IOException, ClassNotFoundException {
 		String message = "g-" + user;
-		return (handlerTCP.send(message.getBytes()));
+		return (handlerTCP.send(message.getBytes()) != null);
 	}
 
 	/**
@@ -234,10 +234,10 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static String addComment(String comment, String user, String photo)
+	public static boolean addComment(String comment, String user, String photo)
 			throws IOException, ClassNotFoundException {
 		String message = "l-" + comment + "-" + user + "-" + photo;
-		return (handlerTCP.send(message.getBytes()));
+		return (handlerTCP.send(message.getBytes()) != null);
 	}
 
 	/**
@@ -251,9 +251,9 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static String addLike(String user, String photo) throws IOException, ClassNotFoundException {
+	public static boolean addLike(String user, String photo) throws IOException, ClassNotFoundException {
 		String message = "L-" + user + "-" + photo;
-		return (handlerTCP.send(message.getBytes()));
+		return (handlerTCP.send(message.getBytes()) != null);
 	}
 
 	/**
@@ -267,9 +267,9 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static String addDislike(String user, String photo) throws IOException, ClassNotFoundException {
+	public static boolean addDislike(String user, String photo) throws IOException, ClassNotFoundException {
 		String message = "D-" + user + "-" + photo;
-		return (handlerTCP.send(message.getBytes()));
+		return (handlerTCP.send(message.getBytes()) != null);
 	}
 
 	/**
@@ -281,9 +281,9 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static String addFollowers(String followers) throws IOException, ClassNotFoundException {
+	public static boolean addFollowers(String followers) throws IOException, ClassNotFoundException {
 		String message = "f-" + followers;
-		return (handlerTCP.send(message.getBytes()));
+		return (handlerTCP.send(message.getBytes()) != null);
 	}
 
 	/**
@@ -295,9 +295,9 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static String removeFollowers(String followers) throws IOException, ClassNotFoundException {
+	public static boolean removeFollowers(String followers) throws IOException, ClassNotFoundException {
 		String message = "r-" + followers;
-		return (handlerTCP.send(message.getBytes()));
+		return (handlerTCP.send(message.getBytes()) != null);
 	}
 
 	// ================== UTILIDADES ================== //

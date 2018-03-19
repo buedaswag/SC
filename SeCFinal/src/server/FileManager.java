@@ -269,10 +269,10 @@ public class FileManager extends Server {
 	 * @throws IOException
 	 */
 	//TODO documentation and aldo consider the likedUserid
-	public void FMaddLike(String userid, String photo) throws IOException {
+	public void FMaddLike(String userid, String likedUserId, String photo) throws IOException {
 		// Abre ficheiro antigo e cria novo
-		File file = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions.txt");
-		File novo = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions2.txt");
+		File file = new File(path + "\\" + likedUserId + "\\" + photo + "\\" + "reactions.txt");
+		File novo = new File(path + "\\" + likedUserId + "\\" + photo + "\\" + "reactions2.txt");
 
 		fw = new FileWriter(novo.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
@@ -303,10 +303,10 @@ public class FileManager extends Server {
 	 *            - A foto
 	 * @throws IOException
 	 */
-	public static void dislike(String userid, String photo) throws IOException {
+	public static void FMaddDislike(String userid, String dislikedUserId, String photo) throws IOException {
 		// Abre ficheiro antigo e cria novo
-		File file = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions.txt");
-		File novo = new File(path + "\\" + userid + "\\" + photo + "\\" + "reactions2.txt");
+		File file = new File(path + "\\" + dislikedUserId + "\\" + photo + "\\" + "reactions.txt");
+		File novo = new File(path + "\\" + dislikedUserId + "\\" + photo + "\\" + "reactions2.txt");
 
 		fw = new FileWriter(novo.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
