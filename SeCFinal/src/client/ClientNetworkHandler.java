@@ -80,8 +80,12 @@ public class ClientNetworkHandler implements NetworkHandler {
 	 * @throws ClassNotFoundException
 	 * @returns - True se o servidor aceitou a mensagem, False em caso contrario
 	 */
+<<<<<<< HEAD
 	//TODO
 	public void send(String[] message) throws IOException, ClassNotFoundException {
+=======
+	public String send(String[] message) throws IOException, ClassNotFoundException {
+>>>>>>> branch 'Miguel' of https://github.com/buedaswag/SCprivate.git
 		out.writeObject(message);
 	}
 

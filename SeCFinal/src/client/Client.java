@@ -3,6 +3,7 @@ package client;
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 
 public class Client {
 	private static String userID;
@@ -33,7 +34,14 @@ public class Client {
 		// === ADICIONAR FOTOS
 		case 'a': {
 			// Preencher array com recurso ao sistema de ficheiros
+<<<<<<< HEAD
 			addPhotos(args[5]);
+=======
+			if (!addPhotos(args[5])) {
+				System.out.println("Ja adicionou pelo menos uma destas fotos!");
+				return;
+			}
+>>>>>>> branch 'Miguel' of https://github.com/buedaswag/SCprivate.git
 			System.out.println("Fotos enviadas com sucesso!");
 			break;
 		}
@@ -99,8 +107,17 @@ public class Client {
 		// Lista fotos do repositorio local
 		File local = new File(filePath);
 		File[] files = local.listFiles();
+		String[] op = {"a"};
+		String[] photosList = photos.split(",");
+		String[] message = concat(op,photosList);
 		// Valida fotos no servidor
+<<<<<<< HEAD
 		handlerTCP.send(photos.split(","));
+=======
+		if (handlerTCP.send(message) == null) {
+			return false;
+		}
+>>>>>>> branch 'Miguel' of https://github.com/buedaswag/SCprivate.git
 
 		// Separa nomes das fotos passadas como argumentos
 		String[] fileNames = photos.split(",");
@@ -115,7 +132,55 @@ public class Client {
 				}
 			}
 		}
+<<<<<<< HEAD
 		//return true;
+=======
+		return true;
+	}
+
+	/**
+	 * Lista as fotos de um utilizador
+	 * 
+	 * @param user
+	 *            - O ID do utilizador
+	 * @return A lista de fotos
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public static String listPhotos(String user) throws IOException, ClassNotFoundException {
+		String[] message = {"l",user};
+		return (handlerTCP.send(message));
+	}
+
+	/**
+	 * Apresenta a informacao respeitante a uma determinada foto
+	 * 
+	 * @param user
+	 *            - O utilizador que colocou a foto
+	 * @param photo
+	 *            - O nome da foto (sem extensao)
+	 * @return A informacao da foto
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public static String info(String user, String photo) throws IOException, ClassNotFoundException {
+		String[] message = {"i",user,photo};
+		return (handlerTCP.send(message));
+	}
+
+	/**
+	 * Guarda as fotos de um utilizador no sistema local de ficheiros
+	 * 
+	 * @param user
+	 *            - O ID do utilizador do qual se pretende guardar as fotos
+	 * @return - True se a operaao teve sucesso, False caso contrario
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public static boolean savePhotos(String user) throws IOException, ClassNotFoundException {
+		String[] message = {"g",user};
+		return (handlerTCP.send(message) != null);
+>>>>>>> branch 'Miguel' of https://github.com/buedaswag/SCprivate.git
 	}
 
 	/**
@@ -134,7 +199,11 @@ public class Client {
 	public static void addComment(String comment, String user, String photo)
 			throws IOException, ClassNotFoundException {
 		String[] message = {"c",comment,user,photo};
+<<<<<<< HEAD
 		handlerTCP.send(message);
+=======
+		return (handlerTCP.send(message) != null);
+>>>>>>> branch 'Miguel' of https://github.com/buedaswag/SCprivate.git
 	}
 
 	/**
@@ -148,11 +217,37 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
+<<<<<<< HEAD
 	public static void addLike(String user, String photo) throws IOException, ClassNotFoundException {
 		String[] message = {"L",user,photo};
 		handlerTCP.send(message);
+=======
+	public static boolean addLike(String user, String photo) throws IOException, ClassNotFoundException {
+		String[] message = {"L",user,photo};
+		return (handlerTCP.send(message) != null);
+>>>>>>> branch 'Miguel' of https://github.com/buedaswag/SCprivate.git
 	}
+<<<<<<< HEAD
 	
+=======
+
+	/**
+	 * Acrescenta um dislike a uma foto
+	 * 
+	 * @param user
+	 *            - O utilizador
+	 * @param photo
+	 *            - A foto (sem extensao de ficheiro)
+	 * @return - True se a operaao teve sucesso, False caso contrario
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public static boolean addDislike(String user, String photo) throws IOException, ClassNotFoundException {
+		String[] message = {"D",user,photo};
+		return (handlerTCP.send(message) != null);
+	}
+
+>>>>>>> branch 'Miguel' of https://github.com/buedaswag/SCprivate.git
 	/**
 	 * Acrescenta um conjunto de utilizadores a lista de seguidores
 	 * 
@@ -162,13 +257,39 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
+<<<<<<< HEAD
 	public static void addFollowers(String followers) throws IOException, ClassNotFoundException {
 		String[] op = {"f"};
 		String[] usersList = followers.split(",");
 		String[] message = concat(op,usersList);
 		handlerTCP.send(message);
+=======
+	public static boolean addFollowers(String followers) throws IOException, ClassNotFoundException {
+		String[] op = {"f"};
+		String[] usersList = followers.split(",");
+		String[] message = concat(op,usersList);
+		return (handlerTCP.send(message) != null);
+>>>>>>> branch 'Miguel' of https://github.com/buedaswag/SCprivate.git
 	}
 
+<<<<<<< HEAD
+=======
+	/**
+	 * Remove um conjunto de utilizadores a lista de seguidores
+	 * 
+	 * @param followers
+	 *            - Os utilizadores a adicionar
+	 * @return - True se a operaao teve sucesso, False caso contrario
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public static boolean removeFollowers(String followers) throws IOException, ClassNotFoundException {
+		String[] op = {"r"};
+		String[] usersList = followers.split(",");
+		String[] message = concat(op,usersList);
+		return (handlerTCP.send(message) != null);
+	}
+>>>>>>> branch 'Miguel' of https://github.com/buedaswag/SCprivate.git
 
 	public static String[] concat(String[] a, String[] b) {
 		String[] newArray = new String[a.length+b.length];
@@ -208,6 +329,13 @@ public class Client {
 					else
 						return true;
 		return true;
+	}
+	
+	public static String[] concat(String[] a, String[] b) {
+		String [] newArray = new String[a.length+b.length];
+		System.arraycopy( a, 0, newArray, 0, a.length);
+		System.arraycopy( b, 0, newArray, a.length, b.length );
+		return newArray;
 	}
 
 
