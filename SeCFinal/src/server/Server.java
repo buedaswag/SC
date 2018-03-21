@@ -1,4 +1,4 @@
-//antes de tentes
+//Iteracao 1 tudo a funcionar
 package server;
 
 import java.io.File;
