@@ -9,9 +9,5 @@ public interface NetworkHandler {
 
 	public void endConnection() throws IOException;
 
-<<<<<<< HEAD
 	public void send(String[] message) throws IOException, ClassNotFoundException;
-=======
-	public String send(String[] message) throws IOException, ClassNotFoundException;
->>>>>>> branch 'Miguel' of https://github.com/buedaswag/SCprivate.git
 }

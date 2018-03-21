@@ -15,7 +15,6 @@ public class ClientNetworkHandler implements NetworkHandler {
 	private int port;
 	private Socket clientSocket;
 	private ObjectOutputStream out;
-	private ObjectInputStream in;
 	private FileInputStream fis;
 
 	/**
@@ -43,9 +42,9 @@ public class ClientNetworkHandler implements NetworkHandler {
 	 * Fecha o socket TCP e todos os recursos associados
 	 */
 	public void endConnection() throws IOException {
-		in.close();
 		out.close();
-		fis.close();
+		if(fis!=null)
+			fis.close();
 		clientSocket.close();
 	}
 
@@ -80,12 +79,8 @@ public class ClientNetworkHandler implements NetworkHandler {
 	 * @throws ClassNotFoundException
 	 * @returns - True se o servidor aceitou a mensagem, False em caso contrario
 	 */
-<<<<<<< HEAD
 	//TODO
 	public void send(String[] message) throws IOException, ClassNotFoundException {
-=======
-	public String send(String[] message) throws IOException, ClassNotFoundException {
->>>>>>> branch 'Miguel' of https://github.com/buedaswag/SCprivate.git
 		out.writeObject(message);
 	}
 

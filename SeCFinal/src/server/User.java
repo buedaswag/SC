@@ -98,9 +98,9 @@ public class User {
 	 * @return true if the User does has a photo with the given name 
 	 */
 	public boolean hasPhoto(String name) {
-		if (photos.contains(new Photo(name))) 
-			return true;
-		
+		for (Photo p : photos)
+			if (p.getName().equals(name))
+				return true;
 		return false;
 	}
 	
@@ -213,6 +213,14 @@ public class User {
 		else
 			System.out.println("this user doesnt have any photo with this "
 					+ "name");
+	}
+
+	/**
+	 * gets the photos from this user
+	 * @return photos - the photos
+	 */
+	public List<Photo> getPhotos() {
+		return photos;
 	}
 
 }

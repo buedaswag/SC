@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
@@ -12,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -41,7 +43,7 @@ public class FileManager {
 		userDB = new String("users.txt");
 		database = new File(path + "\\" + userDB);
 		df = new SimpleDateFormat("dd/MM/yyyy HH'h'mm");
-		
+
 		File dir = new File("database");
 		if (!dir.exists()) {
 			dir.mkdir();
@@ -71,9 +73,9 @@ public class FileManager {
 		while((line = br.readLine()) != null) {
 			String[] data = line.split(":");
 			temp = new User(data[0], data[1]);
+			tempList.add(temp);
 			FMloadFollowers(temp);
 			FMloadPhotos(temp);
-			tempList.add(new User(data[0], data[1]));
 		}
 		closeBuffers();
 		return tempList;
@@ -127,8 +129,8 @@ public class FileManager {
 	 * @param photo - O nome da foto
 	 * @throws IOException
 	 */
-	public void FMaddPhotos(String user, File photo) throws IOException {
-		String[] info = photo.getName().split(".");
+	public void FMaddPhoto(String user, File photo) throws IOException {
+		String[] info = photo.getName().split("\\.");
 		// remove a parte ".jpg" do nome da foto
 		String nomeFoto = info[0];
 
@@ -141,35 +143,12 @@ public class FileManager {
 		// O sitio onde vamos guardar a foto
 		File file = new File(pastaFoto + "\\" + photo.getName());
 
-		// TYPE_INT_ARGB means that we are representing the Alpha,
-		// Red, Green and Blue component of the image pixel using 8 bit integer
-		// value.
-		BufferedImage image = new BufferedImage(1260, 840, BufferedImage.TYPE_INT_ARGB);
-		image = ImageIO.read(photo);
-		ImageIO.write(image, info[2], file);
+		photo.renameTo(file);
 
 		// cria ficheiro comments e reactions (para guardar os comentarios e os
 		// likes/dislikes)
 		new File(pastaFoto + "\\" + "comments.txt").createNewFile();
 		new File(pastaFoto + "\\" + "reactions.txt").createNewFile();
-	}
-
-	/**
-	 * Lista as fotos de um utilizador
-	 * @param user - O nome do utilizador
-	 * @return - A lista das fotos desse utilizador
-	 * @throws IOException
-	 */
-	public String[] FMlistPhotos(String user) throws IOException {
-		File file = new File(path + "\\" + database + "\\" + user);
-		String[] folders = file.list(new FilenameFilter() {
-			@Override
-			public boolean accept(File current, String name) {
-				return new File(current, name).isDirectory();
-			}
-		});
-		closeBuffers();
-		return folders;
 	}
 
 	/**
@@ -213,35 +192,6 @@ public class FileManager {
 	}
 
 	/**
-	 * Obtem uma lista com as fotos de um utilizador
-	 * @param user - O nome do utilizador
-	 * @return - Uma lista com os objectos File associados as fotos
-	 * @throws IOException
-	 */
-	public ArrayList<File> FMgetPhotos(String user) throws IOException {
-		// Criar variaveis
-		File f;
-		ArrayList<File> photoList = new ArrayList<File>();
-
-		// Listar as fotos de um utilizador
-		String[] paths = FMlistPhotos(user);
-		for (String p : paths) {
-			// Obter a imagem do directorio (por extensao)
-			f = new File(path + "\\" + user + "\\" + p);
-			File[] files = f.listFiles(new FilenameFilter() {
-				public boolean accept(File dir, String name) {
-					boolean isImage = name.toLowerCase().endsWith(".png") || name.toLowerCase().endsWith(".jpg")
-							|| name.toLowerCase().endsWith(".jpeg");
-					return isImage;
-				}
-			});
-			// Adicionar foto a lista final
-			photoList.add(files[0]);
-		}
-		return photoList;
-	}
-
-	/**
 	 * Acrescenta um comentario a uma foto
 	 * @param comment - O comentario
 	 * @param user - O autor do comentario
@@ -249,13 +199,16 @@ public class FileManager {
 	 * @param photo - O nome da foto a comentar
 	 * @throws IOException
 	 */
-	public void FMaddComment(String comment, String user, String commentedUserId, String photo) throws IOException {
+	public void FMaddComment(String comment, String localUserId, 
+			String commentedUserId, String photo) throws IOException {
 		// Constroi linha a escrever no ficheiro
 		Date local = new Date();
-		String finalLine = commentedUserId + ":" + df.format(local) + ":" + comment;
+		String finalLine = localUserId + ":" + df.format(local) 
+			+ ":" + comment;
 
 		// Abre ficheiro de comentarios e buffers respectivos
-		File comments = new File(path + "\\" + user + "\\" + photo + "\\" + "comments.txt");
+		File comments = new File(path + "\\" + commentedUserId + "\\" 
+				+ photo.split("\\.")[0] + "\\" + "comments.txt");
 		fw = new FileWriter(comments.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
 
@@ -267,78 +220,34 @@ public class FileManager {
 
 	/**
 	 * Acrescenta um like a uma foto
-	 * @param userid - O remetente do like (necessario mais tarde)
+	 * @param localUserId - O remetente do like (necessario mais tarde)
 	 * @param likedUserId - O destinatario do like
 	 * @param photo - O nome da foto para onde vai o like
 	 * @throws IOException
 	 */
-	public void FMaddLike(String userid, String likedUserId, String photo) throws IOException {
-		// Abre ficheiro antigo e cria novo
-		File file = new File(path + "\\" + likedUserId + "\\" + photo + "\\" + "reactions.txt");
-		File novo = new File(path + "\\" + likedUserId + "\\" + photo + "\\" + "reactions2.txt");
-
-		fw = new FileWriter(novo.getAbsoluteFile(), true);
+	public void FMaddLike(String localUserId, String likedUserId, String photo) throws IOException {
+		String finalLine = localUserId;
+		File reactions = new File(path + "\\" + likedUserId + "\\" 
+				+ photo.split("\\.")[0] + "\\" + "reactions.txt");
+		fw = new FileWriter(reactions.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
-		br = new BufferedReader(new FileReader(file));
-
-		// Fazer magia!
-		int likesAtuais = Integer.parseInt(br.readLine());
-		String atualizaLikes = String.valueOf(likesAtuais + 1);
-		String disLikesAtuais = br.readLine();
-		bw.write(atualizaLikes);
+		
+		// Escrita no ficheiro
+		bw.write(finalLine);
 		bw.newLine();
-		bw.write(disLikesAtuais);
-		System.out.println(file.getName());
-
 		closeBuffers();
-		// WTFFF
-		System.gc();
-		file.delete();
-		novo.renameTo(file);
-	}
-
-	/**
-	 * Acrescenta um dislike a uma foto
-	 * @param userid - O remetente do like (necessario mais tarde)
-	 * @param dislikedUserId - O destinatario do like
-	 * @param photo - O nome da foto para onde vai o like
-	 * @throws IOException
-	 */
-	public void FMaddDislike(String userid, String dislikedUserId, String photo) throws IOException {
-		// Abre ficheiro antigo e cria novo
-		File file = new File(path + "\\" + dislikedUserId + "\\" + photo + "\\" + "reactions.txt");
-		File novo = new File(path + "\\" + dislikedUserId + "\\" + photo + "\\" + "reactions2.txt");
-
-		fw = new FileWriter(novo.getAbsoluteFile(), true);
-		bw = new BufferedWriter(fw);
-		br = new BufferedReader(new FileReader(file));
-
-		// Fazer magia!
-		String likesAtuais = br.readLine();
-		int dislikesAtuais = Integer.parseInt(br.readLine());
-		String atualizaDislikes = String.valueOf(dislikesAtuais + 1);
-		bw.write(likesAtuais);
-		bw.newLine();
-		bw.write(atualizaDislikes);
-		System.out.println(file.getName());
-
-		closeBuffers();
-		// WTFFF
-		System.gc();
-		file.delete();
-		novo.renameTo(file);
 	}
 
 	/**
 	 * Acrescenta uma lista de seguidores a um utilizador
 	 * @param followers - A lista com os nomes dos seguidores a acrescentar
-	 * @param userid - O utilizador
+	 * @param localUserId - O utilizador
 	 * @return - True se a operacao teve sucesso, False caso contrario
 	 * @throws IOException
 	 */
-	public boolean FMaddFollowers(String[] followers, String userid) throws IOException {
+	public boolean FMaddFollowers(String[] followers, String localUserId) throws IOException {
 		// Abre recursos e streams necessarios
-		File file = new File(path + "\\" + userid + "\\" + "followers.txt");
+		File file = new File(path + "\\" + localUserId + "\\" + "followers.txt");
 
 		fw = new FileWriter(file.getAbsoluteFile(), true);
 		bw = new BufferedWriter(fw);
@@ -357,131 +266,129 @@ public class FileManager {
 		return true;
 	}
 
-	/**
-	 * Remove uma lista de seguidores a um utilizador
-	 * @param followers - A lista com os nomes dos seguidores a remover
-	 * @param userid - O utilizador
-	 * @return - True se a operacao teve sucesso, False caso contrario
-	 * @throws IOException
-	 */
-	public boolean FMremoveFollowers(String[] followers, String userid) throws IOException {
-		// Abre recursos e streams necessarios
-		File file = new File(path + "\\" + userid + "\\" + "followers.txt");
-
-		fr = new FileReader(file.getAbsoluteFile());
-		br = new BufferedReader(fr);
-
-		ArrayList<String> currFollowers = new ArrayList<String>();
-
-		// Le os seguidores actuais
-		String line;
-		while ((line = br.readLine()) != null) {
-			currFollowers.add(line);
-		}
-
-		// Remove os utilizadores
-		for (int i = 0; i < followers.length; i++) {
-			if (!currFollowers.remove(followers[i])) {
-				return false;
-			}
-		}
-
-		// Criar lista de seguidores
-		closeBuffers();
-		System.gc();
-		file.delete();
-
-		// Abre buffers para novo ficheiro de seguidores
-		File newFollowers = new File(path + "\\" + userid + "\\" + "followers.txt");
-		fw = new FileWriter(newFollowers.getAbsoluteFile(), true);
-		bw = new BufferedWriter(fw);
-
-		for (String s : currFollowers) {
-			bw.write(s);
-			bw.newLine();
-		}
-		bw.close();
-		fw.close();
-		return true;
-	}
-
 	// ====================================================================================================
 
 	/**
 	 * Acrescenta uma lista de seguidores a um utilizador
 	 * @param followers - A lista com os nomes dos seguidores a acrescentar
-	 * @param userid - O utilizador
+	 * @param localUserId - O utilizador
 	 * @return - True se a operacao teve sucesso, False caso contrario
 	 * @throws IOException
 	 */
 	public void FMloadFollowers(User u) throws IOException {
 		// load followers
-		File followersFile = new File(path + "\\" + u.getUserid() + "\\" + "followers.txt");
+		File followersFile = new File(path + "\\" + u.getUserid() + "\\" 
+				+ "followers.txt");
 
-		br = new BufferedReader(new FileReader(followersFile));
+		BufferedReader readerLoadFollowers = 
+				new BufferedReader(new FileReader(followersFile));
 
-		String userid;
-		while ((userid = br.readLine()) != null)
-			u.addFollower(userid);
-
-		br.close();
+		String localUserId;
+		while ((localUserId = readerLoadFollowers.readLine()) != null)
+			u.addFollower(localUserId);
+		readerLoadFollowers.close();
 	}
 
 	/**
 	 * Carrega as fotos de um utilizador para memoria
 	 * @param u - O objecto utilizador
+	 * @throws IOException 
 	 */
-	public void FMloadPhotos(User u) {
+	//TODO
+	public void FMloadPhotos(User u) throws IOException {
+		/*
+		 * for each folder in the user directory create a photo object
+		 * with the corresponding attributes and add it to the user
+		 */
 		// load photos
-		String photosFile = path + "\\" + u + "\\" + "Photos";
+		String photosFile = path + "\\" + u.getUserid();
 		// todas as pastas de fotos
 		File[] directories = new File(photosFile).listFiles(File::isDirectory);
-		
+		//
+		String a = null, b = null, x = null;
 		if (directories != null)
 			// buscar as fotos presentes em cada directoria
 			for (File photo : directories) {
-				Photo p = new Photo(photo.getName());
-				// colocar a foto na lista de fotos do utilizador
-				u.addPhoto(p);
+				//get the actual photo
+				File[] files = photo.listFiles();
+				for (File f : files) {
+					//check if the file in the directory is my photo
+					x = f.getName();
+					a = x.split("\\.")[0];
+					b = photo.getName();
+					if (a.equals(b)) {
+						Photo p = new Photo(x);
+						// colocar a foto na lista de fotos do utilizador
+						u.addPhoto(p);
+					}	
+				}
 			}
+
+		//for each photo do this:
+		for (Photo p : u.getPhotos()) {
+			/*
+			 * for each line in the file comments.txt, create a comment 
+			 * object with the corresponding attributes
+			 */
+			// Le os utilizadores actuais
+
+			File file = new File(path + "\\" + u.getUserid() + "\\" 
+					+ p.getName().split("\\.")[0] + "\\" + "comments.txt");
+			
+			FileReader filer = 
+					new FileReader(file);
+
+			BufferedReader buffr = new BufferedReader(filer);
+			String line;
+			while((line = buffr.readLine()) != null) {
+				p.addComment(line, u.getUserid());
+			}
+
+			filer.close();
+			buffr.close();
+
+			/*
+			 * for each line in the file reactions.txt, add a like to
+			 * the counter in the corresponding photo object
+			 */
+			File fileReactions = new File(path + "\\" + u.getUserid() + "\\" 
+					+ p.getName().split("\\.")[0] + "\\" + "reactions.txt");
+
+			FileReader fileRea = 
+					new FileReader(fileReactions);
+
+			BufferedReader buffr1 = new BufferedReader(fileRea);
+
+			int likes = 0;
+			String s;
+			while ((s=buffr1.readLine())!=null) {
+				p.addLike("");
+			}
+
+			fileRea.close();
+			buffr1.close();
+
+		}
 	}
 
 	/**
 	 * Move fotos do directorio temporario para o definitivo
-	 * @param userid - O utilizador
+	 * @param localUserId - O utilizador
 	 * @param names - Os nomes das fotos a copiar
 	 * @param photosPath - A pasta temporaria onde estao as fotos
 	 * @throws IOException
 	 */
-	public void FMmovePhotos(String userid, String[] names, File photosPath) throws IOException {
+	public void FMmovePhotos(String localUserId, String[] names, File photosPath) throws IOException {
 		// Abre directorio temporario, lista ficheiros e cria lista final
 		File dir = new File(photosPath.getAbsolutePath());
-		ArrayList<File> files = new ArrayList<File>(Arrays.asList(dir.listFiles()));
-		ArrayList<File> filesFinal = new ArrayList<File>();
-
-		// Constroi lista final a partir dos nomes dos ficheiros a mover
-		for (File f : files) {
-			for (String s : names) {
-				if (s.equals(getFileName(f)))
-					filesFinal.add(f);
-			}
-		}
+		List<File> files = new ArrayList<File>(Arrays.asList(dir.listFiles()));
 
 		// Iterar sobre lista de ficheiros a copiar
-		for (File f : filesFinal) {
+		for (File f : files) {
 			// Colocar na directoria nova
-			FMaddPhotos(userid, f);
+			FMaddPhoto(localUserId, f);
 			// Apaga a foto da directoria antiga
 			f.delete();
 		}
-	}
-
-	/**
-	 * Devolve o nome de um ficheiro (sem extensao)
-	 * @param f - O ficheiro
-	 * @return - O nome do ficheiro
-	 */
-	public String getFileName(File f) {
-		return f.getName().split(".")[0];
 	}
 }

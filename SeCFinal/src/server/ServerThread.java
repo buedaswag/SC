@@ -37,7 +37,7 @@ class ServerThread extends Thread {
 		this.server = server;
 		//create the temp directory
 		tempPath = new File("temp");
-
+		tempPath.mkdir();
 	}
 
 	/**
@@ -48,27 +48,30 @@ class ServerThread extends Thread {
 			ObjectInputStream inStream = new ObjectInputStream(inSoc.getInputStream());
 
 			// get the user's credentials
-			String userid = null;
+			String localUserId = null;
 			String password = null;
 			String[] args = null;
 			try {
-				userid = (String) inStream.readObject();
+				localUserId = (String) inStream.readObject();
 				password = (String) inStream.readObject();
-				System.out.println("thread: depois de receber a password e o userid");
-				authenticate(userid, password);
+				System.out.println("thread: depois de receber a password e o localUserId");
+				authenticate(localUserId, password);
 				// get the arguments for the operation
 				args = (String[]) inStream.readObject();
 			} catch (ClassNotFoundException e1) {
 				e1.printStackTrace();
 			}
-			authenticate(userid, password);
+			authenticate(localUserId, password);
 
 			// Execute the requested operation
-			executeOperation(userid, password, args, inStream);
+			executeOperation(localUserId, password, args, inStream);
 
 			// close stream and socket
 			inStream.close();
 			inSoc.close();
+			
+			//close the thread
+			return;
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -78,24 +81,24 @@ class ServerThread extends Thread {
 	/**
 	 * Authenticates this user towards the System
 	 * 
-	 * @param userid
+	 * @param localUserId
 	 * @param password
 	 * @throws IOException
 	 */
-	private void authenticate(String userid, String password) throws IOException {
-		server.authenticate(userid, password);
+	private void authenticate(String localUserId, String password) throws IOException {
+		server.authenticate(localUserId, password);
 	}
 
 	/**
 	 * Executes the operation requested in args
 	 * @param args the operation name and parameters looks like this 
-	 * ["a","sex","drugs","leagueOfLegends"]
+	 * ["a","sex.JPG","drugs.img","leagueOfLegends.png"]
 	 * or
 	 * ["c","miguel","ferias","que foto tao linda das tuas ferias"]
 	 * @throws IOException 
 	 */
 	//TODO enviar erro para  o cliente
-	private void executeOperation(String userid, String password, String[] args, 
+	private void executeOperation(String localUserId, String password, String[] args, 
 			ObjectInputStream inStream) throws IOException {
 		//get the operation to execute
 		char opt = args[0].charAt(0);
@@ -106,15 +109,15 @@ class ServerThread extends Thread {
 		// Acrescentar fotos
 		case 'a': {
 			//check for duplicate photos
-			if (server.checkDuplicatePhotos(userid, password, newArgs))
+			if (server.checkDuplicatePhotos(localUserId, password, newArgs))
 				//TODO enviar erro para  o cliente
 				System.out.println("duplicate photos");
 			else {
 				//adicionar as fotos ao sistema de ficheiros
-				File photosPath = receivePhotos(userid, newArgs, inStream);
+				File photosPath = receivePhotos(localUserId, newArgs, inStream);
 
 				//pedir ao server para ir buscar � temp
-				server.addPhotos(userid, password, newArgs, photosPath);
+				server.addPhotos(localUserId, password, newArgs, photosPath);
 			}
 			break;
 		}
@@ -122,25 +125,25 @@ class ServerThread extends Thread {
 		case 'c': {
 			//get the operation parameters 
 			String comment = newArgs[0];
-			String commentedUserid = newArgs[1];
+			String commentedUserId = newArgs[1];
 			String photo = newArgs[2];
 
 			//ask the server to add this comment
-			server.addComment(comment, commentedUserid, userid, photo);
+			server.addComment(comment, localUserId, commentedUserId, photo);
 			//TODO enviar erro para  o cliente
 			break;
 		}
 		// Botar like
 		case 'L': {
-			String likedUserid = newArgs[0];
+			String likedUserId = newArgs[0];
 			String name = newArgs[1];
-			server.addLike(userid, likedUserid, name);
+			server.addLike(localUserId, likedUserId, name);
 			//TODO enviar erro para  o cliente
 			break;
 		}
 		// Adicionar seguidores
 		case 'f': {
-			server.addFollowers(userid, newArgs);
+			server.addFollowers(localUserId, newArgs);
 			//TODO enviar erro para  o cliente
 			break;
 		}
@@ -151,16 +154,18 @@ class ServerThread extends Thread {
 		/**
 		 * Receives the photos from the TCP port and stores them in the
 		 * given user's temp folder
-		 * @param userid
+		 * @param localUserId
 		 * @param newArgs
 		 * @throws IOException 
 		 */
-		private File receivePhotos(String userid, String[] newArgs, 
+		private File receivePhotos(String localUserId, String[] newArgs, 
 				ObjectInputStream inStream) throws IOException {
 			//create path for this user and for his/her photos
-			File useridPath = new File (tempPath + "\\" + userid);
-			File photosPath = new File (useridPath + "\\photos");
-
+			File localUserIdPath = new File (tempPath + "\\" + localUserId);
+			localUserIdPath.mkdir();
+			File photosPath = new File (localUserIdPath + "\\photos");
+			photosPath.mkdir();
+			
 			/* create the buffer to receive the chunks and the 
 			 * FileOutputStream to write to the file
 			 */
@@ -183,7 +188,8 @@ class ServerThread extends Thread {
 				 * specified directory
 				 */
 				remaining = filesize;
-				while((read = inStream.read(buffer, 0, Math.min(buffer.length, remaining))) > 0) {
+				while((read = inStream.read(buffer, 0, 
+						Math.min(buffer.length, remaining))) > 0) {
 					totalRead += read;
 					remaining -= read;
 					fos.write(buffer, 0, read);

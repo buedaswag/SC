@@ -173,8 +173,9 @@ public class Server {
 			return null;
 		} else {
 			//adds comment to the file system
-			fileManager.FMaddComment(comment, localUserId, commentedUserid, name);
-			//adds comment from user to commentedUser's photo 
+			fileManager.FMaddComment(comment, localUserId, commentedUserid, 
+					name);
+			//adds comment from localUser to commentedUser's photo 
 			commentedUser.addComment(comment, localUserId, name);		
 		}
 		return "success";
@@ -198,16 +199,14 @@ public class Server {
 		//get the liked user with the given credentials
 		User likedUser = getUser(likedUserid);
 
-		if(likedUser.isFollower(user))
-
-			if (!isFollower(user)) {
-				return null;
-			} else {
-				//adds like to the file system
-				fileManager.FMaddLike(localUserId, likedUserid, name);
-				//adds like from user to likedUser's photo 
-				likedUser.addLike(localUserId, name);
-			}
+		if(likedUser.isFollower(user)) {
+			//adds like to the file system
+			fileManager.FMaddLike(localUserId, likedUserid, name);
+			//adds like from user to likedUser's photo 
+			likedUser.addLike(localUserId, name);	
+		} else {
+			return null;
+		}
 		return "success";
 	}
 

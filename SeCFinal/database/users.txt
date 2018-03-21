@@ -1,1 +1,3 @@
 miguel:passmiguel
+max:passmax
+antonio:passantonio
