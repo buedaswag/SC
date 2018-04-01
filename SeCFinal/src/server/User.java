@@ -2,7 +2,6 @@ package server;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * 
@@ -12,46 +11,44 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  */
 public class User {
-	private String userid;
+	private String userId;
 	private String password;
-	private List<String> followers;
-	private List<Photo> photos;
+	private Collection<String> followers;
+	private Collection<Photo> photos;
 
 	/**
-	 * constructs a new User object
+	 * Constructs a new User object from it's userId and it's password. 
 	 * 
-	 * @param userid
-	 *            of this User
+	 * @param userId 
 	 * @param password
-	 *            of this User
 	 */
-	public User(String userid, String password) {
-		this.userid = userid;
+	public User(String userId, String password) {
+		this.userId = userId;
 		this.password = password;
-		this.followers = new CopyOnWriteArrayList<>();
-		this.photos = new CopyOnWriteArrayList<>();
+		this.followers = new LinkedList<>();
+		this.photos = new LinkedList<>();
 	}
 
 	/**
 	 * Checks if this user has followUser as a follower
 	 * 
 	 * @param followUser
-	 *            - the userid of the followUser
+	 *            - the userId of the followUser
 	 */
 	public boolean follows(User user) {
-		return followers.contains(user.getUserid());
+		return followers.contains(user.getuserId());
 	}
 
 	/**
 	 * Checks if any of the followUsers is already a follower
 	 * 
-	 * @param followUserIds
-	 *            - the userids of the followUsers
+	 * @param followuserIds
+	 *            - the userIds of the followUsers
 	 */
-	public boolean follows(String[] followUserIds) {
+	public boolean follows(String[] followuserIds) {
 		// check one by one
 		for (String f : followers)
-			for (String u : followUserIds)
+			for (String u : followuserIds)
 				if (f.equals(u))
 					return true;
 		return false;
@@ -60,14 +57,14 @@ public class User {
 	/**
 	 * Checks if any of the followUsers is not a follower of this user
 	 * 
-	 * @param followUserIds
-	 *            - the userids of the followUsers
+	 * @param followuserIds
+	 *            - the userIds of the followUsers
 	 * @return true - if any of the followUsers is not a follower of this user, or
 	 *         false if all of the followUsers are followers of this user
 	 */
-	public boolean isNotFollower(String[] followUserIds) {
+	public boolean isNotFollower(String[] followuserIds) {
 		// check one by one
-		for (String f : followUserIds)
+		for (String f : followuserIds)
 			if (!followers.contains(f))
 				return true;
 		return false;
@@ -164,10 +161,10 @@ public class User {
 
 	/**
 	 * 
-	 * @return this user's userid
+	 * @return this user's userId
 	 */
-	public String getUserid() {
-		return userid;
+	public String getuserId() {
+		return userId;
 	}
 
 	/**
@@ -184,18 +181,18 @@ public class User {
 	 * @requires the comment has been added to this user's persistent storage
 	 * @param comment
 	 *            - the comment to be made
-	 * @param userid
-	 *            - the userid of the user
-	 * @param commentedUserid
-	 *            - the userid of the commentedUser
+	 * @param userId
+	 *            - the userId of the user
+	 * @param commenteduserId
+	 *            - the userId of the commentedUser
 	 * @param name
 	 *            - the name of the commentedUser's photo
 	 * @throws IOException
 	 */
 	// TODO enviar erro para o cliente
-	public void addComment(String comment, String userid, String name) {
+	public void addComment(String comment, String userId, String name) {
 		if (hasPhoto(name))
-			getPhoto(name).addComment(comment, userid);
+			getPhoto(name).addComment(comment, userId);
 		else
 			System.out.println("this user doesnt have any photo with this " + "name");
 	}
@@ -217,15 +214,15 @@ public class User {
 	 * Adds a like made by user in the likedUser's photo
 	 * 
 	 * @requires the comment has been added to this user's persistent storage
-	 * @param userid
-	 *            - the userid of the user
-	 * @param likedUserid
-	 *            - the userid of the likedUser param name - the name of the
+	 * @param userId
+	 *            - the userId of the user
+	 * @param likeduserId
+	 *            - the userId of the likedUser param name - the name of the
 	 *            commentedUser's photo
 	 */
-	public void addLike(String userid, String name) {
+	public void addLike(String userId, String name) {
 		if (hasPhoto(name))
-			getPhoto(name).addLike(userid);
+			getPhoto(name).addLike(userId);
 		else
 			System.out.println("this user doesnt have any photo with this " + "name");
 	}
@@ -234,15 +231,15 @@ public class User {
 	 * Adds a dislike made by user in the dislikedUser's photo
 	 * 
 	 * @requires the comment has been added to this user's persistent storage
-	 * @param userid
-	 *            - the userid of the user
-	 * @param dislikedUserid
-	 *            - the userid of the dislikedUser
+	 * @param userId
+	 *            - the userId of the user
+	 * @param dislikeduserId
+	 *            - the userId of the dislikedUser
 	 */
 	// TODO enviar erro para o cliente
-	public void addDislike(String userid, String dislikedUserid) {
-		if (hasPhoto(dislikedUserid))
-			getPhoto(dislikedUserid).addDisLike(userid);
+	public void addDislike(String userId, String dislikeduserId) {
+		if (hasPhoto(dislikeduserId))
+			getPhoto(dislikeduserId).addDisLike(userId);
 		else
 			System.out.println("this user doesnt have any photo with this " + "name");
 	}
@@ -260,7 +257,7 @@ public class User {
 	 * @return A String representation of this object
 	 */
 	public String toString() {
-		StringBuilder sb = new StringBuilder(userid);
+		StringBuilder sb = new StringBuilder(userId);
 		sb.append(" ");
 		sb.append(password);
 		return sb.toString();
