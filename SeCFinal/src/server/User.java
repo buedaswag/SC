@@ -1,10 +1,16 @@
 package server;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * 
+ * @author Antonio Dias 47811
+ * @author Maximo Oliveira 49024
+ * @author Miguel Dias 46427
+ *
+ */
 public class User {
 	private String userid;
 	private String password;
@@ -22,80 +28,99 @@ public class User {
 	public User(String userid, String password) {
 		this.userid = userid;
 		this.password = password;
-		this.followers = new ArrayList<>();
-		this.photos = new ArrayList<>();
+		this.followers = new CopyOnWriteArrayList<>();
+		this.photos = new CopyOnWriteArrayList<>();
 	}
 
 	/**
-	 * Verifica se o utilizador actual tem user como seguidor
+	 * Checks if this user has followUser as a follower
 	 * 
-	 * @return - idem
+	 * @param followUser
+	 *            - the userid of the followUser
 	 */
-	//TODO
-	public boolean isFollower(User user) {
+	public boolean follows(User user) {
 		return followers.contains(user.getUserid());
 	}
-	
+
 	/**
-	 * Verifica se o utilizador actual tem algum dos followUsers como 
-	 * seguidores
+	 * Checks if any of the followUsers is already a follower
 	 * 
-	 * @return - idem
+	 * @param followUserIds
+	 *            - the userids of the followUsers
 	 */
-	//TODO
-	public boolean isFollower(String[] followUserIds) {
-		//check one by one
-		for(String f: followers)
+	public boolean follows(String[] followUserIds) {
+		// check one by one
+		for (String f : followers)
 			for (String u : followUserIds)
 				if (f.equals(u))
 					return true;
 		return false;
 	}
-	
+
+	/**
+	 * Checks if any of the followUsers is not a follower of this user
+	 * 
+	 * @param followUserIds
+	 *            - the userids of the followUsers
+	 * @return true - if any of the followUsers is not a follower of this user, or
+	 *         false if all of the followUsers are followers of this user
+	 */
+	public boolean isNotFollower(String[] followUserIds) {
+		// check one by one
+		for (String f : followUserIds)
+			if (!followers.contains(f))
+				return true;
+		return false;
+	}
+
 	/**
 	 * adds followers to this User´s list of followers
 	 * 
-	 * @requires the followers have been added to this user's 
-	 * persistent storage
-	 * @param followers - the followers to be added 
+	 * @requires the followers have been added to this user's persistent storage
+	 * @param followers
+	 *            - the followers to be added
 	 */
 	public void addFollowers(List<String> followers) {
 		this.followers.addAll(followers);
 	}
 
 	/**
-	 * removes followers from this User´s list of followers
+	 * removes followers from this User's list of followers
 	 * 
-	 * @param followers - the followers to be removed 
+	 * @param followers
+	 *            - the followers to be removed
 	 */
 	public void removeFollowers(List<String> followers) {
 		this.followers.removeAll(followers);
 	}
 
 	/**
-	 *  adds a single follower to this User´s followers list
-	 *  
-	 * @requires the follower has been added to this user's 
-	 * persistent storage
-	 * @param follower the follower to be added
+	 * adds a single follower to this User´s followers list
+	 * 
+	 * @requires the follower has been added to this user's persistent storage
+	 * @param follower
+	 *            the follower to be added
 	 */
 	public void addFollower(String follower) {
 		this.followers.add(follower);
 	}
 
 	/**
-	 *  removes a single followers to this User´s followers list
-	 *  
-	 * @param follower the follower to be removed
+	 * removes a single followers to this User´s followers list
+	 * 
+	 * @param follower
+	 *            the follower to be removed
 	 */
 	public void removeFollower(String follower) {
 		this.followers.remove(follower);
 	}
-	
+
 	/**
 	 * checks if the user has a photo with the given name
-	 * @param name - the name to check
-	 * @return true if the User does has a photo with the given name 
+	 * 
+	 * @param name
+	 *            - the name to check
+	 * @return true if the User does has a photo with the given name
 	 */
 	public boolean hasPhoto(String name) {
 		for (Photo p : photos)
@@ -103,15 +128,17 @@ public class User {
 				return true;
 		return false;
 	}
-	
+
 	/**
 	 * checks if the user has any photo with any of the given names
-	 * @param names of the photos given
+	 * 
+	 * @param names
+	 *            of the photos given
 	 * @return true if the User does have a photo with the given names
 	 */
 	public boolean hasPhotos(String[] names) {
-		for(String name : names)
-			if(hasPhoto(name))
+		for (String name : names)
+			if (hasPhoto(name))
 				return true;
 		return false;
 	}
@@ -123,19 +150,17 @@ public class User {
 	public void addPhoto(Photo photo) {
 		photos.add(photo);
 	}
-	
+
 	/**
 	 * Adds the photos with the given names to this user
 	 * 
-	 * @requires the photos have been added to this user's 
-	 * persistent storage
+	 * @requires the photos have been added to this user's persistent storage
 	 * @param names
 	 */
 	public void addPhotos(String[] names) {
-		for(String name : names)
-			addPhoto(new Photo(name));
+		for (String name : names)
+			addPhoto(new Photo(name, (new Date()).getTime()));
 	}
-
 
 	/**
 	 * 
@@ -152,46 +177,37 @@ public class User {
 	public String getPassword() {
 		return password;
 	}
-	
-	/**
-	 * Verifica se o utilizador local segue "user"
-	 * 
-	 * @param user
-	 *            - O utilizador
-	 * @return - Se o utilizador local segue "user"
-	 * @throws IOException
-	 */
-	public boolean follows(String user) throws IOException {
-		return followers.contains(user);
-	}
 
 	/**
 	 * Adds a comment made by user in the commentedUser's photo
 	 * 
-	 * @requires the comment has been added to this user's 
-	 * persistent storage
-	 * @param comment - the comment to be made
-	 * @param userid - the userid of the user
-	 * @param commentedUserid - the userid of the commentedUser 
-	 * @param name - the name of the commentedUser's photo
-	 * @throws IOException 
+	 * @requires the comment has been added to this user's persistent storage
+	 * @param comment
+	 *            - the comment to be made
+	 * @param userid
+	 *            - the userid of the user
+	 * @param commentedUserid
+	 *            - the userid of the commentedUser
+	 * @param name
+	 *            - the name of the commentedUser's photo
+	 * @throws IOException
 	 */
-	//TODO enviar erro para  o cliente
+	// TODO enviar erro para o cliente
 	public void addComment(String comment, String userid, String name) {
 		if (hasPhoto(name))
 			getPhoto(name).addComment(comment, userid);
 		else
-			System.out.println("this user doesnt have any photo with this "
-					+ "name");
+			System.out.println("this user doesnt have any photo with this " + "name");
 	}
 
 	/**
 	 * returns the photo with the given name
+	 * 
 	 * @param name
 	 * @return
 	 */
-	private Photo getPhoto(String name) {
-		for(Photo p : photos)
+	public Photo getPhoto(String name) {
+		for (Photo p : photos)
 			if (p.getName().equals(name))
 				return p;
 		return null;
@@ -200,27 +216,53 @@ public class User {
 	/**
 	 * Adds a like made by user in the likedUser's photo
 	 * 
-	 * @requires the comment has been added to this user's 
-	 * persistent storage
-	 * @param userid - the userid of the user
-	 * @param likedUserid - the userid of the likedUser 
-	 * param name - the name of the commentedUser's photo
+	 * @requires the comment has been added to this user's persistent storage
+	 * @param userid
+	 *            - the userid of the user
+	 * @param likedUserid
+	 *            - the userid of the likedUser param name - the name of the
+	 *            commentedUser's photo
 	 */
-	//TODO enviar erro para  o cliente
 	public void addLike(String userid, String name) {
 		if (hasPhoto(name))
 			getPhoto(name).addLike(userid);
 		else
-			System.out.println("this user doesnt have any photo with this "
-					+ "name");
+			System.out.println("this user doesnt have any photo with this " + "name");
+	}
+
+	/**
+	 * Adds a dislike made by user in the dislikedUser's photo
+	 * 
+	 * @requires the comment has been added to this user's persistent storage
+	 * @param userid
+	 *            - the userid of the user
+	 * @param dislikedUserid
+	 *            - the userid of the dislikedUser
+	 */
+	// TODO enviar erro para o cliente
+	public void addDislike(String userid, String dislikedUserid) {
+		if (hasPhoto(dislikedUserid))
+			getPhoto(dislikedUserid).addDisLike(userid);
+		else
+			System.out.println("this user doesnt have any photo with this " + "name");
 	}
 
 	/**
 	 * gets the photos from this user
+	 * 
 	 * @return photos - the photos
 	 */
 	public List<Photo> getPhotos() {
 		return photos;
 	}
 
+	/**
+	 * @return A String representation of this object
+	 */
+	public String toString() {
+		StringBuilder sb = new StringBuilder(userid);
+		sb.append(" ");
+		sb.append(password);
+		return sb.toString();
+	}
 }

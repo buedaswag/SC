@@ -8,20 +8,25 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import interfaces.NetworkHandler;
-
-public class ClientNetworkHandler implements NetworkHandler {
+/**
+ * 
+ * @author Antonio Dias 47811
+ * @author Maximo Oliveira 49024
+ * @author Miguel Dias 46427
+ *
+ */
+public class ClientNetworkHandler {
 	private String addr;
 	private int port;
-	private Socket clientSocket;
-	private ObjectOutputStream out;
+	private Socket socket;
+	private ObjectOutputStream outStream;
+	private ObjectInputStream inStream;
 	private FileInputStream fis;
 
 	/**
-	 * Construtor do handler de rege
 	 * 
 	 * @param serverAddress
-	 *            - O endereco do servidor no formato ip:porto
+	 *            the address of the server
 	 * @throws IOException
 	 */
 	public ClientNetworkHandler(String serverAddress) throws IOException {
@@ -29,70 +34,90 @@ public class ClientNetworkHandler implements NetworkHandler {
 		addr = param[0];
 		port = Integer.parseInt(param[1]);
 
-		this.clientSocket = new Socket(addr, port);
-		out = new ObjectOutputStream(clientSocket.getOutputStream());
+		this.socket = new Socket(addr, port);
+		outStream = new ObjectOutputStream(socket.getOutputStream());
 		System.out.println("no cliente, depois de se ligar pela socket");
 	}
 
+	/**
+	 * 
+	 * @return this socket
+	 */
 	public Socket getSocket() {
-		return this.clientSocket;
+		return this.socket;
 	}
 
 	/**
-	 * Fecha o socket TCP e todos os recursos associados
+	 * Closes the TCP socket and all the resources associated to it
 	 */
 	public void endConnection() throws IOException {
-		out.close();
-		if(fis!=null)
+		outStream.close();
+		if (fis != null)
 			fis.close();
-		clientSocket.close();
+		socket.close();
 	}
 
 	/**
-	 * Envia um ficheiro para o servidor associado ao handler
+	 * Sends a file to the server
 	 * 
 	 * @param f
-	 *            - O ficheiro a enviar
-	 * @requires - Foi efectuada ligacao com o servidor
+	 *            the file to be sent
+	 * @requires - A connection with the server
 	 * @throws IOException
 	 */
 	public void enviarFile(File f) throws IOException {
-		// Abre streams de input e output
+		// Opens streams
 		fis = new FileInputStream(f);
 		byte[] buffer = new byte[1024];
 
-		// Declaracao de contadores de envio
+		// Declaring counter
 		int count;
 		int fileSize = (int) f.length();
 
-		out.writeInt(fileSize);
+		outStream.writeInt(fileSize);
 		while ((count = fis.read(buffer)) > 0) {
-			out.write(buffer, 0, count);
+			outStream.write(buffer, 0, count);
 		}
+		fis.close();
 	}
 
 	/**
-	 * Envia uma mensagem em bytecode
-	 * @return 
+	 * Sends a message in bytecode
 	 * 
+	 * @param message
+	 *            the message to be sent
 	 * @throws IOException
 	 * @throws ClassNotFoundException
-	 * @returns - True se o servidor aceitou a mensagem, False em caso contrario
 	 */
-	//TODO
 	public void send(String[] message) throws IOException, ClassNotFoundException {
-		out.writeObject(message);
+		outStream.writeObject(message);
 	}
 
-	@Override
-	public void startConnection(int port) throws IOException, UnknownHostException {
-		// TODO Auto-generated method stub
-
-	}
-
+	/**
+	 * Sends the authentication details to the server
+	 * 
+	 * @param userID
+	 *            the userid given
+	 * @param pass
+	 *            the password given
+	 * @throws IOException
+	 */
 	public void authenticate(String userID, String pass) throws IOException {
-		//ercrever username e password na socket
-		out.writeObject(userID);
-		out.writeObject(pass);
+		// ercrever username e password na socket
+		outStream.writeObject(userID);
+		outStream.writeObject(pass);
+	}
+
+	/**
+	 * Receives a message from the socket and returns it. This is used to receive
+	 * error messages through the socket.
+	 * 
+	 * @return message - the message from the socket
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public String receive() throws IOException, ClassNotFoundException {
+		inStream = new ObjectInputStream(socket.getInputStream());
+		return (String) inStream.readObject();
 	}
 }

@@ -1,25 +1,26 @@
-//Iteracao 1 tudo a funcionar
 package server;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
+/**
+ * 
+ * @author Antonio Dias 47811
+ * @author Maximo Oliveira 49024
+ * @author Miguel Dias 46427
+ *
+ */
 public class Server {
-	private int port;
-	private String address;
-	private static FileManager fileManager;
+	private FileManager fileManager;
 	// Lista de utilizadores (permite manipulacao facil em runtime)
 	private static List<User> users;
-
-	// private static final DateFormat df = new SimpleDateFormat("dd/MM/yyyy
-	// HH:mm");
+	private String needsToBeFollower;
+	private String allGood;
+	private String alreadyFollower;
+	private String notFollower;
 
 	/**
 	 * Constructor for the Server class initiates the server which represents the
@@ -32,10 +33,13 @@ public class Server {
 	public Server() throws IOException {
 		fileManager = new FileManager();
 		users = fileManager.loadUsers();
+		needsToBeFollower = "You must be a follower of the given user to do that";
+		allGood = "ok";
+		alreadyFollower = "At least one of the users given is already a follower";
+		notFollower = "At least one of the users given is not a follower";
 	}
 
 	/**
-	 * TODO
 	 * 
 	 * @param args
 	 * @throws IOException
@@ -66,16 +70,16 @@ public class Server {
 			}
 
 		}
-		// sSoc.close();
+
 	}
 
-	// ================== OPERACOES =================== //
-	// Estes metodos comunicam com o FileManager e //
-	// actualizam tanto a memoria fisica como a do //
-	// programa. //
+	// ================== OPERATIONS =================== //
+	// These methods communicate with the fileManage and //
+	// updates the physical memory and the programs memory //
 
 	/**
 	 * gets the user with the given credentials from the List users
+	 * 
 	 * @requires the user is authenticated
 	 * @param localUserId
 	 * @param password
@@ -89,8 +93,8 @@ public class Server {
 	}
 
 	/**
-	 * Autentica um utilizador, se este existir Caso contrario, cria-o e regista-o
-	 * na base de dados
+	 * Authenticates the user if he exists, otherwise creates him and adds him to
+	 * the database
 	 * 
 	 * @param localUserId
 	 * @param password
@@ -98,9 +102,9 @@ public class Server {
 	 * @throws IOException
 	 */
 	public boolean authenticate(String localUserId, String password) throws IOException {
-		// Caso 1: cliente existe
+		// Case 1 : the user exists
 		for (User u : users) {
-			// Password certa?
+			// Is the password correct?
 			if (u.getUserid().equals(localUserId)) {
 				if (u.getPassword().equals(password)) {
 					return true;
@@ -109,7 +113,7 @@ public class Server {
 				}
 			}
 		}
-		// Caso 2: cliente nao existe adicionar ao disco e 'a memoria
+		// Case 2: client doesnt exist, adds him to the database and program memory
 		fileManager.FMaddUser(localUserId, password);
 		users.add(new User(localUserId, password));
 		return true;
@@ -119,131 +123,285 @@ public class Server {
 	 * @requires all the photos have been loaded from the file system
 	 * @requires the user is authenticated
 	 * 
-	 * checks the photos of the user with the given localUserId
-	 * if he already has a photo with any of the names given in photos,
-	 * returns false, otherwise, returns true
+	 *           checks the photos of the user with the given localUserId if he
+	 *           already has a photo with any of the names given
 	 * @param localUserId
 	 * @param password
-	 * @return
+	 * @return true - if he already has a photo with any of the names given, false -
+	 *         otherwise
 	 */
-	public boolean checkDuplicatePhotos(String localUserId, String password, String[] names) {
+	public boolean checkDuplicatePhotos(String localUserId, String[] names) {
 		User user = getUser(localUserId);
 		return user.hasPhotos(names);
 	}
 
 	/**
 	 * adds the photos with the given names to the user with the given localUserId,
-	 * by adding them to the persistent storange and to the program memory,
-	 * and after its done, deletes the photos from the given directory
+	 * by adding them to the persistent storange and to the program memory, and
+	 * after its done, deletes the photos from the given directory
 	 * 
-	 * @param localUserId 
+	 * @requires a check was performed for duplicate photos
+	 * @param localUserId
 	 * @param password
 	 * @param names
-	 * @param photosPath the path to the photos in the user's temp folder
-	 * @throws IOException 
+	 * @param photosPath
+	 *            the path to the photos in the user's temp folder
+	 * @throws IOException
 	 */
-	public void addPhotos(String localUserId, String password, String[] names,
-			File photosPath) throws IOException {
-		//get the corresponding user
+	public String addPhotos(String localUserId, String password, String[] names, File photosPath) throws IOException {
+		// get the corresponding user
 		User user = getUser(localUserId);
-		//adds the photos to the persistent storage
+
+		// adds the photos to the persistent storage
 		fileManager.FMmovePhotos(localUserId, names, photosPath);
-		//adds the photos to the program memory
+		// adds the photos to the program memory
 		user.addPhotos(names);
+		return allGood;
 	}
 
 	/**
 	 * Adds a comment made by user in the commentedUser's photo
 	 * 
 	 * @requires the user is authenticated
-	 * @param comment - the comment to be made
-	 * @param localUserId - the localUserId of the user
-	 * @param commentedUserid - the userid of the commentedUser 
-	 * @param name - the name of the commentedUser's photo
-	 * @return "success" if it all went well, null otherwise
-	 * @throws IOException 
+	 * @param comment
+	 *            - the comment to be made
+	 * @param localUserId
+	 *            - the localUserId of the user
+	 * @param commentedUserid
+	 *            - the userid of the commentedUser
+	 * @param name
+	 *            - the name of the commentedUser's photo
+	 * @return allGood if it all went well, needsToBeFollower otherwise
+	 * @throws IOException
 	 */
-	public String addComment(String comment, String localUserId, 
-			String commentedUserid, String name) throws IOException {
-		//get the user with the given credentials
-		User user = getUser(localUserId);
-		//get the commented user with the given credentials
+	public String addComment(String comment, String localUserId, String commentedUserid, String name)
+			throws IOException {
+		// get the user with the given credentials
+		User localUser = getUser(localUserId);
+		// get the commented user with the given credentials
 		User commentedUser = getUser(commentedUserid);
-		if (!commentedUser.isFollower(user)) {
-			return null;
-		} else {
-			//adds comment to the file system
-			fileManager.FMaddComment(comment, localUserId, commentedUserid, 
-					name);
-			//adds comment from localUser to commentedUser's photo 
-			commentedUser.addComment(comment, localUserId, name);		
-		}
-		return "success";
+
+		// check if the localUser is not a follower
+		if (!commentedUser.follows(localUser))
+			return needsToBeFollower;
+
+		// adds comment to the file system
+		fileManager.FMaddComment(comment, localUserId, commentedUserid, name);
+		// adds comment from localUser to commentedUser's photo
+		commentedUser.addComment(comment, localUserId, name);
+
+		return allGood;
 	}
 
 	/**
-	 * Adds a like made by user in the likedUser's photo 
+	 * Adds a like made by user in the likedUser's photo
 	 * 
 	 * @requires the user is authenticated
-	 * @param localUserId - the localUserId of the user
-	 * @param likedUserid - the userid of the likedUser 
-	 * @param name - the name of the likedUser's photo
-	 * @return "success" if it all went well, null otherwise
-	 * @throws IOException 
+	 * @param localUserId
+	 *            - the localUserId of the user
+	 * @param likedUserid
+	 *            - the userid of the likedUser
+	 * @param name
+	 *            - the name of the likedUser's photo
+	 * @return allGood if it all went well, needsToBeFollower otherwise
+	 * @throws IOException
 	 */
-	//TODO falta por a responsabilidade de por na ram aqui 
-	public String addLike(String localUserId, String likedUserid,
-			String name) throws IOException {
-		//get the user with the given credentials
+	public String addLike(String localUserId, String likedUserid, String name) throws IOException {
+		// get the user with the given credentials
 		User user = getUser(localUserId);
-		//get the liked user with the given credentials
+		// get the liked user with the given credentials
 		User likedUser = getUser(likedUserid);
 
-		if(likedUser.isFollower(user)) {
-			//adds like to the file system
-			fileManager.FMaddLike(localUserId, likedUserid, name);
-			//adds like from user to likedUser's photo 
-			likedUser.addLike(localUserId, name);	
-		} else {
-			return null;
-		}
-		return "success";
+		// check if the localUser is not a follower
+		if (!likedUser.follows(user))
+			return needsToBeFollower;
+
+		// adds like to the file system
+		fileManager.FMaddLike(localUserId, likedUserid, name);
+		// adds like from user to likedUser's photo
+		likedUser.addLike(localUserId, name);
+		return allGood;
 	}
 
 	/**
-	 * Verifica se o utilizador actual tem user como seguidor
+	 * Adds a dislike made by user in the disLikedUser's photo
 	 * 
-	 * @return - idem
+	 * @requires the user is authenticated
+	 * @param localUserId
+	 *            - the localUserId of the user
+	 * @param disLikedUserid
+	 *            - the userid of the dislikedUser
+	 * @param name
+	 *            - the name of the likedUser's photo
+	 * @return "success" if it all went well, needsToBeFollower otherwise
+	 * @throws IOException
 	 */
-	//TODO
-	public boolean isFollower(User user) {
-		return user.isFollower(user);
+	public String addDislike(String localUserId, String dislikedUserid, String name) throws IOException {
+		// get the user with the given credentials
+		User localUser = getUser(localUserId);
+		// get the liked user with the given credentials
+		User dislikedUser = getUser(dislikedUserid);
+
+		// check if the localUser is not a follower
+		if (!dislikedUser.follows(localUser))
+			return needsToBeFollower;
+		// adds like to the file system
+		fileManager.FMaddDislike(localUserId, dislikedUserid, name);
+		// adds like from user to likedUser's photo
+		dislikedUser.addDislike(localUserId, name);
+		return allGood;
 	}
 
 	/**
-	 * Adds the followUsers as followers of the user
-	 * user with the given localUserId
+	 * Adds the followUsers as followers of the user user with the given localUserId
 	 * 
-	 * @param localUserId - the localUserId of the user
-	 * @param followUserIds - the userids of the followUsers
-	 * @return "success" if it all went well, null otherwise
-	 * @throws IOException 
+	 * @param localUserId
+	 *            - the localUserId of the user
+	 * @param followUserIds
+	 *            - the userids of the followUsers
+	 * @return allGood if it all went well, alreadyFollower otherwise
+	 * @throws IOException
 	 */
-	//TODO
 	public String addFollowers(String localUserId, String[] followUserIds) throws IOException {
-		//get the user with the given credentials
+		// get the user with the given credentials
 		User user = getUser(localUserId);
-		
-		//check if any of the followUsers is already a follower
-		if(user.isFollower(followUserIds))
-			return null;
-		
-		//adds like to the file system
+
+		// check if any of the followUsers is already a follower
+		if (user.follows(followUserIds))
+			return alreadyFollower;
+
+		// adds like to the file system
 		fileManager.FMaddFollowers(followUserIds, localUserId);
-		
-		//add the followers to the user
+
+		// add the followers to the user
 		user.addFollowers(Arrays.asList(followUserIds));
-		
-		return "success";
+
+		return allGood;
+	}
+
+	/**
+	 * Removes the followUsers from the user user with the given localUserId
+	 * 
+	 * @param localUserId
+	 *            - the localUserId of the user
+	 * @param followUserIds
+	 *            - the userids of the followUsers
+	 * @return allGood if it all went well, notFollower otherwise
+	 * @throws IOException
+	 */
+	public String removeFollowers(String localUserId, String[] followUserIds) throws IOException {
+		// get the user with the given credentials
+		User localUser = getUser(localUserId);
+
+		// check if any of the followUsers is not a follower of the localUser
+		if (localUser.isNotFollower(followUserIds))
+			return notFollower;
+
+		fileManager.FMremoveFollowers(followUserIds, localUserId);
+
+		// removes the followers from the user
+		localUser.removeFollowers(Arrays.asList(followUserIds));
+
+		return allGood;
+	}
+
+	/**
+	 * Lists all the photos and upload dates of the listedUser
+	 * 
+	 * @param localUserId
+	 *            - the localUserId of the user
+	 * @param listedUserid
+	 *            - the userid of the listedUser
+	 * @return allGood if it all went well, notFollower otherwise
+	 */
+	public String listPhotos(String localUserId, String listedUserid) {
+		// get the user with the given credentials
+		User localUser = getUser(localUserId);
+		User listedUser = getUser(listedUserid);
+
+		// check if the localUser is not a follower
+		if (!listedUser.follows(localUser))
+			return needsToBeFollower;
+
+		// Builds the string to be sent to the client
+		StringBuilder sbuilder = new StringBuilder();
+		List<Photo> listedUserPhotos = listedUser.getPhotos();
+
+		// Iterates over the user's photos and appends the upload date
+		for (Photo p : listedUserPhotos) {
+			sbuilder.append(p.getName() + " - " + p.getDate() + "\n");
+
+		}
+
+		// Conversion to string and return
+		return sbuilder.toString();
+	}
+
+	/**
+	 * Lists all the comments, likes and dislikes of the photo from the user
+	 * 
+	 * @param localUserId
+	 *            - the localUserId of the user
+	 * @param listedUserid
+	 *            - the userid of the listedUser
+	 * @return allGood if it all went well, notFollower otherwise
+	 */
+	public String getInfoPhoto(String localUserId, String listedUserid, String photo) {
+		// get the user with the given credentials
+		User localUser = getUser(localUserId);
+		User listedUser = getUser(listedUserid);
+
+		// check if the localUser is not a follower
+		if (!listedUser.follows(localUser))
+			return needsToBeFollower;
+
+		// Creates auxiliary variables
+		StringBuilder sb = new StringBuilder();
+		Photo p = listedUser.getPhoto(photo);
+
+		// Info to be fetched from the photo
+		int likes = p.getTotalLikes();
+		int dislikes = p.getTotalDislikes();
+		Collection<Comment> commentList = p.getComments();
+
+		// Generate answer
+		sb.append("Likes: " + likes + "\n");
+		sb.append("Dislikes: " + dislikes + "\n");
+		sb.append("Comentarios: " + "\n");
+		for (Comment c : commentList) {
+			sb.append(c.getComment() + "\n");
+		}
+
+		String info = sb.toString();
+		return info;
+	}
+
+	/**
+	 * Copies all the photos from copiedUser to localUser
+	 * 
+	 * @param localUserId
+	 *            - the localUserId of the user
+	 * @param copiedUserId
+	 *            - the userid of the listedUser
+	 * @return allGood if it all went well, notFollower otherwise
+	 * @throws IOException
+	 */
+	public String savePhotos(String localUserId, String copiedUserId) throws IOException {
+		// Gets the given users
+		User localUser = getUser(localUserId);
+		User copiedUser = getUser(copiedUserId);
+
+		// check if the localUser is not a follower
+		if (!copiedUser.follows(localUser))
+			return needsToBeFollower;
+
+		// add to disk
+		fileManager.FMsavePhotos(localUserId, copiedUserId);
+
+		// add to memory
+		for (Photo p : copiedUser.getPhotos())
+			localUser.addPhoto(p);
+
+		return allGood;
 	}
 }

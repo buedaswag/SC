@@ -1,22 +1,29 @@
 package server;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingDeque;
 
+/**
+ * 
+ * @author Antonio Dias 47811
+ * @author Maximo Oliveira 49024
+ * @author Miguel Dias 46427
+ *
+ */
 public class Photo {
 	private String name;
-	private List<Comment> comments;
+	private Queue<Comment> comments;
 	private int likes;
-	//do we need to keep this?
+	private int dislikes;
 	private Date uploadDate;
-	private long size;
-	
-	public Photo(String name) {
+	private SimpleDateFormat df;
+
+	public Photo(String name, long date) {
 		this.name = name;
-		this.uploadDate = new Date();
-		this.comments = new LinkedList<Comment>();
+		this.uploadDate = new Date(date);
+		this.comments = new LinkedBlockingDeque<Comment>();
+		this.df = new SimpleDateFormat("dd/MM/yyyy HH'h'mm");
 	}
 
 	/**
@@ -36,34 +43,42 @@ public class Photo {
 	}
 
 	/**
+	 * Returns this photo's number of likes
 	 * 
-	 * @return the size of this photo
+	 * @return
 	 */
-	public long getSize() {
-		return this.size;
-	}
-
 	public int getTotalLikes() {
 		return this.likes;
+	}
+
+	/**
+	 * Returns this photo's number of dislikes
+	 * 
+	 * @return
+	 */
+	public int getTotalDislikes() {
+		return this.dislikes;
 	}
 
 	/**
 	 * 
 	 * @return a list of this photo's comments
 	 */
-	public List<Comment> getComments() {
+	public Collection<Comment> getComments() {
 		return comments;
 	}
 
-	public void addComments(List<Comment> comments) {
+	public void addComments(Collection<Comment> comments) {
 		this.comments.addAll(comments);
 	}
 
 	/**
 	 * Adds a comment made by user in this user's photo
 	 * 
-	 * @param comment - the comment to be made
-	 * @param userid - the userid of the user
+	 * @param comment
+	 *            - the comment to be made
+	 * @param userid
+	 *            - the userid of the user
 	 */
 	public void addComment(String comment, String userid) {
 		comments.add(new Comment(userid, comment));
@@ -72,22 +87,41 @@ public class Photo {
 	/**
 	 * Adds a like made by user in this user's photo
 	 * 
-	 * @param userid - the userid of the user
-	 * @param likedUserid - the userid of the likedUser 
+	 * @param userid
+	 *            - the userid of the user
+	 * @param likedUserid
+	 *            - the userid of the likedUser
 	 */
-	//TODO incomplete, doesnt use Like object, istead uses an int
+	// TODO incomplete, doesnt use Like object, instead uses an int
 	public void addLike(String userid) {
 		likes++;
 	}
-	
+
 	/**
-	 * Adds a like made by user in this user's photo
+	 * Adds a dislike made by user in this user's photo
 	 * 
-	 * @param userid - the userid of the user
-	 * @param likedUserid - the userid of the likedUser 
+	 * @param userid
+	 *            - the userid of the user
+	 * @param dislikedUserid
+	 *            - the userid of the dislikedUser
 	 */
-	//TODO incomplete, doesnt use Like object, istead uses an int
-	public void addLikes(int likes) {
-		this.likes+=likes;
+	// TODO incomplete, doesnt use Like object, istead uses an int
+	public void addDisLike(String userid) {
+		dislikes++;
+
+	}
+
+	/**
+	 * @return A String representation of this object
+	 */
+	public String toString() {
+		StringBuilder sb = new StringBuilder(name);
+		sb.append(" ");
+		sb.append(likes);
+		sb.append(" ");
+		sb.append(dislikes);
+		sb.append(" ");
+		sb.append(uploadDate);
+		return sb.toString();
 	}
 }

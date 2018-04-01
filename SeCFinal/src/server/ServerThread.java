@@ -23,18 +23,23 @@ class ServerThread extends Thread {
 	private File tempPath;
 
 
-	private Socket inSoc;
+	private Socket socket;
 	private Server server;
+	private ObjectInputStream inStream;
+	private String SEP;
 
 	/**
 	 * Constructor, initializes this ServerThread
 	 * 
-	 * @param inSoc
+	 * @param socket
 	 * @param server
+	 * @throws IOException 
 	 */
-	public ServerThread(Socket inSoc, Server server) {
-		this.inSoc = inSoc;
+	public ServerThread(Socket socket, Server server) throws IOException {
+		SEP = System.getProperty("file.separator");
+		this.socket = socket;
 		this.server = server;
+		inStream = new ObjectInputStream(socket.getInputStream());
 		//create the temp directory
 		tempPath = new File("temp");
 		tempPath.mkdir();
@@ -45,8 +50,6 @@ class ServerThread extends Thread {
 	 */
 	public void run() {
 		try {
-			ObjectInputStream inStream = new ObjectInputStream(inSoc.getInputStream());
-
 			// get the user's credentials
 			String localUserId = null;
 			String password = null;
@@ -61,6 +64,7 @@ class ServerThread extends Thread {
 			} catch (ClassNotFoundException e1) {
 				e1.printStackTrace();
 			}
+			//TODO wrong password
 			authenticate(localUserId, password);
 
 			// Execute the requested operation
@@ -68,14 +72,26 @@ class ServerThread extends Thread {
 
 			// close stream and socket
 			inStream.close();
-			inSoc.close();
-			
+			socket.close();
+
 			//close the thread
+			System.out.println("thread: closing");
 			return;
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Sends an error message to the socket, if !error.equals("ok")
+	 * @param error - the error message
+	 * @throws IOException 
+	 */
+	private void sendError(String error) throws IOException {
+		ObjectOutputStream outStream = 
+				new ObjectOutputStream(socket.getOutputStream());
+		outStream.writeObject(error);
 	}
 
 	/**
@@ -103,19 +119,26 @@ class ServerThread extends Thread {
 		//get the operation to execute
 		char opt = args[0].charAt(0);
 		String[] newArgs = Arrays.copyOfRange(args, 1, args.length);
-		String answer;
+		String result;
 		// execute the operation - este bloco so le e passa argumentos
 		switch (opt) {
 		// Acrescentar fotos
+		//TODO clean this case up, like the case c
 		case 'a': {
-			//check for duplicate photos
-			if (server.checkDuplicatePhotos(localUserId, password, newArgs))
-				//TODO enviar erro para  o cliente
-				System.out.println("duplicate photos");
+			/*
+			 * ask the server to add these photos,
+			 * and sends an error message if they cannot be added
+			 */
+			if (server.checkDuplicatePhotos(localUserId, newArgs))
+				sendError("You already have at least one photo with "
+				+ "one of the names given.");
 			else {
+				//tells the server that the photos can be added
+				sendError("ok");
 				//adicionar as fotos ao sistema de ficheiros
-				File photosPath = receivePhotos(localUserId, newArgs, inStream);
-
+				File photosPath = receivePhotos(localUserId, newArgs, 
+						inStream);
+	
 				//pedir ao server para ir buscar � temp
 				server.addPhotos(localUserId, password, newArgs, photosPath);
 			}
@@ -128,76 +151,109 @@ class ServerThread extends Thread {
 			String commentedUserId = newArgs[1];
 			String photo = newArgs[2];
 
-			//ask the server to add this comment
-			server.addComment(comment, localUserId, commentedUserId, photo);
-			//TODO enviar erro para  o cliente
+			/*
+			 * ask the server to add this comment,
+			 * and sends an error message if the localUser is not a follower
+			 */
+			result = server.addComment(
+					comment, localUserId, commentedUserId, photo);
+			sendError(result);
 			break;
 		}
-		// Botar like
 		case 'L': {
 			String likedUserId = newArgs[0];
 			String name = newArgs[1];
-			server.addLike(localUserId, likedUserId, name);
-			//TODO enviar erro para  o cliente
+			result = server.addLike(localUserId, likedUserId, name);
+			sendError(result);
 			break;
 		}
-		// Adicionar seguidores
+		case 'D' : {
+			String dislikedUserid = newArgs[0];
+			String photo = newArgs[1];
+			result = server.addDislike(localUserId, dislikedUserid, photo);
+			sendError(result);
+			break;
+		}
 		case 'f': {
-			server.addFollowers(localUserId, newArgs);
-			//TODO enviar erro para  o cliente
+			result = server.addFollowers(localUserId, newArgs);
+			sendError(result);
+			break;
+		}
+		case 'r' : {
+			result = server.removeFollowers(localUserId, newArgs[0].split(","));
+			sendError(result);
+			break;
+		}
+		case 'l' : {
+			String listedUserid = newArgs[0];
+			result = server.listPhotos(localUserId,listedUserid);
+			sendError(result);
+			break;
+		}
+		case 'i' : {
+			String listedUserid = newArgs[0];
+			String photo = newArgs[1];
+			result = server.getInfoPhoto(localUserId,listedUserid,photo);
+			sendError(result);
+			break;
+		}
+		case 'g' : {
+			String copiedUserId = newArgs[0];
+			result = server.savePhotos(localUserId,copiedUserId);
+			sendError(result);
 			break;
 		}
 		// Fechar tudo
 		}
 	}
 
-		/**
-		 * Receives the photos from the TCP port and stores them in the
-		 * given user's temp folder
-		 * @param localUserId
-		 * @param newArgs
-		 * @throws IOException 
+	/**
+	 * Receives the photos from the TCP port and stores them in the
+	 * given user's temp folder
+	 * @param localUserId
+	 * @param newArgs
+	 * @throws IOException 
+	 */
+	private File receivePhotos(String localUserId, String[] newArgs, 
+			ObjectInputStream inStream) throws IOException {
+		//create path for this user and for his/her photos
+		File localUserIdPath = new File (tempPath + SEP + localUserId);
+		localUserIdPath.mkdir();
+		File photosPath = new File (localUserIdPath + "\\photos");
+		photosPath.mkdir();
+
+		/* create the buffer to receive the chunks and the 
+		 * FileOutputStream to write to the file
 		 */
-		private File receivePhotos(String localUserId, String[] newArgs, 
-				ObjectInputStream inStream) throws IOException {
-			//create path for this user and for his/her photos
-			File localUserIdPath = new File (tempPath + "\\" + localUserId);
-			localUserIdPath.mkdir();
-			File photosPath = new File (localUserIdPath + "\\photos");
-			photosPath.mkdir();
-			
-			/* create the buffer to receive the chunks and the 
-			 * FileOutputStream to write to the file
+		FileOutputStream fos;
+		byte[] buffer = new byte[1024];
+		int filesize = 0, read = 0, remaining = 0, totalRead = 0;
+
+		for (String name : newArgs) {
+			/*
+			 * create FileOutputStream that writes to this user's 
+			 * photo temp directory
 			 */
-			FileOutputStream fos;
-			byte[] buffer = new byte[1024];
-			int filesize = 0, read = 0, remaining = 0, totalRead = 0;
+			fos = new FileOutputStream(photosPath + SEP + name);
 
-			for (String name : newArgs) {
-				/*
-				 * create FileOutputStream that writes to this user's 
-				 * photo temp directory
-				 */
-				fos = new FileOutputStream(photosPath + "\\" + name);
+			//read the file size
+			filesize = inStream.readInt();
 
-				//read the file size
-				filesize = inStream.readInt();
-
-				/*
-				 * reads the file in chunks and writes the chunks to the 
-				 * specified directory
-				 */
-				remaining = filesize;
-				while((read = inStream.read(buffer, 0, 
-						Math.min(buffer.length, remaining))) > 0) {
-					totalRead += read;
-					remaining -= read;
-					fos.write(buffer, 0, read);
-				}
-				//close FileOutputStream, reset variavles
-				fos.close();
-				totalRead = 0;
+			/*
+			 * reads the file in chunks and writes the chunks to the 
+			 * specified directory
+			 */
+			remaining = filesize;
+			while((read = inStream.read(buffer, 0, 
+					Math.min(buffer.length, remaining))) > 0) {
+				totalRead += read;
+				remaining -= read;
+				fos.write(buffer, 0, read);
 			}
-			return photosPath;
+			//close FileOutputStream, reset variavles
+			fos.close();
+			totalRead = 0;
 		}
+		return photosPath;
 	}
+}
