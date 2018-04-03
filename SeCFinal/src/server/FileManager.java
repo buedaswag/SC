@@ -56,8 +56,6 @@ public class FileManager {
 		// initializing buffers
 		fr = new FileReader(database.getAbsoluteFile());
 		br = new BufferedReader(fr);
-		fw = new FileWriter(database.getAbsoluteFile(), true);
-		bw = new BufferedWriter(fw);
 		User u;
 		List<User> userList = new ArrayList<User>();
 
@@ -371,7 +369,7 @@ public class FileManager {
 	 */
 	public void FMloadFollowers(User u) throws IOException {
 		// load followers
-		File followersFile = new File(home + SEP + u.getUserid() + SEP + "followers.txt");
+		File followersFile = new File(home + SEP + u.getuserId() + SEP + "followers.txt");
 
 		BufferedReader readerLoadFollowers = new BufferedReader(new FileReader(followersFile));
 
@@ -393,7 +391,7 @@ public class FileManager {
 		 * corresponding attributes and add it to the user
 		 */
 		// load photos
-		String photosFile = home + SEP + u.getUserid();
+		String photosFile = home + SEP + u.getuserId();
 		// todas as pastas de fotos
 		File[] directories = new File(photosFile).listFiles(File::isDirectory);
 		//
@@ -424,14 +422,14 @@ public class FileManager {
 			 */
 			// Le os utilizadores actuais
 
-			File file = new File(home + SEP + u.getUserid() + SEP + p.getName().split("\\.")[0] + SEP + "comments.txt");
+			File file = new File(home + SEP + u.getuserId() + SEP + p.getName().split("\\.")[0] + SEP + "comments.txt");
 
 			FileReader filer = new FileReader(file);
 
 			BufferedReader buffr = new BufferedReader(filer);
 			String line;
 			while ((line = buffr.readLine()) != null) {
-				p.addComment(line, u.getUserid());
+				p.addComment(line, u.getuserId());
 			}
 
 			filer.close();
@@ -442,7 +440,7 @@ public class FileManager {
 			 * corresponding photo object
 			 */
 			File fileLikes = new File(
-					home + SEP + u.getUserid() + SEP + p.getName().split("\\.")[0] + SEP + "likes.txt");
+					home + SEP + u.getuserId() + SEP + p.getName().split("\\.")[0] + SEP + "likes.txt");
 
 			FileReader fileLik = new FileReader(fileLikes);
 
@@ -462,7 +460,7 @@ public class FileManager {
 			 * corresponding photo object
 			 */
 			File filedisLikes = new File(
-					home + SEP + u.getUserid() + SEP + p.getName().split("\\.")[0] + SEP + "dislikes.txt");
+					home + SEP + u.getuserId() + SEP + p.getName().split("\\.")[0] + SEP + "dislikes.txt");
 
 			FileReader fileDisLik = new FileReader(filedisLikes);
 

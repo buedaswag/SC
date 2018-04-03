@@ -1,5 +1,10 @@
 package server;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -11,6 +16,98 @@ import java.util.*;
  *
  */
 public class User {
+
+	/**********************************************************************************************
+	 * findAll and load variables and methods
+	 **********************************************************************************************
+	 */
+	private static String databaseRootDirName = "database";
+	private static String usersTxtName = "users.txt";
+	private static String followersTxtName = "followers.txt";
+	private static String fileSeparator = System.getProperty("file.separator");
+	private static File usersTxt = new File(databaseRootDirName + fileSeparator + usersTxtName);
+	private static File databaseRootDir = new File(databaseRootDirName);
+	private static FileReader fileReader;
+	private static BufferedReader buffReader;
+	private static FileWriter fileWriter;
+	private static BufferedWriter buffWriter;
+
+	/**
+	 * Finds all the users in the file system and loads them into memory
+	 * @requires databaseRootDir.exists()
+	 * @return users - a Map<String, User> containing all the users in the file system, or an empty
+	 * Map if there are no users yet
+	 */
+	public static Map<String, User> findAll () {
+		//the Map to be returned
+		Map<String, User> users = new Hashtable<>();
+		//if databaseRootDir is empty, there are no users. Return the empty Map
+		if (databaseRootDir.list().length > 0) {
+			try {
+				//create the usersTxt file if it doesn't exist yet
+				usersTxt.createNewFile();
+				//create the buffers for reading from files, and create the Map
+				fileReader = new FileReader(usersTxt.getAbsoluteFile());
+				buffReader = new BufferedReader(fileReader);
+				users = new Hashtable<>();
+				/*
+				 * get all the info to load each user to memory 
+				 * (userId, password, followers and photos
+				 * Reads the current users from the usersTxt file
+				 */
+				String line;
+				while ((line = buffReader.readLine()) != null) {
+					// splits the line in the form 'userid:password'
+					String[] userCredentials = line.split(":");
+					//adds the user to the map
+					users.put(userCredentials[0], User.find(userCredentials[0], userCredentials[1]));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					fileReader.close();
+					buffReader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return users;
+	}
+
+	/**
+	 * Find all the information necessary to load the user with the given credentials to memory
+	 * (followers and photos).
+	 * @requires followersTxt.exists()
+	 * @param userId - userId and password of the user to be found
+	 * @return user - The constructed user with all its information loaded to memory.
+	 */
+	private static User find(String userId, String password) {
+		//the User to be returned
+		User user = null;
+		//get the followers
+		//create the usersTxt file if it doesn't exist yet
+		File followersTxt = new File(databaseRootDirName + fileSeparator + userId + fileSeparator 
+				+ followersTxtName);
+		fileReader = new FileReader(usersTxt.getAbsoluteFile());
+		buffReader = new BufferedReader(fileReader);
+		BufferedReader readerLoadFollowers = new BufferedReader(new FileReader(followersFile));
+		String followerUserId;
+		while ((followerUserId = readerLoadFollowers.readLine()) != null)
+			u.addFollower(followerUserId);
+		readerLoadFollowers.close();
+		//get the photos
+		//load the user
+		return user;
+	}
+
+
+
+	/**********************************************************************************************
+	 * User variables and methods
+	 **********************************************************************************************
+	 */
 	private String userId;
 	private String password;
 	private Collection<String> followers;
@@ -29,11 +126,12 @@ public class User {
 		this.photos = new LinkedList<>();
 	}
 
+
+
 	/**
 	 * Checks if this user has followUser as a follower
 	 * 
-	 * @param followUser
-	 *            - the userId of the followUser
+	 * @param followUser - the userId of the followUser
 	 */
 	public boolean follows(User user) {
 		return followers.contains(user.getuserId());
@@ -42,8 +140,7 @@ public class User {
 	/**
 	 * Checks if any of the followUsers is already a follower
 	 * 
-	 * @param followuserIds
-	 *            - the userIds of the followUsers
+	 * @param followuserIds - the userIds of the followUsers
 	 */
 	public boolean follows(String[] followuserIds) {
 		// check one by one
@@ -57,10 +154,9 @@ public class User {
 	/**
 	 * Checks if any of the followUsers is not a follower of this user
 	 * 
-	 * @param followuserIds
-	 *            - the userIds of the followUsers
-	 * @return true - if any of the followUsers is not a follower of this user, or
-	 *         false if all of the followUsers are followers of this user
+	 * @param followuserIds- the userIds of the followUsers
+	 * @return true - if any of the followUsers is not a follower of this user, 
+	 * or false if all of the followUsers are followers of this user
 	 */
 	public boolean isNotFollower(String[] followuserIds) {
 		// check one by one
@@ -74,8 +170,7 @@ public class User {
 	 * adds followers to this User´s list of followers
 	 * 
 	 * @requires the followers have been added to this user's persistent storage
-	 * @param followers
-	 *            - the followers to be added
+	 * @param followers - the followers to be added
 	 */
 	public void addFollowers(List<String> followers) {
 		this.followers.addAll(followers);
@@ -84,8 +179,7 @@ public class User {
 	/**
 	 * removes followers from this User's list of followers
 	 * 
-	 * @param followers
-	 *            - the followers to be removed
+	 * @param followers - the followers to be removed
 	 */
 	public void removeFollowers(List<String> followers) {
 		this.followers.removeAll(followers);
@@ -95,8 +189,7 @@ public class User {
 	 * adds a single follower to this User´s followers list
 	 * 
 	 * @requires the follower has been added to this user's persistent storage
-	 * @param follower
-	 *            the follower to be added
+	 * @param follower - the follower to be added
 	 */
 	public void addFollower(String follower) {
 		this.followers.add(follower);
@@ -105,8 +198,7 @@ public class User {
 	/**
 	 * removes a single followers to this User´s followers list
 	 * 
-	 * @param follower
-	 *            the follower to be removed
+	 * @param follower - the follower to be removed
 	 */
 	public void removeFollower(String follower) {
 		this.followers.remove(follower);
@@ -115,8 +207,7 @@ public class User {
 	/**
 	 * checks if the user has a photo with the given name
 	 * 
-	 * @param name
-	 *            - the name to check
+	 * @param name - the name to check
 	 * @return true if the User does has a photo with the given name
 	 */
 	public boolean hasPhoto(String name) {
@@ -129,8 +220,7 @@ public class User {
 	/**
 	 * checks if the user has any photo with any of the given names
 	 * 
-	 * @param names
-	 *            of the photos given
+	 * @param names of the photos given
 	 * @return true if the User does have a photo with the given names
 	 */
 	public boolean hasPhotos(String[] names) {
