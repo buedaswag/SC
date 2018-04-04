@@ -3,6 +3,7 @@ package server;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -87,19 +88,55 @@ public class User {
 		//the User to be returned
 		User user = null;
 		//get the followers
-		//create the usersTxt file if it doesn't exist yet
+		Collection<String> followers = findFollowers(userId);
+		//get the photos
+		Collection<Photo> photos = Photo.findAll(userId);
+		//load the user
+		User.load(userId, password, followers, photos);
+		return user;
+	}
+
+	/**
+	 * Finds the followUserIds of the given user's followers
+	 * @param userId - the user whose followers are to be found
+	 * @return followers - a Collection<String> of the followUserIds. 
+	 * The Collection will be empty if there are no followers
+	 */
+	private static Collection<String> findFollowers(String userId) {
+		//get the usersTxt file
 		File followersTxt = new File(databaseRootDirName + fileSeparator + userId + fileSeparator 
 				+ followersTxtName);
-		fileReader = new FileReader(usersTxt.getAbsoluteFile());
-		buffReader = new BufferedReader(fileReader);
-		BufferedReader readerLoadFollowers = new BufferedReader(new FileReader(followersFile));
-		String followerUserId;
-		while ((followerUserId = readerLoadFollowers.readLine()) != null)
-			u.addFollower(followerUserId);
-		readerLoadFollowers.close();
-		//get the photos
-		//load the user
-		return user;
+		//the Collection to store the followUserIds
+		Collection<String> followers = new LinkedList<>();
+		try {
+			fileReader = new FileReader(followersTxt.getAbsoluteFile());
+
+			buffReader = new BufferedReader(fileReader);
+			String followerUserId;
+			while ((followerUserId = buffReader.readLine()) != null)
+				followers.add(followerUserId);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				buffReader.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return followers;
+	}
+	
+	/**
+	 * Constructs a User object with the given parameters
+	 * @param userId
+	 * @param password
+	 * @param followers
+	 * @param photos
+	 */
+	private static User load(String userId, String password, Collection<String> followers,
+			Collection<Photo> photos) {
+		return new User(userId, password, followers, photos);
 	}
 
 
@@ -125,8 +162,21 @@ public class User {
 		this.followers = new LinkedList<>();
 		this.photos = new LinkedList<>();
 	}
-
-
+	
+	/**
+	 * Constructs a new User object from the given parameters. 
+	 * @param userId
+	 * @param password
+	 * @param followers
+	 * @param photos
+	 */
+	private User(String userId, String password, Collection<String> followers,
+			Collection<Photo> photos) {
+		this.userId = userId;
+		this.password = password;
+		this.followers = followers;
+		this.photos = photos;
+	}
 
 	/**
 	 * Checks if this user has followUser as a follower
