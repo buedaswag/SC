@@ -1,5 +1,8 @@
 package server;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -12,6 +15,60 @@ import java.util.concurrent.LinkedBlockingDeque;
  *
  */
 public class Photo {
+
+	/**********************************************************************************************
+	 * findAll and load variables and methods
+	 **********************************************************************************************
+	 */
+	public static Collection<Photo> findAll(String userId) {
+		//find all the photos from this user in the file system
+		//call find on each photo
+		
+		//the Collection to be returned
+		return null;
+		///////////////////////////////////////////////////
+		//the Map to be returned
+		Map<String, User> users = new Hashtable<>();
+		//if databaseRootDir is empty, there are no users. Return the empty Map
+		if (databaseRootDir.list().length > 0) {
+			try {
+				//create the usersTxt file if it doesn't exist yet
+				usersTxt.createNewFile();
+				//create the buffers for reading from files, and create the Map
+				fileReader = new FileReader(usersTxt.getAbsoluteFile());
+				buffReader = new BufferedReader(fileReader);
+				users = new Hashtable<>();
+				/*
+				 * get all the info to load each user to memory 
+				 * (userId, password, followers and photos
+				 * Reads the current users from the usersTxt file
+				 */
+				String line;
+				while ((line = buffReader.readLine()) != null) {
+					// splits the line in the form 'userid:password'
+					String[] userCredentials = line.split(":");
+					//adds the user to the map
+					users.put(userCredentials[0], User.find(userCredentials[0], userCredentials[1]));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					fileReader.close();
+					buffReader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return users;
+	}
+
+	/**********************************************************************************************
+	 * User variables and methods
+	 **********************************************************************************************
+	 */
+
 	private String name;
 	private Queue<Comment> comments;
 	private int likes;
