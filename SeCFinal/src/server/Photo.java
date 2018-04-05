@@ -1,6 +1,7 @@
 package server;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -20,16 +21,19 @@ public class Photo {
 	 * findAll and load variables and methods
 	 **********************************************************************************************
 	 */
+	private static String databaseRootDirName = "database";
+	private static File databaseRootDir = new File(databaseRootDirName);
+	private static String fileSeparator = System.getProperty("file.separator");
+	
 	public static Collection<Photo> findAll(String userId) {
 		//find all the photos from this user in the file system
 		//call find on each photo
 		
 		//the Collection to be returned
-		return null;
-		///////////////////////////////////////////////////
-		//the Map to be returned
-		Map<String, User> users = new Hashtable<>();
-		//if databaseRootDir is empty, there are no users. Return the empty Map
+		Collection<Photo> photos = new LinkedList<>();
+		//the directory name for this user's photos
+		String photosDirName = databaseRootDirName + fileSeparator + userId;
+		//if photosDir is empty, there are no photos. Return the empty Collection
 		if (databaseRootDir.list().length > 0) {
 			try {
 				//create the usersTxt file if it doesn't exist yet
