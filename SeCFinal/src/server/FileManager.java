@@ -422,7 +422,8 @@ public class FileManager {
 			 */
 			// Le os utilizadores actuais
 
-			File file = new File(home + SEP + u.getuserId() + SEP + p.getName().split("\\.")[0] + SEP + "comments.txt");
+			File file = new File(home + SEP + u.getuserId() + SEP + p.getName().split("\\.")[0] + 
+					SEP + "comments.txt");
 
 			FileReader filer = new FileReader(file);
 

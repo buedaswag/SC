@@ -34,23 +34,22 @@ public class User {
 	private static BufferedWriter buffWriter;
 
 	/**
-	 * Finds all the users in the file system and loads them into memory
+	 * Finds all the users in the file system and loads them into memory.
 	 * @requires databaseRootDir.exists()
+	 * @requires usersTxt.exists()
+	 * @requires when a user is registered, a folder must be created for him
 	 * @return users - a Map<String, User> containing all the users in the file system, or an empty
 	 * Map if there are no users yet
 	 */
 	public static Map<String, User> findAll () {
 		//the Map to be returned
 		Map<String, User> users = new Hashtable<>();
-		//if databaseRootDir is empty, there are no users. Return the empty Map
-		if (databaseRootDir.list().length > 0) {
+		//if databaseRootDir only has the usersTxt file, there are no users. Return the empty Map
+		if (databaseRootDir.list().length <= 1) {
 			try {
-				//create the usersTxt file if it doesn't exist yet
-				usersTxt.createNewFile();
 				//create the buffers for reading from files, and create the Map
 				fileReader = new FileReader(usersTxt.getAbsoluteFile());
 				buffReader = new BufferedReader(fileReader);
-				users = new Hashtable<>();
 				/*
 				 * get all the info to load each user to memory 
 				 * (userId, password, followers and photos
@@ -61,7 +60,8 @@ public class User {
 					// splits the line in the form 'userid:password'
 					String[] userCredentials = line.split(":");
 					//adds the user to the map
-					users.put(userCredentials[0], User.find(userCredentials[0], userCredentials[1]));
+					users.put(userCredentials[0], User.find(userCredentials[0], 
+							userCredentials[1]));
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -80,7 +80,6 @@ public class User {
 	/**
 	 * Find all the information necessary to load the user with the given credentials to memory
 	 * (followers and photos).
-	 * @requires followersTxt.exists()
 	 * @param userId - userId and password of the user to be found
 	 * @return user - The constructed user with all its information loaded to memory.
 	 */

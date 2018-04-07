@@ -24,64 +24,116 @@ public class Photo {
 	private static String databaseRootDirName = "database";
 	private static File databaseRootDir = new File(databaseRootDirName);
 	private static String fileSeparator = System.getProperty("file.separator");
-	
+	private static final String commentsTxtName = "comments.txt";
+	private static final String likesTxtName = "likes.txt";
+	private static final String dislikesTxtName = "dislikes.txt";
+
+	/**
+	 * Constructor: creates a new Photo object form the given parameters.
+	 * @param photoName
+	 * @param uploadDate
+	 * @param comments
+	 * @param likes
+	 * @param dislikes
+	 */
+	private Photo(String photoName, long uploadDate, Queue<Comment> comments,
+			Queue<Like> likes, Queue<Dislike> dislikes) {
+		this.photoName = photoName;
+		this.uploadDate = new Date(uploadDate);
+		this.comments = comments;
+		this.likes = likes;
+		this.dislikes = dislikes;
+	}
+
+	/**
+	 * Finds all the photos in this user's directory and loads them into memory.
+	 * @param userId
+	 * @return
+	 */
 	public static Collection<Photo> findAll(String userId) {
-		//find all the photos from this user in the file system
-		//call find on each photo
-		
 		//the Collection to be returned
 		Collection<Photo> photos = new LinkedList<>();
-		//the directory name for this user's photos
-		String photosDirName = databaseRootDirName + fileSeparator + userId;
-		//if photosDir is empty, there are no photos. Return the empty Collection
-		if (databaseRootDir.list().length > 0) {
-			try {
-				//create the usersTxt file if it doesn't exist yet
-				usersTxt.createNewFile();
-				//create the buffers for reading from files, and create the Map
-				fileReader = new FileReader(usersTxt.getAbsoluteFile());
-				buffReader = new BufferedReader(fileReader);
-				users = new Hashtable<>();
-				/*
-				 * get all the info to load each user to memory 
-				 * (userId, password, followers and photos
-				 * Reads the current users from the usersTxt file
-				 */
-				String line;
-				while ((line = buffReader.readLine()) != null) {
-					// splits the line in the form 'userid:password'
-					String[] userCredentials = line.split(":");
-					//adds the user to the map
-					users.put(userCredentials[0], User.find(userCredentials[0], userCredentials[1]));
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				try {
-					fileReader.close();
-					buffReader.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+		//the directories for this user's photos
+		String userDirName = databaseRootDirName + fileSeparator + userId;
+		File[] photoDirectories = new File(userDirName).listFiles(File::isDirectory);
+		//if photoDirectories does not contain any photo directory, there are no photos, 
+		//return the empty Collection.
+		if (photoDirectories.length > 0) {
+			/*
+			 * get all the info to load each photo to memory 
+			 * (photoName, uploadDate, comments, likes and dislikes)
+			 */
+			for (File photoDirectorie : photoDirectories) {
+				photos.add(Photo.find(userId, photoDirectorie));
 			}
 		}
-		return users;
+		return photos;
+	}
+
+	/**
+	 * Find all the information necessary to load the photo from the given directory to memory
+	 * (photoName, uploadDate, comments, likes and dislikes)
+	 * @param userId
+	 * @param photoDirectorie
+	 */
+	private static Photo find(String userId, File photoDirectorie) {
+		//the composing elements of the photo to be returned 
+		String photoName = null;
+		long uploadDate = -1;
+		Queue<Comment> comments = null;
+		Queue<Like> likes = null;
+		Queue<Dislike> dislikes = null;
+		//for each file in the photoDirectorie
+		File[] files = photoDirectorie.listFiles();
+		for (File file : files) {
+			String fileName = file.getName();
+			switch (fileName) {
+			case commentsTxtName:
+				comments = Comment.findAll(photoDirectorie);
+				break;
+			case dislikesTxtName:
+				likes = Like.findAll(photoDirectorie);
+				break;
+			case likesTxtName:
+				dislikes = Dislike.findAll(photoDirectorie);
+				break;
+			//the file is the photo
+			default:
+				photoName = fileName;
+				uploadDate = file.lastModified();
+				break;
+			}
+		}
+		return Photo.load(photoName, uploadDate, comments, likes, dislikes);
+	}
+
+	/**
+	 * Constructs a Photo object with the given parameters.
+	 * @param photoName
+	 * @param uploadDate
+	 * @param comments
+	 * @param likes
+	 * @param dislikes
+	 * @return
+	 */
+	private static Photo load(String photoName, long uploadDate, Queue<Comment> comments,
+			Queue<Like> likes, Queue<Dislike> dislikes) {
+		return new Photo(photoName, uploadDate, comments, likes, dislikes);
 	}
 
 	/**********************************************************************************************
-	 * User variables and methods
+	 * Photo variables and methods
 	 **********************************************************************************************
 	 */
-
-	private String name;
+	private String photoName;
 	private Queue<Comment> comments;
-	private int likes;
-	private int dislikes;
+	private Queue<Like> likes;
+	private Queue<Dislike> dislikes;
 	private Date uploadDate;
 	private SimpleDateFormat df;
 
-	public Photo(String name, long date) {
-		this.name = name;
+	public Photo(String photoName, long date) {
+		this.photoName = photoName;
 		this.uploadDate = new Date(date);
 		this.comments = new LinkedBlockingDeque<Comment>();
 		this.df = new SimpleDateFormat("dd/MM/yyyy HH'h'mm");
@@ -92,7 +144,7 @@ public class Photo {
 	 * @return the name of this photo
 	 */
 	public String getName() {
-		return this.name;
+		return this.photoName;
 	}
 
 	/**
@@ -109,7 +161,7 @@ public class Photo {
 	 * @return
 	 */
 	public int getTotalLikes() {
-		return this.likes;
+		return this.likes.size();
 	}
 
 	/**
@@ -118,7 +170,7 @@ public class Photo {
 	 * @return
 	 */
 	public int getTotalDislikes() {
-		return this.dislikes;
+		return this.dislikes.size();
 	}
 
 	/**
@@ -176,7 +228,7 @@ public class Photo {
 	 * @return A String representation of this object
 	 */
 	public String toString() {
-		StringBuilder sb = new StringBuilder(name);
+		StringBuilder sb = new StringBuilder(photoName);
 		sb.append(" ");
 		sb.append(likes);
 		sb.append(" ");

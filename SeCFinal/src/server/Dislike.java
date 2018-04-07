@@ -1,5 +1,8 @@
 package server;
 
+import java.io.File;
+import java.util.Collection;
+
 /**
  * Represents a like made by user in a Photo
  * @author migdi, max, antonio
@@ -35,5 +38,10 @@ public class Dislike {
 	public void save() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public static Collection<Dislike> findAll(File photoDirectorie) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
