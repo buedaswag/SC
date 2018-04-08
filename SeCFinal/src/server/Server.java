@@ -39,7 +39,7 @@ public class MsLunch {
 	
 	private FileManager fileManager;
 	// Lista de utilizadores (permite manipulacao facil em runtime)
-	private static List<User> users;
+	private static Map<String, User> users;
 	private String needsToBeFollower;
 	private String allGood;
 	private String alreadyFollower;
@@ -55,7 +55,7 @@ public class MsLunch {
 	 */
 	public Server() throws IOException {
 		fileManager = new FileManager();
-		users = fileManager.loadUsers();
+		users = User.findAll();
 		needsToBeFollower = "You must be a follower of the given user to do that";
 		allGood = "ok";
 		alreadyFollower = "At least one of the users given is already a follower";
@@ -96,49 +96,24 @@ public class MsLunch {
 
 	}
 
-	// ================== OPERATIONS =================== //
-	// These methods communicate with the fileManage and //
-	// updates the physical memory and the programs memory //
-
 	/**
-	 * gets the user with the given credentials from the List users
-	 * 
-	 * @requires the user is authenticated
-	 * @param localUserId
-	 * @param password
-	 * @return the user, or null if its not on the List
-	 */
-	private User getUser(String localUserId) {
-		for (User u : users)
-			if (u.getUserid().equals(localUserId))
-				return u;
-		return null;
-	}
-
-	/**
-	 * Authenticates the user if he exists, otherwise creates him and adds him to
-	 * the database
+	 * Authenticates the user if he exists, otherwise creates him and adds him to memory and disk.
 	 * 
 	 * @param localUserId
 	 * @param password
-	 * @throws IOException
-	 * @throws IOException
+	 * @return true if the user was successfully authenticated or false if the password is wrong.
 	 */
 	public boolean authenticate(String localUserId, String password) throws IOException {
 		// Case 1 : the user exists
-		for (User u : users) {
-			// Is the password correct?
-			if (u.getUserid().equals(localUserId)) {
-				if (u.getPassword().equals(password)) {
-					return true;
-				} else {
-					return false;
-				}
+		if (users.containsKey(localUserId)) {
+			if (users.get(localUserId).getPassword().equals(password)) {
+				return true;
+			} else {
+				return false;
 			}
 		}
-		// Case 2: client doesnt exist, adds him to the database and program memory
-		fileManager.FMaddUser(localUserId, password);
-		users.add(new User(localUserId, password));
+		// Case 2: user doesn't exist, adds him to the database and program memory
+		users.put(localUserId, User.insert(localUserId, password));
 		return true;
 	}
 
@@ -348,7 +323,7 @@ public class MsLunch {
 
 		// Builds the string to be sent to the client
 		StringBuilder sbuilder = new StringBuilder();
-		List<Photo> listedUserPhotos = listedUser.getPhotos();
+		Collection<Photo> listedUserPhotos = listedUser.getPhotos();
 
 		// Iterates over the user's photos and appends the upload date
 		for (Photo p : listedUserPhotos) {

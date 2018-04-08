@@ -30,8 +30,6 @@ public class User {
 	private static File databaseRootDir = new File(databaseRootDirName);
 	private static FileReader fileReader;
 	private static BufferedReader buffReader;
-	private static FileWriter fileWriter;
-	private static BufferedWriter buffWriter;
 
 	/**
 	 * Finds all the users in the file system and loads them into memory.
@@ -102,7 +100,7 @@ public class User {
 	 * The Collection will be empty if there are no followers
 	 */
 	private static Collection<String> findFollowers(String userId) {
-		//get the usersTxt file
+		//get the followersTxt file
 		File followersTxt = new File(databaseRootDirName + fileSeparator + userId + fileSeparator 
 				+ followersTxtName);
 		//the Collection to store the followUserIds
@@ -137,11 +135,44 @@ public class User {
 			Collection<Photo> photos) {
 		return new User(userId, password, followers, photos);
 	}
-
+	
+	/**********************************************************************************************
+	 * insert and update variables and methods
+	 **********************************************************************************************
+	 */
+	private static FileWriter fileWriter;
+	private static BufferedWriter buffWriter;
+	
+	public static User insert(String localUserId, String password) {
+		try {
+			fileWriter = new FileWriter(usersTxt);
+			buffWriter = new BufferedWriter(fileWriter);
+			//add the line in the usersTxt file corresponding to the user
+			String line = localUserId + ":" + password;
+			buffWriter.write(line);
+			buffWriter.newLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				buffWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		//create localUser's directory
+		String localUserDirName = databaseRootDirName + fileSeparator + localUserId;
+		File localUserDir = new File(localUserDirName);
+		localUserDir.mkdir();
+		//create the followersTxt file
+		new File(localUserDirName + fileSeparator + followersTxtName).mkdir();
+		//create the new user
+		return new User(localUserId, password);
+	}
 
 
 	/**********************************************************************************************
-	 * User variables and methods
+	 * User variables , methods and constructors
 	 **********************************************************************************************
 	 */
 	private String userId;
@@ -302,7 +333,7 @@ public class User {
 	 * 
 	 * @return this user's userId
 	 */
-	public String getuserId() {
+	public String getUserId() {
 		return userId;
 	}
 
@@ -388,7 +419,7 @@ public class User {
 	 * 
 	 * @return photos - the photos
 	 */
-	public List<Photo> getPhotos() {
+	public Collection<Photo> getPhotos() {
 		return photos;
 	}
 

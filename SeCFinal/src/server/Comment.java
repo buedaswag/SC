@@ -30,7 +30,7 @@ public class Comment {
 	private static BufferedReader buffReader;
 
 	/**
-	 * Finds all the comments in this photo's directory and loads them into memory.
+	 * Finds all the comments in the photo's directory and loads them into memory.
 	 * @param photoDirectorie
 	 * @return comments
 	 */
@@ -82,7 +82,7 @@ public class Comment {
 		return new Comment(commenterUserId, comment);
 	}
 	/**********************************************************************************************
-	 * Comment variables and methods
+	 * Comment variables , methods and constructors
 	 **********************************************************************************************
 	 */
 	private String commenterUserId;

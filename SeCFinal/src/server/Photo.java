@@ -29,23 +29,6 @@ public class Photo {
 	private static final String dislikesTxtName = "dislikes.txt";
 
 	/**
-	 * Constructor: creates a new Photo object form the given parameters.
-	 * @param photoName
-	 * @param uploadDate
-	 * @param comments
-	 * @param likes
-	 * @param dislikes
-	 */
-	private Photo(String photoName, long uploadDate, Queue<Comment> comments,
-			Queue<Like> likes, Queue<Dislike> dislikes) {
-		this.photoName = photoName;
-		this.uploadDate = new Date(uploadDate);
-		this.comments = comments;
-		this.likes = likes;
-		this.dislikes = dislikes;
-	}
-
-	/**
 	 * Finds all the photos in this user's directory and loads them into memory.
 	 * @param userId
 	 * @return
@@ -122,7 +105,7 @@ public class Photo {
 	}
 
 	/**********************************************************************************************
-	 * Photo variables and methods
+	 * Photo variables , methods and constructors
 	 **********************************************************************************************
 	 */
 	private String photoName;
@@ -132,12 +115,35 @@ public class Photo {
 	private Date uploadDate;
 	private SimpleDateFormat df;
 
-	public Photo(String photoName, long date) {
+	/**
+	 * Constructor: creates a new Photo object form the given parameters.
+	 * @param photoName
+	 * @param uploadDate
+	 */
+	public Photo(String photoName, long uploadDate) {
 		this.photoName = photoName;
-		this.uploadDate = new Date(date);
+		this.uploadDate = new Date(uploadDate);
 		this.comments = new LinkedBlockingDeque<Comment>();
 		this.df = new SimpleDateFormat("dd/MM/yyyy HH'h'mm");
 	}
+	
+	/**
+	 * Constructor: creates a new Photo object form the given parameters.
+	 * @param photoName
+	 * @param uploadDate
+	 * @param comments
+	 * @param likes
+	 * @param dislikes
+	 */
+	private Photo(String photoName, long uploadDate, Queue<Comment> comments,
+			Queue<Like> likes, Queue<Dislike> dislikes) {
+		this.photoName = photoName;
+		this.uploadDate = new Date(uploadDate);
+		this.comments = comments;
+		this.likes = likes;
+		this.dislikes = dislikes;
+	}
+
 
 	/**
 	 * 
