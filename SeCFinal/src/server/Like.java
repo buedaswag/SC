@@ -1,7 +1,7 @@
 package server;
 
 import java.io.File;
-import java.util.Collection;
+import java.util.Queue;
 
 /**
  * Represents a like made by user in a Photo
@@ -28,19 +28,7 @@ public class Like {
 		return user;
 	}
 
-	@Override
-	public void load() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void save() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public static Collection<Like> findAll(File photoDirectorie) {
+	public static Queue<Like> findAll(File photoDirectorie) {
 		// TODO Auto-generated method stub
 		return null;
 	}
