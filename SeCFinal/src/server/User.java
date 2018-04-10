@@ -55,7 +55,7 @@ public class User {
 				 */
 				String line;
 				while ((line = buffReader.readLine()) != null) {
-					// splits the line in the form 'userid:password'
+					// splits the line in the form 'userId:password'
 					String[] userCredentials = line.split(":");
 					//adds the user to the map
 					users.put(userCredentials[0], User.find(userCredentials[0], 
@@ -123,7 +123,7 @@ public class User {
 		}
 		return followers;
 	}
-	
+
 	/**
 	 * Constructs a User object with the given parameters
 	 * @param userId
@@ -135,14 +135,20 @@ public class User {
 			Collection<Photo> photos) {
 		return new User(userId, password, followers, photos);
 	}
-	
+
 	/**********************************************************************************************
 	 * insert and update variables and methods
 	 **********************************************************************************************
 	 */
 	private static FileWriter fileWriter;
 	private static BufferedWriter buffWriter;
-	
+
+	/**
+	 * Creates and inserts a new user with the given credentials
+	 * @param localUserId
+	 * @param password
+	 * @return
+	 */
 	protected static User insert(String localUserId, String password) {
 		try {
 			fileWriter = new FileWriter(usersTxt);
@@ -170,6 +176,33 @@ public class User {
 		return new User(localUserId, password);
 	}
 
+	/**
+	 * Adds the followUsers as followers of localUser, in the persistent storage.
+	 * @param localUserId
+	 * @param followUserIds
+	 */
+	protected static void insertFollowers(String localUserId, String[] followUserIds) {
+		// Opens resources and necessary streams
+		File followersTxt = new File(databaseRootDirName + fileSeparator + localUserId + 
+				fileSeparator + followersTxtName);
+		try {
+			fileWriter = new FileWriter(followersTxt, true);
+			buffWriter = new BufferedWriter(fileWriter);
+			for (String followUserId : followUserIds) {
+				buffWriter.write(followUserId);
+				buffWriter.newLine();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				buffWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 
 	/**********************************************************************************************
 	 * User variables , methods and constructors
@@ -192,7 +225,7 @@ public class User {
 		this.followers = new LinkedList<>();
 		this.photos = new LinkedList<>();
 	}
-	
+
 	/**
 	 * Constructs a new User object from the given parameters. 
 	 * @param userId
@@ -247,13 +280,13 @@ public class User {
 	}
 
 	/**
-	 * adds followers to this User´s list of followers
-	 * 
-	 * @requires the followers have been added to this user's persistent storage
-	 * @param followers - the followers to be added
+	 * Inserts the followUsers as followers of this user.
+	 * @param localUserId - the localUserId of the user
+	 * @param followUserIds - the userIds of the followUsers
 	 */
-	protected void addFollowers(List<String> followers) {
-		this.followers.addAll(followers);
+	protected void addFollowers(String localUserId, String[] followUserIds) {
+		User.insertFollowers(localUserId, followUserIds);
+		Collections.addAll(this.followers, followUserIds);
 	}
 
 	/**
@@ -373,16 +406,13 @@ public class User {
 	}
 
 	/**
-	 * Adds a like made by user in the likedUser's photo
-	 * @param userId - the userId of the user
-	 * @param likeduserId - the userId of the likedUser 
-	 * @param photoName - the name of the likedUser's photo
+	 * Adds a dislike made by likerUser in this user's photo
+	 * @param dislikedUserId - the userId of the dislikedUser
+	 * @param dislikerUserId - the userId of the dislikerUser 
+	 * @param photoName - the name of this user's photo
 	 */
-	protected void addDislike(String userId, String dislikeduserId) {
-		if (hasPhoto(dislikeduserId))
-			getPhoto(dislikeduserId).addDisLike(userId);
-		else
-			System.out.println("this user doesnt have any photo with this " + "name");
+	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) {
+		getPhoto(photoName).addDislike(dislikedUserId, dislikerUserId, photoName);
 	}
 
 	/**

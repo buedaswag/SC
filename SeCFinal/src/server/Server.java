@@ -45,7 +45,7 @@ protected class MsLunch {
 
 	/**
 	 * Constructor for the Server class initiates the server which represents the
-	 * system ... TO COMPLETE Inicia o servidor, criando directorios e ficheiros de
+	 * system ... TO COMPLETE Inicia o servIdor, criando directorios e ficheiros de
 	 * registo se necessario. Nao cria interfaces de rede; tudo o que diz respeito a
 	 * portos, TCP e outras coisas giras fica ao encargo do handler.
 	 */
@@ -56,7 +56,7 @@ protected class MsLunch {
 		alreadyFollower = "At least one of the users given is already a follower";
 		notFollower = "At least one of the users given is not a follower";
 	}
-	
+
 	/**
 	 * 
 	 * @return server - The single instance of Class Server
@@ -100,13 +100,12 @@ protected class MsLunch {
 	}
 
 	/**
-	 * Authenticates the user if he exists, otherwise creates him and adds him to memory and disk.
-	 * 
+	 * Authenticates the user if he exists, otherwise creates him and inserts him.
 	 * @param localUserId
 	 * @param password
 	 * @return true if the user was successfully authenticated or false if the password is wrong.
 	 */
-	protected boolean authenticate(String localUserId, String password) throws IOException {
+	protected boolean authenticate(String localUserId, String password){
 		// Case 1 : the user exists
 		if (users.containsKey(localUserId)) {
 			if (users.get(localUserId).getPassword().equals(password)) {
@@ -123,10 +122,7 @@ protected class MsLunch {
 	/**
 	 * Checks the photos of the user with the given localUserId if he
 	 * already has a photo with any of the names given.
-	 * @requires all the photos have been loaded from the file system
 	 * @requires the user is authenticated
-	 * 
-	 *           
 	 * @param localUserId
 	 * @param password
 	 * @return true - if he already has a photo with any of the names given, false - otherwise
@@ -137,8 +133,7 @@ protected class MsLunch {
 	}
 
 	/**
-	 * Adds the photos with the given names to the user with the given localUserId,
-	 * by adding them to the persistent storange and to the program memory, and
+	 * Inserts the photos with the given names to the user with the given localUserId, and
 	 * after its done, deletes the photos from the given directory. 
 	 * @requires a check was performed for duplicate photos
 	 * @param localUserId
@@ -155,31 +150,30 @@ protected class MsLunch {
 	}
 
 	/**
-	 * Adds a comment made by user in the commentedUser's photo
+	 * Inserts a comment made by user in the commentedUser's photo
 	 * @requires the user is authenticated
 	 * @param comment - the comment to be made
 	 * @param localUserId - the localUserId of the user
-	 * @param commentedUserid - the userid of the commentedUser
+	 * @param commentedUserId - the userId of the commentedUser
 	 * @param photoName - the name of the commentedUser's photo
 	 * @return allGood if it all went well, needsToBeFollower otherwise
 	 */
-	protected String addComment(String comment, String localUserId, String commentedUserid, 
+	protected String addComment(String comment, String localUserId, String commentedUserId, 
 			String photoName) {
 		// get the commented user with the given credentials
-		User commentedUser = users.get(commentedUserid);
+		User commentedUser = users.get(commentedUserId);
 		// check if the localUser is not a follower
 		if (!commentedUser.isFollowed(localUserId)) {
 			return needsToBeFollower;
 		}
 		String commenterUserId = localUserId;
 		// adds comment to the file system and to memory
-		commentedUser.addComment(commentedUserid, commenterUserId, comment, photoName);
+		commentedUser.addComment(commentedUserId, commenterUserId, comment, photoName);
 		return allGood;
 	}
 
 	/**
-	 * Adds a like made by user in the likedUser's photo
-	 * 
+	 * Inserts a like made by user in the likedUser's photo
 	 * @requires the user is authenticated
 	 * @param localUserId - the localUserId of the user
 	 * @param likedUserId - the userId of the likedUser
@@ -200,58 +194,41 @@ protected class MsLunch {
 	}
 
 	/**
-	 * Adds a dislike made by user in the disLikedUser's photo
-	 * 
+	 * Inserts a dislike made by user in the dislikedUser's photo
 	 * @requires the user is authenticated
-	 * @param localUserId
-	 *            - the localUserId of the user
-	 * @param disLikedUserid
-	 *            - the userid of the dislikedUser
-	 * @param photoName
-	 *            - the name of the likedUser's photo
-	 * @return "success" if it all went well, needsToBeFollower otherwise
-	 * @throws IOException
+	 * @param localUserId - the localUserId of the user
+	 * @param dislikedUserId - the userId of the dislikedUser
+	 * @param photoName - the name of the dislikedUser's photo
+	 * @return allGood if it all went well, needsToBeFollower otherwise
 	 */
-	protected String addDislike(String localUserId, String dislikedUserid, String photoName) throws IOException {
-		// get the user with the given credentials
-		User localUser = getUser(localUserId);
-		// get the liked user with the given credentials
-		User dislikedUser = getUser(dislikedUserid);
-
+	protected String addDislike(String localUserId, String dislikedUserId, String photoName) {
+		// get the dislikedUser with the given credentials
+		User dislikedUser = users.get(dislikedUserId);
 		// check if the localUser is not a follower
-		if (!dislikedUser.isFollowed(localUser))
+		if (!dislikedUser.isFollowed(localUserId)) {
 			return needsToBeFollower;
-		// adds like to the file system
-		fileManager.FMaddDislike(localUserId, dislikedUserid, photoName);
-		// adds like from user to likedUser's photo
-		dislikedUser.addDislike(localUserId, photoName);
+		}
+		String dislikerUserId = localUserId;
+		// inserts a like from localUser to likedUser's photo
+		dislikedUser.addDislike(dislikedUserId, dislikerUserId, photoName);
 		return allGood;
 	}
 
 	/**
-	 * Adds the followUsers as followers of the user user with the given localUserId
-	 * 
-	 * @param localUserId
-	 *            - the localUserId of the user
-	 * @param followUserIds
-	 *            - the userids of the followUsers
+	 * Inserts the followUsers as followers of the user with the given localUserId
+	 * @param localUserId - the localUserId of the user
+	 * @param followUserIds - the userIds of the followUsers
 	 * @return allGood if it all went well, alreadyFollower otherwise
-	 * @throws IOException
 	 */
-	protected String addFollowers(String localUserId, String[] followUserIds) throws IOException {
+	protected String addFollowers(String localUserId, String[] followUserIds) {
 		// get the user with the given credentials
 		User localUser = users.get(localUserId);
-
 		// check if any of the followUsers is already a follower
-		if (localUser.isFollowed(followUserIds))
+		if (localUser.isFollowed(followUserIds)) {
 			return alreadyFollower;
-
-		// adds like to the file system
-		fileManager.FMaddFollowers(followUserIds, localUserId);
-
+		}
 		// add the followers to the user
-		user.addFollowers(Arrays.asList(followUserIds));
-
+		localUser.addFollowers(localUserId, followUserIds);
 		return allGood;
 	}
 
@@ -261,7 +238,7 @@ protected class MsLunch {
 	 * @param localUserId
 	 *            - the localUserId of the user
 	 * @param followUserIds
-	 *            - the userids of the followUsers
+	 *            - the userIds of the followUsers
 	 * @return allGood if it all went well, notFollower otherwise
 	 * @throws IOException
 	 */
@@ -286,14 +263,14 @@ protected class MsLunch {
 	 * 
 	 * @param localUserId
 	 *            - the localUserId of the user
-	 * @param listedUserid
-	 *            - the userid of the listedUser
+	 * @param listedUserId
+	 *            - the userId of the listedUser
 	 * @return allGood if it all went well, notFollower otherwise
 	 */
-	protected String listPhotos(String localUserId, String listedUserid) {
+	protected String listPhotos(String localUserId, String listedUserId) {
 		// get the user with the given credentials
 		User localUser = getUser(localUserId);
-		User listedUser = getUser(listedUserid);
+		User listedUser = getUser(listedUserId);
 
 		// check if the localUser is not a follower
 		if (!listedUser.isFollowed(localUser))
@@ -318,14 +295,14 @@ protected class MsLunch {
 	 * 
 	 * @param localUserId
 	 *            - the localUserId of the user
-	 * @param listedUserid
-	 *            - the userid of the listedUser
+	 * @param listedUserId
+	 *            - the userId of the listedUser
 	 * @return allGood if it all went well, notFollower otherwise
 	 */
-	protected String getInfoPhoto(String localUserId, String listedUserid, String photo) {
+	protected String getInfoPhoto(String localUserId, String listedUserId, String photo) {
 		// get the user with the given credentials
 		User localUser = getUser(localUserId);
-		User listedUser = getUser(listedUserid);
+		User listedUser = getUser(listedUserId);
 
 		// check if the localUser is not a follower
 		if (!listedUser.isFollowed(localUser))
@@ -358,7 +335,7 @@ protected class MsLunch {
 	 * @param localUserId
 	 *            - the localUserId of the user
 	 * @param copiedUserId
-	 *            - the userid of the listedUser
+	 *            - the userId of the listedUser
 	 * @return allGood if it all went well, notFollower otherwise
 	 * @throws IOException
 	 */

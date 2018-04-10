@@ -65,7 +65,7 @@ class ServerThread extends Thread {
 			authenticate(localUserId, password);
 
 			// Execute the requested operation
-			executeOperation(localUserId, password, args, inStream);
+			executeOperation(localUserId, args, inStream);
 
 			// close stream and socket
 			inStream.close();
@@ -86,8 +86,7 @@ class ServerThread extends Thread {
 	 * @throws IOException 
 	 */
 	private void sendError(String error) throws IOException {
-		ObjectOutputStream outStream = 
-				new ObjectOutputStream(socket.getOutputStream());
+		ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
 		outStream.writeObject(error);
 	}
 
@@ -110,8 +109,7 @@ class ServerThread extends Thread {
 	 * ["c","miguel","ferias","que foto tao linda das tuas ferias"]
 	 * @throws IOException 
 	 */
-	//TODO enviar erro para  o cliente
-	private void executeOperation(String localUserId, String password, String[] args, 
+	private void executeOperation(String localUserId, String[] args, 
 			ObjectInputStream inStream) throws IOException {
 		//get the operation to execute
 		char opt = args[0].charAt(0);
@@ -120,21 +118,18 @@ class ServerThread extends Thread {
 		// execute the operation - este bloco so le e passa argumentos
 		switch (opt) {
 		// Acrescentar fotos
-		//TODO clean this case up, like the case c
 		case 'a': {
 			/*
 			 * ask the server to add these photos,
 			 * and sends an error message if they cannot be added
 			 */
 			if (Server.getInstance().checkDuplicatePhotos(localUserId, newArgs))
-				sendError("You already have at least one photo with "
-				+ "one of the names given.");
+				sendError("You already have at least one photo with one of the names given.");
 			else {
 				//tells the server that the photos can be added
 				sendError("ok");
 				//receives the photos and stores them in the corresponding user's temp folder
-				File photosPath = receivePhotos(localUserId, newArgs, 
-						inStream);
+				File photosPath = receivePhotos(localUserId, newArgs, inStream);
 				//add the photos to the server
 				Server.getInstance().addPhotos(localUserId, newArgs, photosPath);
 			}
@@ -145,28 +140,27 @@ class ServerThread extends Thread {
 			//get the operation parameters 
 			String comment = newArgs[0];
 			String commentedUserId = newArgs[1];
-			String photo = newArgs[2];
+			String photoName = newArgs[2];
 
 			/*
 			 * ask the server to add this comment,
 			 * and sends an error message if the localUser is not a follower
 			 */
-			result = Server.getInstance().addComment(
-					comment, localUserId, commentedUserId, photo);
+			result = Server.getInstance().addComment(comment, localUserId, commentedUserId, photoName);
 			sendError(result);
 			break;
 		}
 		case 'L': {
 			String likedUserId = newArgs[0];
-			String name = newArgs[1];
-			result = Server.getInstance().addLike(localUserId, likedUserId, name);
+			String photoName = newArgs[1];
+			result = Server.getInstance().addLike(localUserId, likedUserId, photoName);
 			sendError(result);
 			break;
 		}
 		case 'D' : {
 			String dislikedUserid = newArgs[0];
-			String photo = newArgs[1];
-			result = Server.getInstance().addDislike(localUserId, dislikedUserid, photo);
+			String photoName = newArgs[1];
+			result = Server.getInstance().addDislike(localUserId, dislikedUserid, photoName);
 			sendError(result);
 			break;
 		}
@@ -182,24 +176,23 @@ class ServerThread extends Thread {
 		}
 		case 'l' : {
 			String listedUserid = newArgs[0];
-			result = Server.getInstance().listPhotos(localUserId,listedUserid);
+			result = Server.getInstance().listPhotos(localUserId, listedUserid);
 			sendError(result);
 			break;
 		}
 		case 'i' : {
 			String listedUserid = newArgs[0];
-			String photo = newArgs[1];
-			result = Server.getInstance().getInfoPhoto(localUserId,listedUserid,photo);
+			String photoName = newArgs[1];
+			result = Server.getInstance().getInfoPhoto(localUserId, listedUserid, photoName);
 			sendError(result);
 			break;
 		}
 		case 'g' : {
 			String copiedUserId = newArgs[0];
-			result = Server.getInstance().savePhotos(localUserId,copiedUserId);
+			result = Server.getInstance().savePhotos(localUserId, copiedUserId);
 			sendError(result);
 			break;
 		}
-		// Fechar tudo
 		}
 	}
 

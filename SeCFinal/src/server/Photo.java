@@ -249,7 +249,7 @@ public class Photo {
 	 */
 	protected void addComment(String comment, String commentedUserId, String commenterUserId, 
 			String photoName) {
-		comments.add(Comment.insert(comment, commentedUserId, commenterUserId, this.getName()));
+		comments.add(Comment.insert(comment, commentedUserId, commenterUserId, photoName));
 	}
 
 	/**
@@ -263,17 +263,13 @@ public class Photo {
 	}
 
 	/**
-	 * Adds a dislike made by user in this user's photo
-	 * 
-	 * @param userid
-	 *            - the userid of the user
-	 * @param dislikedUserid
-	 *            - the userid of the dislikedUser
+	 * Adds a dislike made by likerUser in this user's photo
+	 * @param dislikedUserId - the userId of the dislikedUser
+	 * @param dislikerUserId - the userId of the dislikerUser 
+	 * @param photoName - the name of this user's photo
 	 */
-	// TODO incomplete, doesnt use Like object, istead uses an int
-	protected void addDisLike(String userid) {
-		dislikes++;
-
+	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) {
+		dislikes.add(Dislike.insert(dislikedUserId, dislikerUserId, photoName));
 	}
 
 	/**

@@ -1,8 +1,10 @@
 package server;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -12,7 +14,7 @@ import java.util.Queue;
  * @author migdi, max, antonio
  *
  */
-protected class Dislike {
+public class Dislike {
 
 	/**********************************************************************************************
 	 * findAll and load variables and methods
@@ -28,7 +30,6 @@ protected class Dislike {
 	 * @param photoDirectorie
 	 * @return disdislikes
 	 */
-
 	protected static Queue<Dislike> findAll(File photoDirectorie) {
 		//create the buffers for reading from the file and the Queue
 		Queue<Dislike> dislikes = new LinkedList<>();
@@ -69,6 +70,42 @@ protected class Dislike {
 	 * @return dislike
 	 */
 	private static Dislike load(String dislikerUserId) {
+		return new Dislike(dislikerUserId);
+	}
+	
+	/**********************************************************************************************
+	 * insert and update variables and methods
+	 **********************************************************************************************
+	 */
+	private static FileWriter fileWriter;
+	private static BufferedWriter buffWriter;
+	private static String databaseRootDirName = "database";
+	
+	/**
+	 * Inserts a like made by the likerUser
+	 * @param dislikedUserId
+	 * @param dislikerUserId
+	 * @param photoName
+	 * @return dislike
+	 */
+	protected static Dislike insert(String dislikedUserId, String dislikerUserId, String photoName) {
+		String line = dislikerUserId;
+		File likesTxt = new File(databaseRootDirName + fileSeparator + dislikedUserId + 
+				photoName.split("\\.")[0] + dislikesTxtName);
+		try {
+			fileWriter = new FileWriter(likesTxt, true);
+			buffWriter = new BufferedWriter(fileWriter);
+			buffWriter.write(line);
+			buffWriter.newLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				buffWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		return new Dislike(dislikerUserId);
 	}
 

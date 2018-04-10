@@ -30,7 +30,6 @@ public class Like {
 	 * @param photoDirectorie
 	 * @return likes
 	 */
-
 	protected static Queue<Like> findAll(File photoDirectorie) {
 		//create the buffers for reading from the file and the Queue
 		Queue<Like> likes = new LinkedList<>();
@@ -76,9 +75,6 @@ public class Like {
 	
 	/**********************************************************************************************
 	 * insert and update variables and methods
-	 * @param photoName 
-	 * @param likerUserId
-	 * @param likedUserId 
 	 **********************************************************************************************
 	 */
 	private static FileWriter fileWriter;
@@ -90,7 +86,7 @@ public class Like {
 	 * @param likedUserId
 	 * @param likerUserId
 	 * @param photoName
-	 * @return
+	 * @return like
 	 */
 	protected static Like insert(String likedUserId, String likerUserId, String photoName) {
 		String line = likerUserId;
