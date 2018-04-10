@@ -33,7 +33,7 @@ public class Photo {
 	 * @param userId
 	 * @return
 	 */
-	public static Collection<Photo> findAll(String userId) {
+	protected static Collection<Photo> findAll(String userId) {
 		//the Collection to be returned
 		Collection<Photo> photos = new LinkedList<>();
 		//the directories for this user's photos
@@ -80,7 +80,7 @@ public class Photo {
 			case likesTxtName:
 				dislikes = Dislike.findAll(photoDirectorie);
 				break;
-			//the file is the photo
+				//the file is the photo
 			default:
 				photoName = fileName;
 				uploadDate = file.lastModified();
@@ -105,6 +105,56 @@ public class Photo {
 	}
 
 	/**********************************************************************************************
+	 * insert and update variables and methods
+	 **********************************************************************************************
+	 */
+
+	/**
+	 * Move photos from temporary folder to the corresponding user's folder
+	 * @param localUserId 
+	 * @param photoNames - the names of the photos
+	 * @param photosPath - the temporary folder
+	 */
+	protected static void insertAll(String localUserId, String[] photoNames, File photosPath) {
+		String localUserDirName = databaseRootDirName + fileSeparator + localUserId;
+		File localUserDir = new File(databaseRootDirName + fileSeparator + localUserId);
+		for (File photo : photosPath.listFiles()) {
+			Photo.insert(localUserId, photo, localUserDirName);
+		}
+	}
+
+	/**
+	 * Move photo from temporary folder to the corresponding user's folder and delete the photo
+	 * @param localUserId 
+	 * @param photoInTemp - the the photo file inside the temporary folder
+	 * @param localUserDirName - the name of the directory of the localUser
+	 */
+	private static void insert(String localUserId, File photoInTemp, String localUserDirName) {
+		//name of the photo file inside the temporary folder, 
+		//with the corresponding extention removed
+		String photoNameNoExtention = photoInTemp.getName().split("\\.")[0];
+		//create the destiny directory for the photo
+		String photoDestenyDirName = localUserDirName + fileSeparator + photoNameNoExtention;
+		File photoDestenyDir = new File(photoDestenyDirName);
+		photoDestenyDir.mkdir();
+		//create the File corresponding to the photo in the photoDestenyDir
+		File photoInDestiny = 
+				new File(photoDestenyDirName + fileSeparator + photoInTemp.getName());
+		//move the photo from temp dir to photoDestenyDir
+		photoInTemp.renameTo(photoInDestiny);
+		//delete the photoInTemp
+		photoInTemp.delete();
+		//create files: likesTxt, dislikesTxt and commentsTxt
+		try {
+			new File(photoDestenyDirName + fileSeparator + "comments.txt").createNewFile();
+			new File(photoDestenyDirName + fileSeparator + "likes.txt").createNewFile();
+			new File(photoDestenyDirName + fileSeparator + "dislikes.txt").createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**********************************************************************************************
 	 * Photo variables , methods and constructors
 	 **********************************************************************************************
 	 */
@@ -120,13 +170,13 @@ public class Photo {
 	 * @param photoName
 	 * @param uploadDate
 	 */
-	public Photo(String photoName, long uploadDate) {
+	protected Photo(String photoName, long uploadDate) {
 		this.photoName = photoName;
 		this.uploadDate = new Date(uploadDate);
 		this.comments = new LinkedBlockingDeque<Comment>();
 		this.df = new SimpleDateFormat("dd/MM/yyyy HH'h'mm");
 	}
-	
+
 	/**
 	 * Constructor: creates a new Photo object form the given parameters.
 	 * @param photoName
@@ -149,7 +199,7 @@ public class Photo {
 	 * 
 	 * @return the name of this photo
 	 */
-	public String getName() {
+	protected String getName() {
 		return this.photoName;
 	}
 
@@ -157,7 +207,7 @@ public class Photo {
 	 * 
 	 * @return the publish date of this photo
 	 */
-	public Date getDate() {
+	protected Date getDate() {
 		return this.uploadDate;
 	}
 
@@ -166,7 +216,7 @@ public class Photo {
 	 * 
 	 * @return
 	 */
-	public int getTotalLikes() {
+	protected int getTotalLikes() {
 		return this.likes.size();
 	}
 
@@ -175,7 +225,7 @@ public class Photo {
 	 * 
 	 * @return
 	 */
-	public int getTotalDislikes() {
+	protected int getTotalDislikes() {
 		return this.dislikes.size();
 	}
 
@@ -183,37 +233,33 @@ public class Photo {
 	 * 
 	 * @return a list of this photo's comments
 	 */
-	public Collection<Comment> getComments() {
+	protected Collection<Comment> getComments() {
 		return comments;
 	}
 
-	public void addComments(Collection<Comment> comments) {
+	protected void addComments(Collection<Comment> comments) {
 		this.comments.addAll(comments);
 	}
 
 	/**
-	 * Adds a comment made by user in this user's photo
-	 * 
-	 * @param comment
-	 *            - the comment to be made
-	 * @param userid
-	 *            - the userid of the user
+	 * Adds a comment made by commenterUser in this photo
+	 * @param comment - the comment to be made
+	 * @param commentedUserId - the userId of the commentedUser
+	 * @param commenterUserId - the userId of the commenterUser
 	 */
-	public void addComment(String comment, String userid) {
-		comments.add(new Comment(userid, comment));
+	protected void addComment(String comment, String commentedUserId, String commenterUserId, 
+			String photoName) {
+		comments.add(Comment.insert(comment, commentedUserId, commenterUserId, this.getName()));
 	}
 
 	/**
-	 * Adds a like made by user in this user's photo
-	 * 
-	 * @param userid
-	 *            - the userid of the user
-	 * @param likedUserid
-	 *            - the userid of the likedUser
+	 * Adds a like made by likerUser in this user's photo
+	 * @param likedUserId - the userId of the likedUser
+	 * @param likerUserId - the userId of the likerUser
+	 * @param photoName - the name of this user's photo
 	 */
-	// TODO incomplete, doesnt use Like object, instead uses an int
-	public void addLike(String userid) {
-		likes++;
+	protected void addLike(String likedUserId, String likerUserId, String photoName) {
+		likes.add(Like.insert(likedUserId, likerUserId, photoName));
 	}
 
 	/**
@@ -225,7 +271,7 @@ public class Photo {
 	 *            - the userid of the dislikedUser
 	 */
 	// TODO incomplete, doesnt use Like object, istead uses an int
-	public void addDisLike(String userid) {
+	protected void addDisLike(String userid) {
 		dislikes++;
 
 	}

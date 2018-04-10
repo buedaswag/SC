@@ -1,10 +1,13 @@
 package server;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
@@ -34,7 +37,7 @@ public class Comment {
 	 * @param photoDirectorie
 	 * @return comments
 	 */
-	public static Queue<Comment> findAll(File photoDirectorie) {
+	protected static Queue<Comment> findAll(File photoDirectorie) {
 		//create the buffers for reading from the file and the Queue
 		Queue<Comment> comments = new LinkedList<>();
 		File commentsTxt = new File(photoDirectorie + fileSeparator + commentsTxtName);
@@ -81,12 +84,50 @@ public class Comment {
 	private static Comment load(String commenterUserId, String comment) {
 		return new Comment(commenterUserId, comment);
 	}
+	
+	/**********************************************************************************************
+	 * insert and update variables and methods
+	 **********************************************************************************************
+	 */
+	private static FileWriter fileWriter;
+	private static BufferedWriter buffWriter;
+	private static String databaseRootDirName = "database";
+	
+	/**
+	 * Inserts a comment made by the commenterUser
+	 * @param comment
+	 * @param commentedUserId
+	 * @param commenterUserId
+	 * @param photoName - the name of the commentedUser's photo
+	 * @return comment
+	 */
+	public static Comment insert(String comment, String commentedUserId, String commenterUserId, 
+			String photoName) {
+		String line = commenterUserId + ":" + comment;
+		File commentsTxt = new File(databaseRootDirName + fileSeparator + commentedUserId + 
+				photoName.split("\\.")[0] + commentsTxtName);
+		try {
+			fileWriter = new FileWriter(commentsTxt, true);
+		buffWriter = new BufferedWriter(fileWriter);
+		buffWriter.write(line);
+		buffWriter.newLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				buffWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return new Comment(commenterUserId, comment);
+	}
+	
 	/**********************************************************************************************
 	 * Comment variables , methods and constructors
 	 **********************************************************************************************
 	 */
 	private String commenterUserId;
-	private Date date;
 	private String comment;
 
 	/**
@@ -98,9 +139,8 @@ public class Comment {
 	 * @param commenterUserId
 	 * @param comment
 	 */
-	public Comment(String commenterUserId, String comment) {
+	protected Comment(String commenterUserId, String comment) {
 		this.commenterUserId = commenterUserId;
-		this.date = new Date();
 		this.comment = comment;
 	}
 
@@ -109,7 +149,7 @@ public class Comment {
 	 * 
 	 * @return the user id of this user
 	 */
-	public String getUserid() {
+	protected String getUserid() {
 		return this.commenterUserId;
 	}
 
@@ -117,7 +157,7 @@ public class Comment {
 	 * 
 	 * @return the String comment
 	 */
-	public String getComment() {
+	protected String getComment() {
 		return this.comment;
 	}
 
@@ -126,8 +166,6 @@ public class Comment {
 	 */
 	public String toString() {
 		StringBuilder sb = new StringBuilder(commenterUserId);
-		sb.append(" ");
-		sb.append(date);
 		sb.append(" ");
 		sb.append(comment);
 		return sb.toString();

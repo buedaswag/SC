@@ -24,9 +24,8 @@ class ServerThread extends Thread {
 
 
 	private Socket socket;
-	private Server server;
 	private ObjectInputStream inStream;
-	private String SEP;
+	private static String fileSeparator = System.getProperty("file.separator");
 
 	/**
 	 * Constructor, initializes this ServerThread
@@ -35,10 +34,8 @@ class ServerThread extends Thread {
 	 * @param server
 	 * @throws IOException 
 	 */
-	public ServerThread(Socket socket, Server server) throws IOException {
-		SEP = System.getProperty("file.separator");
+	protected ServerThread(Socket socket) throws IOException {
 		this.socket = socket;
-		this.server = server;
 		inStream = new ObjectInputStream(socket.getInputStream());
 		//create the temp directory
 		tempPath = new File("temp");
@@ -102,7 +99,7 @@ class ServerThread extends Thread {
 	 * @throws IOException
 	 */
 	private void authenticate(String localUserId, String password) throws IOException {
-		server.authenticate(localUserId, password);
+		Server.getInstance().authenticate(localUserId, password);
 	}
 
 	/**
@@ -129,18 +126,17 @@ class ServerThread extends Thread {
 			 * ask the server to add these photos,
 			 * and sends an error message if they cannot be added
 			 */
-			if (server.checkDuplicatePhotos(localUserId, newArgs))
+			if (Server.getInstance().checkDuplicatePhotos(localUserId, newArgs))
 				sendError("You already have at least one photo with "
 				+ "one of the names given.");
 			else {
 				//tells the server that the photos can be added
 				sendError("ok");
-				//adicionar as fotos ao sistema de ficheiros
+				//receives the photos and stores them in the corresponding user's temp folder
 				File photosPath = receivePhotos(localUserId, newArgs, 
 						inStream);
-	
-				//pedir ao server para ir buscar � temp
-				server.addPhotos(localUserId, password, newArgs, photosPath);
+				//add the photos to the server
+				Server.getInstance().addPhotos(localUserId, newArgs, photosPath);
 			}
 			break;
 		}
@@ -155,7 +151,7 @@ class ServerThread extends Thread {
 			 * ask the server to add this comment,
 			 * and sends an error message if the localUser is not a follower
 			 */
-			result = server.addComment(
+			result = Server.getInstance().addComment(
 					comment, localUserId, commentedUserId, photo);
 			sendError(result);
 			break;
@@ -163,43 +159,43 @@ class ServerThread extends Thread {
 		case 'L': {
 			String likedUserId = newArgs[0];
 			String name = newArgs[1];
-			result = server.addLike(localUserId, likedUserId, name);
+			result = Server.getInstance().addLike(localUserId, likedUserId, name);
 			sendError(result);
 			break;
 		}
 		case 'D' : {
 			String dislikedUserid = newArgs[0];
 			String photo = newArgs[1];
-			result = server.addDislike(localUserId, dislikedUserid, photo);
+			result = Server.getInstance().addDislike(localUserId, dislikedUserid, photo);
 			sendError(result);
 			break;
 		}
 		case 'f': {
-			result = server.addFollowers(localUserId, newArgs);
+			result = Server.getInstance().addFollowers(localUserId, newArgs);
 			sendError(result);
 			break;
 		}
 		case 'r' : {
-			result = server.removeFollowers(localUserId, newArgs[0].split(","));
+			result = Server.getInstance().removeFollowers(localUserId, newArgs[0].split(","));
 			sendError(result);
 			break;
 		}
 		case 'l' : {
 			String listedUserid = newArgs[0];
-			result = server.listPhotos(localUserId,listedUserid);
+			result = Server.getInstance().listPhotos(localUserId,listedUserid);
 			sendError(result);
 			break;
 		}
 		case 'i' : {
 			String listedUserid = newArgs[0];
 			String photo = newArgs[1];
-			result = server.getInfoPhoto(localUserId,listedUserid,photo);
+			result = Server.getInstance().getInfoPhoto(localUserId,listedUserid,photo);
 			sendError(result);
 			break;
 		}
 		case 'g' : {
 			String copiedUserId = newArgs[0];
-			result = server.savePhotos(localUserId,copiedUserId);
+			result = Server.getInstance().savePhotos(localUserId,copiedUserId);
 			sendError(result);
 			break;
 		}
@@ -217,7 +213,7 @@ class ServerThread extends Thread {
 	private File receivePhotos(String localUserId, String[] newArgs, 
 			ObjectInputStream inStream) throws IOException {
 		//create path for this user and for his/her photos
-		File localUserIdPath = new File (tempPath + SEP + localUserId);
+		File localUserIdPath = new File (tempPath + fileSeparator + localUserId);
 		localUserIdPath.mkdir();
 		File photosPath = new File (localUserIdPath + "\\photos");
 		photosPath.mkdir();
@@ -234,7 +230,7 @@ class ServerThread extends Thread {
 			 * create FileOutputStream that writes to this user's 
 			 * photo temp directory
 			 */
-			fos = new FileOutputStream(photosPath + SEP + name);
+			fos = new FileOutputStream(photosPath + fileSeparator + name);
 
 			//read the file size
 			filesize = inStream.readInt();

@@ -263,7 +263,7 @@ public class FileManager {
 	 * @param likedUserId
 	 *            - the user that gets the dislike
 	 * @param photo
-	 *            - the name of the photo where the dislike goes
+	 *            - the S of the photo where the dislike goes
 	 * @throws IOException
 	 */
 	public void FMaddDislike(String localUserId, String dislikedUserId, String photo) throws IOException {

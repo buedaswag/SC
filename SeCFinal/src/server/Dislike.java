@@ -12,7 +12,7 @@ import java.util.Queue;
  * @author migdi, max, antonio
  *
  */
-public class Dislike {
+protected class Dislike {
 
 	/**********************************************************************************************
 	 * findAll and load variables and methods
@@ -29,7 +29,7 @@ public class Dislike {
 	 * @return disdislikes
 	 */
 
-	public static Queue<Dislike> findAll(File photoDirectorie) {
+	protected static Queue<Dislike> findAll(File photoDirectorie) {
 		//create the buffers for reading from the file and the Queue
 		Queue<Dislike> dislikes = new LinkedList<>();
 		File dislikesTxt = new File(photoDirectorie + fileSeparator + dislikesTxtName);
@@ -83,7 +83,7 @@ public class Dislike {
 	 * Constructor: creates a new dislike object from the dislikerUserId
 	 * @param user
 	 */
-	public Dislike(String dislikerUserId) {
+	protected Dislike(String dislikerUserId) {
 		this.dislikerUserId = dislikerUserId;
 	}
 
@@ -91,7 +91,7 @@ public class Dislike {
 	 * 
 	 * @return the user that made this comment
 	 */
-	public String getdislikerUserId() {
+	protected String getdislikerUserId() {
 		return this.dislikerUserId;
 	}
 

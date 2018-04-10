@@ -15,7 +15,7 @@ import java.net.UnknownHostException;
  * @author Miguel Dias 46427
  *
  */
-public class ClientNetworkHandler {
+protected class ClientNetworkHandler {
 	private String addr;
 	private int port;
 	private Socket socket;
@@ -29,7 +29,7 @@ public class ClientNetworkHandler {
 	 *            the address of the server
 	 * @throws IOException
 	 */
-	public ClientNetworkHandler(String serverAddress) throws IOException {
+	protected ClientNetworkHandler(String serverAddress) throws IOException {
 		String[] param = serverAddress.split(":");
 		addr = param[0];
 		port = Integer.parseInt(param[1]);
@@ -43,14 +43,14 @@ public class ClientNetworkHandler {
 	 * 
 	 * @return this socket
 	 */
-	public Socket getSocket() {
+	protected Socket getSocket() {
 		return this.socket;
 	}
 
 	/**
 	 * Closes the TCP socket and all the resources associated to it
 	 */
-	public void endConnection() throws IOException {
+	protected void endConnection() throws IOException {
 		outStream.close();
 		if (fis != null)
 			fis.close();
@@ -65,7 +65,7 @@ public class ClientNetworkHandler {
 	 * @requires - A connection with the server
 	 * @throws IOException
 	 */
-	public void enviarFile(File f) throws IOException {
+	protected void enviarFile(File f) throws IOException {
 		// Opens streams
 		fis = new FileInputStream(f);
 		byte[] buffer = new byte[1024];
@@ -89,7 +89,7 @@ public class ClientNetworkHandler {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public void send(String[] message) throws IOException, ClassNotFoundException {
+	protected void send(String[] message) throws IOException, ClassNotFoundException {
 		outStream.writeObject(message);
 	}
 
@@ -102,7 +102,7 @@ public class ClientNetworkHandler {
 	 *            the password given
 	 * @throws IOException
 	 */
-	public void authenticate(String userID, String pass) throws IOException {
+	protected void authenticate(String userID, String pass) throws IOException {
 		// ercrever username e password na socket
 		outStream.writeObject(userID);
 		outStream.writeObject(pass);
@@ -116,7 +116,7 @@ public class ClientNetworkHandler {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public String receive() throws IOException, ClassNotFoundException {
+	protected String receive() throws IOException, ClassNotFoundException {
 		inStream = new ObjectInputStream(socket.getInputStream());
 		return (String) inStream.readObject();
 	}

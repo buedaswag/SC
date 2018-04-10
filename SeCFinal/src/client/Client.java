@@ -23,7 +23,7 @@ public class Client {
 	private static Pattern ipPattern = Pattern
 			.compile("^(([01]?\\d\\d?|" + "2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
 
-	public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException {
+	protected static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException {
 		// Verifica validade dos argumentos
 		if (!checkArgs(args)) {
 			System.out.println("Argumentos invalidos!");
@@ -123,7 +123,7 @@ public class Client {
 	 *            the password
 	 * @throws IOException
 	 */
-	public static void authenticate(String userid, String pass) throws IOException {
+	protected static void authenticate(String userid, String pass) throws IOException {
 		handlerTCP.authenticate(userID, pass);
 	}
 
@@ -135,7 +135,7 @@ public class Client {
 	 *            the photos names
 	 * @throws IOException
 	 */
-	public static void addPhotos(String operation, String photos) throws IOException, ClassNotFoundException {
+	protected static void addPhotos(String operation, String photos) throws IOException, ClassNotFoundException {
 		/*
 		 * First send the parameters to the socket so the server can check for errors
 		 */
@@ -184,7 +184,7 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static void addComment(String comment, String commentedUserid, String photo)
+	protected static void addComment(String comment, String commentedUserid, String photo)
 			throws IOException, ClassNotFoundException {
 		/*
 		 * First send the parameters to the socket so the server can check for errors
@@ -215,7 +215,7 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static void addLike(String likedUserid, String photo) throws IOException, ClassNotFoundException {
+	protected static void addLike(String likedUserid, String photo) throws IOException, ClassNotFoundException {
 		/*
 		 * First send the parameters to the socket so the server can check for errors
 		 */
@@ -246,7 +246,7 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static void addDislike(String dislikedUserid, String photo) throws IOException, ClassNotFoundException {
+	protected static void addDislike(String dislikedUserid, String photo) throws IOException, ClassNotFoundException {
 		/*
 		 * First send the parameters to the socket so the server can check for errors
 		 */
@@ -275,7 +275,7 @@ public class Client {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static void addFollowers(String followUserIds) throws IOException, ClassNotFoundException {
+	protected static void addFollowers(String followUserIds) throws IOException, ClassNotFoundException {
 		/*
 		 * First send the parameters to the socket so the server can check for errors
 		 */
@@ -305,7 +305,7 @@ public class Client {
 	 * @throws ClassNotFoundException
 	 * @throws IOException
 	 */
-	public static void removeFollowers(String followers) throws ClassNotFoundException, IOException {
+	protected static void removeFollowers(String followers) throws ClassNotFoundException, IOException {
 		/*
 		 * First send the parameters to the socket so the server can check for errors
 		 */
@@ -333,7 +333,7 @@ public class Client {
 	 * @throws ClassNotFoundException
 	 * @throws IOException
 	 */
-	public static void listPhotos(String listedUserid) throws ClassNotFoundException, IOException {
+	protected static void listPhotos(String listedUserid) throws ClassNotFoundException, IOException {
 		/*
 		 * First send the parameters to the socket so the server can check for errors
 		 */
@@ -360,7 +360,7 @@ public class Client {
 	 * @throws ClassNotFoundException
 	 * @throws IOException
 	 */
-	public static void getInfo(String listedUserid, String photo) throws ClassNotFoundException, IOException {
+	protected static void getInfo(String listedUserid, String photo) throws ClassNotFoundException, IOException {
 		/*
 		 * First send the parameters to the socket so the server can check for errors
 		 */
@@ -406,7 +406,7 @@ public class Client {
 	}
 
 	// concats two string arrays
-	public static String[] concat(String[] a, String[] b) {
+	protected static String[] concat(String[] a, String[] b) {
 		String[] newArray = new String[a.length + b.length];
 		System.arraycopy(a, 0, newArray, 0, a.length);
 		System.arraycopy(b, 0, newArray, a.length, b.length);
@@ -420,7 +420,7 @@ public class Client {
 	 *            the arguments
 	 * @return True if the arguments are valid, False otherwise
 	 */
-	public static boolean checkArgs(String[] args) {
+	protected static boolean checkArgs(String[] args) {
 		// Checks the ip address and port for validity
 		if (!checkAddressPort(args[3]))
 			return false;

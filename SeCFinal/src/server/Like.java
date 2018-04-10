@@ -1,8 +1,10 @@
 package server;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -29,7 +31,7 @@ public class Like {
 	 * @return likes
 	 */
 
-	public static Queue<Like> findAll(File photoDirectorie) {
+	protected static Queue<Like> findAll(File photoDirectorie) {
 		//create the buffers for reading from the file and the Queue
 		Queue<Like> likes = new LinkedList<>();
 		File likesTxt = new File(photoDirectorie + fileSeparator + likesTxtName);
@@ -71,9 +73,48 @@ public class Like {
 	private static Like load(String likerUserId) {
 		return new Like(likerUserId);
 	}
+	
+	/**********************************************************************************************
+	 * insert and update variables and methods
+	 * @param photoName 
+	 * @param likerUserId
+	 * @param likedUserId 
+	 **********************************************************************************************
+	 */
+	private static FileWriter fileWriter;
+	private static BufferedWriter buffWriter;
+	private static String databaseRootDirName = "database";
+	
+	/**
+	 * Inserts a like made by the likerUser
+	 * @param likedUserId
+	 * @param likerUserId
+	 * @param photoName
+	 * @return
+	 */
+	protected static Like insert(String likedUserId, String likerUserId, String photoName) {
+		String line = likerUserId;
+		File likesTxt = new File(databaseRootDirName + fileSeparator + likedUserId + 
+				photoName.split("\\.")[0] + likesTxtName);
+		try {
+			fileWriter = new FileWriter(likesTxt, true);
+			buffWriter = new BufferedWriter(fileWriter);
+			buffWriter.write(line);
+			buffWriter.newLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				buffWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return new Like(likerUserId);
+	}
 
 	/**********************************************************************************************
-	 * User variables , methods and constructors
+	 * Like variables , methods and constructors
 	 **********************************************************************************************
 	 */
 
@@ -83,7 +124,7 @@ public class Like {
 	 * Constructor: creates a new like object from the likerUserId
 	 * @param user
 	 */
-	public Like(String likerUserId) {
+	protected Like(String likerUserId) {
 		this.likerUserId = likerUserId;
 	}
 
@@ -91,7 +132,7 @@ public class Like {
 	 * 
 	 * @return the user that made this comment
 	 */
-	public String getLikerUserId() {
+	protected String getLikerUserId() {
 		return this.likerUserId;
 	}
 
