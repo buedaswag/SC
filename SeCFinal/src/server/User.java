@@ -203,6 +203,36 @@ public class User {
 		}
 	}
 
+	/**
+	 * Updates the followersTxt file, repacing its content with the given followers. 
+	 * @param localUserId
+	 * @param followers
+	 */
+	private static void updateFollowers(String localUserId, Collection<String> followers) {
+		// Opens resources and necessary streams
+		File followersTxt = new File(databaseRootDirName + fileSeparator + localUserId + 
+				fileSeparator + followersTxtName);
+		//delete old file
+		followersTxt.delete();
+		//create new file
+		followersTxt.mkdir();
+		try {
+			fileWriter = new FileWriter(followersTxt, true);
+			buffWriter = new BufferedWriter(fileWriter);
+			for (String followUserId : followers) {
+				buffWriter.write(followUserId);
+				buffWriter.newLine();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				buffWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 	/**********************************************************************************************
 	 * User variables , methods and constructors
@@ -271,7 +301,7 @@ public class User {
 	 * @return true - if any of the followUsers is not a follower of this user, 
 	 * or false if all of the followUsers are followers of this user
 	 */
-	protected boolean isNotFollower(String[] followuserIds) {
+	protected boolean isNotFollowed(String[] followuserIds) {
 		// check one by one
 		for (String f : followuserIds)
 			if (!followers.contains(f))
@@ -290,12 +320,17 @@ public class User {
 	}
 
 	/**
-	 * removes followers from this User's list of followers
-	 * 
-	 * @param followers - the followers to be removed
+	 * Removes the followUsers as followers from this user.
+	 * @param localUserId - the localUserId of the user
+	 * @param followUserIds - the userIds of the followUsers
 	 */
-	protected void removeFollowers(List<String> followers) {
-		this.followers.removeAll(followers);
+	protected void removeFollowers(String localUserId, String[] followUserIds) {
+		//from memory
+		for (String followUserId : followUserIds) {
+			followers.remove(followUserId);
+		}
+		//from disk
+		User.updateFollowers(localUserId, followers);
 	}
 
 	/**
@@ -344,14 +379,15 @@ public class User {
 	}
 
 	/**
-	 * Adds the photos with the given names to this user. Adds them to the persistent storage and
-	 * to the program memory.
+	 * Inserts the photos with the given names to this user.
 	 * @param localUserId
 	 * @param photoNames
 	 * @param photosPath 
+	 * @param delete - if delete == true, deletes the photos from the original folder.
 	 */
-	protected void addPhotos(String localUserId, String[] photoNames, File photosPath) {
-		Photo.insertAll(localUserId, photoNames, photosPath);
+	protected void addPhotos(String localUserId, String[] photoNames, File photosPath, 
+			boolean delete) {
+		photos.addAll(Photo.insertAll(localUserId, photoNames, photosPath, delete));
 	}
 
 	/**
@@ -396,6 +432,14 @@ public class User {
 	}
 
 	/**
+	 * 
+	 * @return photos - this user's collection of photos
+	 */
+	private Collection<Photo> getPhotos() {
+		return this.photos;
+	}
+
+	/**
 	 * Adds a like made by likerUser in this user's photo
 	 * @param likedUserId - the userId of the likedUser
 	 * @param likerUserId - the userId of the likerUser 
@@ -416,12 +460,29 @@ public class User {
 	}
 
 	/**
-	 * gets the photos from this user
-	 * 
-	 * @return photos - the photos
+	 * List the photos from this user, with the format: "photoName - uploadDate\n"
+	 * @return listedPhotos - a String containing all of this user's photos listed according to the
+	 * format
 	 */
-	protected Collection<Photo> getPhotos() {
-		return photos;
+	public String listPhotos() {
+		// Builds the string to be sent to the client
+		StringBuilder sb = new StringBuilder();
+		for (Photo photo : this.getPhotos()) {
+			sb.append(photo.getName() + " - " + photo.getDate() + "\n");
+		}
+		// Conversion to string and return
+		return sb.toString();
+	}
+
+	/**
+	 * Get the info for the specified photo from this user, with the format: 
+	 * "Likes: <number-of-likes>\n Dislikes: <number-of-dislikes>\n
+	 * Comments:\n<comment-1>\n...<comment-n>\n"
+	 * @return listedPhotos - a String containing all of this user's photos listed according to the
+	 * format
+	 */
+	public String getInfoPhoto(String photoName) {
+		return getPhoto(photoName).getInfoPhoto();
 	}
 
 	/**

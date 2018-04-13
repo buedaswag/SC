@@ -114,36 +114,48 @@ public class Photo {
 	 * @param localUserId 
 	 * @param photoNames - the names of the photos
 	 * @param photosPath - the temporary folder
+	 * @param delete - if delete == true, deletes the photos from the original folder.
+	 * @return 
 	 */
-	protected static void insertAll(String localUserId, String[] photoNames, File photosPath) {
+	protected static Collection<Photo> insertAll(String localUserId, String[] photoNames, File photosPath, 
+			boolean delete) {
+		//the Collection to be returned
+		Collection<Photo> photos = new LinkedList<>();
+		//the directories for this user's photos
 		String localUserDirName = databaseRootDirName + fileSeparator + localUserId;
-		File localUserDir = new File(databaseRootDirName + fileSeparator + localUserId);
-		for (File photo : photosPath.listFiles()) {
-			Photo.insert(localUserId, photo, localUserDirName);
+		if (delete) {
+			for (File photo : photosPath.listFiles()) {
+				Photo.insert(localUserId, photo, localUserDirName);
+				//delete the photo
+				photo.delete();
+			}
+		} else {
+			for (File photo : photosPath.listFiles()) {
+				Photo.insert(localUserId, photo, localUserDirName);
+			}
 		}
+		return photos;
 	}
 
 	/**
 	 * Move photo from temporary folder to the corresponding user's folder and delete the photo
 	 * @param localUserId 
-	 * @param photoInTemp - the the photo file inside the temporary folder
+	 * @param photoFileOrigin - the the photo file inside the origin folder
 	 * @param localUserDirName - the name of the directory of the localUser
 	 */
-	private static void insert(String localUserId, File photoInTemp, String localUserDirName) {
-		//name of the photo file inside the temporary folder, 
+	private static void insert(String localUserId, File photoFileOrigin, String localUserDirName) {
+		//name of the photo file inside the origin folder, 
 		//with the corresponding extention removed
-		String photoNameNoExtention = photoInTemp.getName().split("\\.")[0];
+		String photoNameNoExtention = photoFileOrigin.getName().split("\\.")[0];
 		//create the destiny directory for the photo
 		String photoDestenyDirName = localUserDirName + fileSeparator + photoNameNoExtention;
 		File photoDestenyDir = new File(photoDestenyDirName);
 		photoDestenyDir.mkdir();
 		//create the File corresponding to the photo in the photoDestenyDir
 		File photoInDestiny = 
-				new File(photoDestenyDirName + fileSeparator + photoInTemp.getName());
+				new File(photoDestenyDirName + fileSeparator + photoFileOrigin.getName());
 		//move the photo from temp dir to photoDestenyDir
-		photoInTemp.renameTo(photoInDestiny);
-		//delete the photoInTemp
-		photoInTemp.delete();
+		photoFileOrigin.renameTo(photoInDestiny);
 		//create files: likesTxt, dislikesTxt and commentsTxt
 		try {
 			new File(photoDestenyDirName + fileSeparator + "comments.txt").createNewFile();
@@ -205,7 +217,7 @@ public class Photo {
 
 	/**
 	 * 
-	 * @return the publish date of this photo
+	 * @return the upload date of this photo
 	 */
 	protected Date getDate() {
 		return this.uploadDate;
@@ -235,6 +247,25 @@ public class Photo {
 	 */
 	protected Collection<Comment> getComments() {
 		return comments;
+	}
+
+	/**
+	 * Get the info for the specified photo from this user, with the format: "photoName - uploadDate\n"
+	 * @return infoPhoto - a String containing all of this user's photos listed according to the
+	 * format
+	 */
+	protected String getInfoPhoto() {
+		// Builds the string to be sent to the client
+		StringBuilder infoPhoto = new StringBuilder();
+		// Generate answer
+		infoPhoto.append("Likes: " + this.likes.size() + "\n");
+		infoPhoto.append("Dislikes: " + this.dislikes.size() + "\n");
+		infoPhoto.append("Comments: " + "\n");
+		for (Comment c : this.comments) {
+			infoPhoto.append(c.getComment() + "\n");
+		}
+		// Conversion to string and return
+		return infoPhoto.toString();
 	}
 
 	protected void addComments(Collection<Comment> comments) {

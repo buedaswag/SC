@@ -3,3 +3,4 @@ insert - to put in persistent storage and program memory
 <file>Txt - the file object representing the file with the name file
 photoName - String variable referencing the name of a photo (with the file extention, like this: 
 	<name>.<extention>)
+photoFile - the File object representing the photo

@@ -145,7 +145,7 @@ protected class MsLunch {
 		// get the corresponding user
 		User localUser = users.get(localUserId);
 		// adds the photos to the persistent storage and the program memory
-		localUser.addPhotos(localUserId, photoNames, photosPath);
+		localUser.addPhotos(localUserId, photoNames, photosPath, true);
 		return allGood;
 	}
 
@@ -233,121 +233,69 @@ protected class MsLunch {
 	}
 
 	/**
-	 * Removes the followUsers from the user user with the given localUserId
-	 * 
-	 * @param localUserId
-	 *            - the localUserId of the user
-	 * @param followUserIds
-	 *            - the userIds of the followUsers
-	 * @return allGood if it all went well, notFollower otherwise
-	 * @throws IOException
+	 * Removes the followUsers from the user with the given localUserId
+	 * @param localUserId - the localUserId of the user
+	 * @param followUserIds - the userIds of the followUsers
+	 * @return allGood if it all went well, alreadyFollower otherwise
 	 */
-	protected String removeFollowers(String localUserId, String[] followUserIds) throws IOException {
+	protected String removeFollowers(String localUserId, String[] followUserIds) {
 		// get the user with the given credentials
-		User localUser = getUser(localUserId);
-
+		User localUser = users.get(localUserId);
 		// check if any of the followUsers is not a follower of the localUser
-		if (localUser.isNotFollower(followUserIds))
+		if (localUser.isNotFollowed(followUserIds)) {
 			return notFollower;
-
-		fileManager.FMremoveFollowers(followUserIds, localUserId);
-
+		}
 		// removes the followers from the user
-		localUser.removeFollowers(Arrays.asList(followUserIds));
-
+		localUser.removeFollowers(localUserId, followUserIds);
 		return allGood;
 	}
 
 	/**
-	 * Lists all the photos and upload dates of the listedUser
-	 * 
-	 * @param localUserId
-	 *            - the localUserId of the user
-	 * @param listedUserId
-	 *            - the userId of the listedUser
+	 * Lists all the photos and upload dates of the listedUser.
+	 * @param localUserId - the localUserId of the user
+	 * @param listedUserId - the userId of the listedUser
 	 * @return allGood if it all went well, notFollower otherwise
 	 */
 	protected String listPhotos(String localUserId, String listedUserId) {
-		// get the user with the given credentials
-		User localUser = getUser(localUserId);
-		User listedUser = getUser(listedUserId);
-
+		// get the listedUser with the given credentials
+		User listedUser = users.get(listedUserId);
 		// check if the localUser is not a follower
-		if (!listedUser.isFollowed(localUser))
+		if (!listedUser.isFollowed(localUserId)) {
 			return needsToBeFollower;
-
-		// Builds the string to be sent to the client
-		StringBuilder sbuilder = new StringBuilder();
-		Collection<Photo> listedUserPhotos = listedUser.getPhotos();
-
-		// Iterates over the user's photos and appends the upload date
-		for (Photo p : listedUserPhotos) {
-			sbuilder.append(p.getName() + " - " + p.getDate() + "\n");
-
 		}
-
-		// Conversion to string and return
-		return sbuilder.toString();
+		//list the user's photos according to a specific format
+		return listedUser.listPhotos();
 	}
 
 	/**
 	 * Lists all the comments, likes and dislikes of the photo from the user
-	 * 
-	 * @param localUserId
-	 *            - the localUserId of the user
-	 * @param listedUserId
-	 *            - the userId of the listedUser
+	 * @param localUserId - the localUserId of the user
+	 * @param listedUserId - the userId of the listedUser
 	 * @return allGood if it all went well, notFollower otherwise
 	 */
-	protected String getInfoPhoto(String localUserId, String listedUserId, String photo) {
-		// get the user with the given credentials
-		User localUser = getUser(localUserId);
-		User listedUser = getUser(listedUserId);
-
+	protected String getInfoPhoto(String localUserId, String listedUserId, String photoName) {
+		// get the listedUser with the given credentials
+		User listedUser = users.get(listedUserId);
 		// check if the localUser is not a follower
-		if (!listedUser.isFollowed(localUser))
+		if (!listedUser.isFollowed(localUserId)) {
 			return needsToBeFollower;
-
-		// Creates auxiliary variables
-		StringBuilder sb = new StringBuilder();
-		Photo p = listedUser.getPhoto(photo);
-
-		// Info to be fetched from the photo
-		int likes = p.getTotalLikes();
-		int dislikes = p.getTotalDislikes();
-		Collection<Comment> commentList = p.getComments();
-
-		// Generate answer
-		sb.append("Likes: " + likes + "\n");
-		sb.append("Dislikes: " + dislikes + "\n");
-		sb.append("Comentarios: " + "\n");
-		for (Comment c : commentList) {
-			sb.append(c.getComment() + "\n");
 		}
-
-		String info = sb.toString();
-		return info;
+		return listedUser.getInfoPhoto(photoName);
 	}
 
 	/**
-	 * Copies all the photos from copiedUser to localUser
-	 * 
-	 * @param localUserId
-	 *            - the localUserId of the user
-	 * @param copiedUserId
-	 *            - the userId of the listedUser
+	 * Copies all the photos from copiedUser to localUser.
+	 * @param localUserId - the localUserId of the user
+	 * @param copiedUserId - the userId of the copiedUser
 	 * @return allGood if it all went well, notFollower otherwise
-	 * @throws IOException
 	 */
-	protected String savePhotos(String localUserId, String copiedUserId) throws IOException {
-		// Gets the given users
-		User localUser = getUser(localUserId);
-		User copiedUser = getUser(copiedUserId);
-
+	protected String copyPhotos(String localUserId, String copiedUserId) {
+		// get the listedUser with the given credentials
+		User copiedUser = users.get(copiedUserId);
 		// check if the localUser is not a follower
-		if (!copiedUser.isFollowed(localUser))
+		if (!copiedUser.isFollowed(localUserId)) {
 			return needsToBeFollower;
-
+		}
 		// add to disk
 		fileManager.FMsavePhotos(localUserId, copiedUserId);
 

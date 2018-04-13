@@ -189,7 +189,7 @@ class ServerThread extends Thread {
 		}
 		case 'g' : {
 			String copiedUserId = newArgs[0];
-			result = Server.getInstance().savePhotos(localUserId, copiedUserId);
+			result = Server.getInstance().copyPhotos(localUserId, copiedUserId);
 			sendError(result);
 			break;
 		}
