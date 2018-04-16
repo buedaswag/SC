@@ -1,12 +1,11 @@
 package server;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * 
@@ -22,7 +21,6 @@ public class Photo {
 	 **********************************************************************************************
 	 */
 	private static String databaseRootDirName = "database";
-	private static File databaseRootDir = new File(databaseRootDirName);
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static final String commentsTxtName = "comments.txt";
 	private static final String likesTxtName = "likes.txt";
@@ -32,8 +30,9 @@ public class Photo {
 	 * Finds all the photos in this user's directory and loads them into memory.
 	 * @param userId
 	 * @return
+	 * @throws IOException 
 	 */
-	protected static Collection<Photo> findAll(String userId) {
+	protected static Collection<Photo> findAll(String userId) throws IOException {
 		//the Collection to be returned
 		Collection<Photo> photos = new LinkedList<>();
 		//the directories for this user's photos
@@ -58,8 +57,9 @@ public class Photo {
 	 * (photoName, uploadDate, comments, likes and dislikes)
 	 * @param userId
 	 * @param photoDirectorie
+	 * @throws IOException 
 	 */
-	private static Photo find(String userId, File photoDirectorie) {
+	private static Photo find(String userId, File photoDirectorie) throws IOException {
 		//the composing elements of the photo to be returned 
 		String photoName = null;
 		long uploadDate = -1;
@@ -114,56 +114,123 @@ public class Photo {
 	 * @param localUserId 
 	 * @param photoNames - the names of the photos
 	 * @param photosPath - the temporary folder
-	 * @param delete - if delete == true, deletes the photos from the original folder.
 	 * @return 
+	 * @throws IOException 
 	 */
-	protected static Collection<Photo> insertAll(String localUserId, String[] photoNames, File photosPath, 
-			boolean delete) {
+	protected static Collection<Photo> insertAll(String localUserId, File photosPath) throws IOException {
 		//the Collection to be returned
 		Collection<Photo> photos = new LinkedList<>();
 		//the directories for this user's photos
 		String localUserDirName = databaseRootDirName + fileSeparator + localUserId;
-		if (delete) {
-			for (File photo : photosPath.listFiles()) {
-				Photo.insert(localUserId, photo, localUserDirName);
-				//delete the photo
-				photo.delete();
-			}
-		} else {
-			for (File photo : photosPath.listFiles()) {
-				Photo.insert(localUserId, photo, localUserDirName);
-			}
+		for (File photo : photosPath.listFiles()) {
+			photos.add(Photo.insert(photo, localUserDirName));
+			//delete the photo in the temp folder
+			photo.delete();
 		}
 		return photos;
 	}
 
 	/**
-	 * Move photo from temporary folder to the corresponding user's folder and delete the photo
-	 * @param localUserId 
+	 * Insert the photos from  photos from copiedUser to localUser.
+	 * @param copiedPhotos - the Collection of photo objects from the copiedUser.
+	 * @param localUserDir - the path to the folder where the copiedUser's photos will be inserted.
+	 * @param copiedUserDir - the path to the folder containing the copiedUser's photos.
+	 * @return photos - the Collection of the inserted photos.
+	 * @throws IOException 
+	 */
+	public static Collection<Photo> insertAll(Collection<Photo> copiedPhotos, File localUserDir, 
+			File copiedUserDir) throws IOException {
+		//copy the objects
+		//the Collection to be returned
+		Collection<Photo> photos = Photo.deepCopy(copiedPhotos);
+		//copy the files
+		for (File photoDir : copiedUserDir.listFiles()) {
+			Photo.insert(photoDir, localUserDir);
+		}
+		return photos;
+	}
+
+	/**
+	 * Move photo from temporary folder to the corresponding user's folder.
 	 * @param photoFileOrigin - the the photo file inside the origin folder
 	 * @param localUserDirName - the name of the directory of the localUser
+	 * @throws IOException 
 	 */
-	private static void insert(String localUserId, File photoFileOrigin, String localUserDirName) {
-		//name of the photo file inside the origin folder, 
-		//with the corresponding extention removed
-		String photoNameNoExtention = photoFileOrigin.getName().split("\\.")[0];
+	private static Photo insert(File photoFileTemp, String localUserDirName) throws IOException {
+		//name of the photo file inside the temp folder, without the corresponding extension
+		String photoNameNoExtention = photoFileTemp.getName().split("\\.")[0];
 		//create the destiny directory for the photo
 		String photoDestenyDirName = localUserDirName + fileSeparator + photoNameNoExtention;
 		File photoDestenyDir = new File(photoDestenyDirName);
 		photoDestenyDir.mkdir();
 		//create the File corresponding to the photo in the photoDestenyDir
 		File photoInDestiny = 
-				new File(photoDestenyDirName + fileSeparator + photoFileOrigin.getName());
+				new File(photoDestenyDirName + fileSeparator + photoFileTemp.getName());
 		//move the photo from temp dir to photoDestenyDir
-		photoFileOrigin.renameTo(photoInDestiny);
-		//create files: likesTxt, dislikesTxt and commentsTxt
-		try {
-			new File(photoDestenyDirName + fileSeparator + "comments.txt").createNewFile();
-			new File(photoDestenyDirName + fileSeparator + "likes.txt").createNewFile();
-			new File(photoDestenyDirName + fileSeparator + "dislikes.txt").createNewFile();
-		} catch (IOException e) {
-			e.printStackTrace();
+		photoFileTemp.renameTo(photoInDestiny);
+		//creates the empty likesTxt, dislikesTxt and commentsTxt in this photo's directory.
+		Comment.insertAll(photoDestenyDir);
+		Like.insertAll(photoDestenyDir);
+		Dislike.insertAll(photoDestenyDir);
+		return new Photo(photoInDestiny.getName(), photoInDestiny.lastModified());
+	}
+
+	/**
+	 * Copies the files from the photo's source folder to the destiny folder.
+	 * @param srcDir - the path to the source folder.
+	 * @param dstDir - the path to the source folder.
+	 * @return photo - the inserted photo.
+	 * @throws IOException 
+	 */
+	private static void insert(File srcDir, File dstDir) throws IOException {
+		//for each file in the srcDir
+		File[] files = srcDir.listFiles();
+		for (File file : files) {
+			String fileName = file.getName();
+			switch (fileName) {
+			case commentsTxtName:
+				Comment.insertAll(file, dstDir);
+				break;
+			case dislikesTxtName:
+				Like.insertAll(file, dstDir);
+				break;
+			case likesTxtName:
+				Dislike.insertAll(file, dstDir);
+				break;
+				//the file is the photo
+			default:
+				Files.copy(file.toPath(), dstDir.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				break;
+			}
 		}
+	}
+
+	/**
+	 * Creates a deep copy of the given Collection<Photo>.
+	 * @param copiedPhotos - the photos to be copied.
+	 * @return copyPhotos - the copy of copiedPhotos.
+	 */
+	private static Collection<Photo> deepCopy(Collection<Photo> copiedPhotos) {
+		//make a deep copy of each photo and add it to copyPhotos.
+		Collection<Photo> copyPhotos = new LinkedList<>();
+		for (Photo copiedPhoto : copiedPhotos) {
+			copyPhotos.add(deepCopy(copiedPhoto));
+		}
+		return copyPhotos;
+	}
+
+	/**
+	 * Creates a deep copy of the given Photo.
+	 * @param copiedPhoto - the photo to be copied.
+	 * @return copyPhoto - the copy of copiedPhoto.
+	 */
+	private static Photo deepCopy(Photo copiedPhoto) {
+		return new Photo(
+				copiedPhoto.getName(),
+				copiedPhoto.getDate().getTime(),
+				Comment.deepCopy(copiedPhoto.getComments()),
+				Like.deepCopy(copiedPhoto.getLikes()),
+				Dislike.deepCopy(copiedPhoto.getDislikes()));
 	}
 
 	/**********************************************************************************************
@@ -185,7 +252,9 @@ public class Photo {
 	protected Photo(String photoName, long uploadDate) {
 		this.photoName = photoName;
 		this.uploadDate = new Date(uploadDate);
-		this.comments = new LinkedBlockingDeque<Comment>();
+		this.comments = new LinkedList<>();
+		this.likes = new LinkedList<>();
+		this.dislikes = new LinkedList<>();
 		this.df = new SimpleDateFormat("dd/MM/yyyy HH'h'mm");
 	}
 
@@ -243,11 +312,28 @@ public class Photo {
 
 	/**
 	 * 
-	 * @return a list of this photo's comments
+	 * @return a collection of this photo's comments
 	 */
-	protected Collection<Comment> getComments() {
+	protected Queue<Comment> getComments() {
 		return comments;
 	}
+
+	/**
+	 * 
+	 * @return a collection of this photo's likes
+	 */
+	private Queue<Like> getLikes() {
+		return likes;
+	}
+
+	/**
+	 * 
+	 * @return a collection of this photo's dislikes
+	 */
+	private Queue<Dislike> getDislikes() {
+		return dislikes;
+	}
+
 
 	/**
 	 * Get the info for the specified photo from this user, with the format: "photoName - uploadDate\n"
@@ -277,9 +363,10 @@ public class Photo {
 	 * @param comment - the comment to be made
 	 * @param commentedUserId - the userId of the commentedUser
 	 * @param commenterUserId - the userId of the commenterUser
+	 * @throws IOException 
 	 */
 	protected void addComment(String comment, String commentedUserId, String commenterUserId, 
-			String photoName) {
+			String photoName) throws IOException {
 		comments.add(Comment.insert(comment, commentedUserId, commenterUserId, photoName));
 	}
 
@@ -288,8 +375,9 @@ public class Photo {
 	 * @param likedUserId - the userId of the likedUser
 	 * @param likerUserId - the userId of the likerUser
 	 * @param photoName - the name of this user's photo
+	 * @throws IOException 
 	 */
-	protected void addLike(String likedUserId, String likerUserId, String photoName) {
+	protected void addLike(String likedUserId, String likerUserId, String photoName) throws IOException {
 		likes.add(Like.insert(likedUserId, likerUserId, photoName));
 	}
 
@@ -298,8 +386,9 @@ public class Photo {
 	 * @param dislikedUserId - the userId of the dislikedUser
 	 * @param dislikerUserId - the userId of the dislikerUser 
 	 * @param photoName - the name of this user's photo
+	 * @throws IOException 
 	 */
-	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) {
+	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) throws IOException {
 		dislikes.add(Dislike.insert(dislikedUserId, dislikerUserId, photoName));
 	}
 

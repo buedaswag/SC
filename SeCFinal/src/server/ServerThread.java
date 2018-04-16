@@ -1,15 +1,12 @@
 package server;
 
-import java.io.DataInput;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.Iterator;
 
 //Threads utilizadas para comunicacao com os clientes
 /**
@@ -54,7 +51,7 @@ class ServerThread extends Thread {
 			try {
 				localUserId = (String) inStream.readObject();
 				password = (String) inStream.readObject();
-				System.out.println("thread: depois de receber a password e o localUserId");
+				System.out.println("thread: after receiving the password and the localUserId");
 				authenticate(localUserId, password);
 				// get the arguments for the operation
 				args = (String[]) inStream.readObject();

@@ -14,54 +14,33 @@ import java.util.*;
  *
  */
 public class Server {
-	/**
-	 * TO LOCK METHODS USE THIS: (for save and update methods)
-	 * https://docs.oracle.com/javase/tutorial/essential/concurrency/locksync.html
-protected class MsLunch {
-    private long c1 = 0;
-    private long c2 = 0;
-    private Object lock1 = new Object();
-    private Object lock2 = new Object();
-
-    protected void inc1() {
-        synchronized(lock1) {
-            c1++;
-        }
-    }
-
-    protected void inc2() {
-        synchronized(lock2) {
-            c2++;
-        }
-    }
-}
-	 */
-	private static Server server = new Server();
+	private static Server server = null;
 	private static Map<String, User> users;
-	private String needsToBeFollower;
-	private String allGood;
-	private String alreadyFollower;
-	private String notFollower;
+	private String needsToBeFollower = "You must be a follower of the given user to do that";
+	private String allGood = "ok";
+	private String alreadyFollower = "At least one of the users given is already a follower";
+	private String notFollower = "At least one of the users given is not a follower";
 
 	/**
 	 * Constructor for the Server class initiates the server which represents the
 	 * system ... TO COMPLETE Inicia o servIdor, criando directorios e ficheiros de
 	 * registo se necessario. Nao cria interfaces de rede; tudo o que diz respeito a
 	 * portos, TCP e outras coisas giras fica ao encargo do handler.
+	 * @throws IOException 
 	 */
-	private Server() {
+	private Server() throws IOException {
 		users = User.findAll();
-		needsToBeFollower = "You must be a follower of the given user to do that";
-		allGood = "ok";
-		alreadyFollower = "At least one of the users given is already a follower";
-		notFollower = "At least one of the users given is not a follower";
 	}
 
 	/**
 	 * 
 	 * @return server - The single instance of Class Server
+	 * @throws IOException 
 	 */
-	protected static Server getInstance() {
+	protected static Server getInstance() throws IOException {
+		if (server == null) {
+			server = new Server();
+		}
 		return server;
 	}
 
@@ -70,9 +49,9 @@ protected class MsLunch {
 	 * @param args
 	 * @throws IOException
 	 */
-	protected static void main(String[] args) throws IOException {
-		// set up the server, and get the port
-		Server server = new Server();
+	public static void main(String[] args) throws IOException {
+		Server.getInstance();
+		//get the port
 		int port = new Integer(args[0]);
 
 		/*
@@ -94,9 +73,7 @@ protected class MsLunch {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
 		}
-
 	}
 
 	/**
@@ -104,8 +81,9 @@ protected class MsLunch {
 	 * @param localUserId
 	 * @param password
 	 * @return true if the user was successfully authenticated or false if the password is wrong.
+	 * @throws IOException 
 	 */
-	protected boolean authenticate(String localUserId, String password){
+	protected boolean authenticate(String localUserId, String password) throws IOException{
 		// Case 1 : the user exists
 		if (users.containsKey(localUserId)) {
 			if (users.get(localUserId).getPassword().equals(password)) {
@@ -140,12 +118,13 @@ protected class MsLunch {
 	 * @param password
 	 * @param photoNames
 	 * @param photosPath the path to the photos in the user's temp folder
+	 * @throws IOException 
 	 */
 	protected String addPhotos(String localUserId, String[] photoNames, File photosPath) throws IOException {
 		// get the corresponding user
 		User localUser = users.get(localUserId);
-		// adds the photos to the persistent storage and the program memory
-		localUser.addPhotos(localUserId, photoNames, photosPath, true);
+		// inserts the photos to this user
+		localUser.addPhotos(localUserId, photosPath);
 		return allGood;
 	}
 
@@ -157,9 +136,10 @@ protected class MsLunch {
 	 * @param commentedUserId - the userId of the commentedUser
 	 * @param photoName - the name of the commentedUser's photo
 	 * @return allGood if it all went well, needsToBeFollower otherwise
+	 * @throws IOException 
 	 */
 	protected String addComment(String comment, String localUserId, String commentedUserId, 
-			String photoName) {
+			String photoName) throws IOException {
 		// get the commented user with the given credentials
 		User commentedUser = users.get(commentedUserId);
 		// check if the localUser is not a follower
@@ -179,8 +159,9 @@ protected class MsLunch {
 	 * @param likedUserId - the userId of the likedUser
 	 * @param photoName - the name of the likedUser's photo
 	 * @return allGood if it all went well, needsToBeFollower otherwise
+	 * @throws IOException 
 	 */
-	protected String addLike(String localUserId, String likedUserId, String photoName) {
+	protected String addLike(String localUserId, String likedUserId, String photoName) throws IOException {
 		// get the liked user with the given credentials
 		User likedUser = users.get(likedUserId);
 		// check if the localUser is not a follower
@@ -200,8 +181,9 @@ protected class MsLunch {
 	 * @param dislikedUserId - the userId of the dislikedUser
 	 * @param photoName - the name of the dislikedUser's photo
 	 * @return allGood if it all went well, needsToBeFollower otherwise
+	 * @throws IOException 
 	 */
-	protected String addDislike(String localUserId, String dislikedUserId, String photoName) {
+	protected String addDislike(String localUserId, String dislikedUserId, String photoName) throws IOException {
 		// get the dislikedUser with the given credentials
 		User dislikedUser = users.get(dislikedUserId);
 		// check if the localUser is not a follower
@@ -219,8 +201,9 @@ protected class MsLunch {
 	 * @param localUserId - the localUserId of the user
 	 * @param followUserIds - the userIds of the followUsers
 	 * @return allGood if it all went well, alreadyFollower otherwise
+	 * @throws IOException 
 	 */
-	protected String addFollowers(String localUserId, String[] followUserIds) {
+	protected String addFollowers(String localUserId, String[] followUserIds) throws IOException {
 		// get the user with the given credentials
 		User localUser = users.get(localUserId);
 		// check if any of the followUsers is already a follower
@@ -237,8 +220,9 @@ protected class MsLunch {
 	 * @param localUserId - the localUserId of the user
 	 * @param followUserIds - the userIds of the followUsers
 	 * @return allGood if it all went well, alreadyFollower otherwise
+	 * @throws IOException 
 	 */
-	protected String removeFollowers(String localUserId, String[] followUserIds) {
+	protected String removeFollowers(String localUserId, String[] followUserIds) throws IOException {
 		// get the user with the given credentials
 		User localUser = users.get(localUserId);
 		// check if any of the followUsers is not a follower of the localUser
@@ -288,21 +272,17 @@ protected class MsLunch {
 	 * @param localUserId - the localUserId of the user
 	 * @param copiedUserId - the userId of the copiedUser
 	 * @return allGood if it all went well, notFollower otherwise
+	 * @throws IOException 
 	 */
-	protected String copyPhotos(String localUserId, String copiedUserId) {
-		// get the listedUser with the given credentials
+	protected String copyPhotos(String localUserId, String copiedUserId) throws IOException {
+		// get the copiedUser and the localUser with the given credentials
 		User copiedUser = users.get(copiedUserId);
+		User localUser = users.get(localUserId);
 		// check if the localUser is not a follower
 		if (!copiedUser.isFollowed(localUserId)) {
 			return needsToBeFollower;
 		}
-		// add to disk
-		fileManager.FMsavePhotos(localUserId, copiedUserId);
-
-		// add to memory
-		for (Photo p : copiedUser.getPhotos())
-			localUser.addPhoto(p);
-
+		localUser.copyPhotos(localUserId, copiedUserId, copiedUser);
 		return allGood;
 	}
 }

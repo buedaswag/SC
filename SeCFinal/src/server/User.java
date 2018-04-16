@@ -28,8 +28,6 @@ public class User {
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static File usersTxt = new File(databaseRootDirName + fileSeparator + usersTxtName);
 	private static File databaseRootDir = new File(databaseRootDirName);
-	private static FileReader fileReader;
-	private static BufferedReader buffReader;
 
 	/**
 	 * Finds all the users in the file system and loads them into memory.
@@ -38,39 +36,39 @@ public class User {
 	 * @requires when a user is registered, a folder must be created for him
 	 * @return users - a Map<String, User> containing all the users in the file system, or an empty
 	 * Map if there are no users yet
+	 * @throws IOException 
 	 */
-	protected static Map<String, User> findAll () {
+	protected static Map<String, User> findAll () throws IOException {
 		//the Map to be returned
 		Map<String, User> users = new Hashtable<>();
+		//if databaseRootDir does not exist, create it and the usersTxt file and return the empty map
+		if (!databaseRootDir.exists()) {
+			databaseRootDir.mkdir();
+			usersTxt.createNewFile();
+			return users;
+		}
 		//if databaseRootDir only has the usersTxt file, there are no users. Return the empty Map
-		if (databaseRootDir.list().length <= 1) {
-			try {
-				//create the buffers for reading from files, and create the Map
-				fileReader = new FileReader(usersTxt.getAbsoluteFile());
-				buffReader = new BufferedReader(fileReader);
-				/*
-				 * get all the info to load each user to memory 
-				 * (userId, password, followers and photos
-				 * Reads the current users from the usersTxt file
-				 */
-				String line;
-				while ((line = buffReader.readLine()) != null) {
-					// splits the line in the form 'userId:password'
-					String[] userCredentials = line.split(":");
-					//adds the user to the map
-					users.put(userCredentials[0], User.find(userCredentials[0], 
-							userCredentials[1]));
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				try {
-					fileReader.close();
-					buffReader.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+		if (databaseRootDir.list().length > 1) {
+			FileReader fileReader;
+			BufferedReader buffReader = null;
+
+			//create the buffers for reading from files, and create the Map
+			fileReader = new FileReader(usersTxt);
+			buffReader = new BufferedReader(fileReader);
+			/*
+			 * get all the info to load each user to memory 
+			 * (userId, password, followers and photos
+			 * Reads the current users from the usersTxt file
+			 */
+			String line;
+			while ((line = buffReader.readLine()) != null) {
+				// splits the line in the form 'userId:password'
+				String[] userCredentials = line.split(":");
+				//adds the user to the map
+				users.put(userCredentials[0], User.find(userCredentials[0], 
+						userCredentials[1]));
 			}
+			buffReader.close();
 		}
 		return users;
 	}
@@ -80,16 +78,17 @@ public class User {
 	 * (followers and photos).
 	 * @param userId - userId and password of the user to be found
 	 * @return user - The constructed user with all its information loaded to memory.
+	 * @throws IOException 
 	 */
-	private static User find(String userId, String password) {
+	private static User find(String userId, String password) throws IOException {
 		//the User to be returned
 		User user = null;
 		//get the followers
-		Collection<String> followers = findFollowers(userId);
+		Collection<String> followers = User.findFollowers(userId);
 		//get the photos
 		Collection<Photo> photos = Photo.findAll(userId);
 		//load the user
-		User.load(userId, password, followers, photos);
+		user = User.load(userId, password, followers, photos);
 		return user;
 	}
 
@@ -98,29 +97,23 @@ public class User {
 	 * @param userId - the user whose followers are to be found
 	 * @return followers - a Collection<String> of the followUserIds. 
 	 * The Collection will be empty if there are no followers
+	 * @throws IOException 
 	 */
-	private static Collection<String> findFollowers(String userId) {
+	private static Collection<String> findFollowers(String userId) throws IOException {
 		//get the followersTxt file
 		File followersTxt = new File(databaseRootDirName + fileSeparator + userId + fileSeparator 
 				+ followersTxtName);
 		//the Collection to store the followUserIds
 		Collection<String> followers = new LinkedList<>();
-		try {
-			fileReader = new FileReader(followersTxt.getAbsoluteFile());
-
-			buffReader = new BufferedReader(fileReader);
-			String followerUserId;
-			while ((followerUserId = buffReader.readLine()) != null)
-				followers.add(followerUserId);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				buffReader.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		FileReader fileReader;
+		BufferedReader buffReader = null;
+		fileReader = new FileReader(followersTxt);
+		buffReader = new BufferedReader(fileReader);
+		String followerUserId;
+		while ((followerUserId = buffReader.readLine()) != null) {
+			followers.add(followerUserId);
 		}
+		buffReader.close();
 		return followers;
 	}
 
@@ -140,38 +133,28 @@ public class User {
 	 * insert and update variables and methods
 	 **********************************************************************************************
 	 */
-	private static FileWriter fileWriter;
-	private static BufferedWriter buffWriter;
-
+	
 	/**
 	 * Creates and inserts a new user with the given credentials
 	 * @param localUserId
 	 * @param password
 	 * @return
+	 * @throws IOException 
 	 */
-	protected static User insert(String localUserId, String password) {
-		try {
-			fileWriter = new FileWriter(usersTxt);
-			buffWriter = new BufferedWriter(fileWriter);
-			//add the line in the usersTxt file corresponding to the user
-			String line = localUserId + ":" + password;
-			buffWriter.write(line);
-			buffWriter.newLine();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				buffWriter.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+	protected static User insert(String localUserId, String password) throws IOException {
+		FileWriter fileWriter = new FileWriter(usersTxt, true);
+		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
+		//add the line in the usersTxt file corresponding to the user
+		String line = localUserId + ":" + password;
+		buffWriter.write(line);
+		buffWriter.newLine();
+		buffWriter.close();
 		//create localUser's directory
 		String localUserDirName = databaseRootDirName + fileSeparator + localUserId;
 		File localUserDir = new File(localUserDirName);
 		localUserDir.mkdir();
 		//create the followersTxt file
-		new File(localUserDirName + fileSeparator + followersTxtName).mkdir();
+		new File(localUserDirName + fileSeparator + followersTxtName).createNewFile();
 		//create the new user
 		return new User(localUserId, password);
 	}
@@ -180,35 +163,28 @@ public class User {
 	 * Adds the followUsers as followers of localUser, in the persistent storage.
 	 * @param localUserId
 	 * @param followUserIds
+	 * @throws IOException 
 	 */
-	protected static void insertFollowers(String localUserId, String[] followUserIds) {
+	protected static void insertFollowers(String localUserId, String[] followUserIds) throws IOException {
 		// Opens resources and necessary streams
 		File followersTxt = new File(databaseRootDirName + fileSeparator + localUserId + 
 				fileSeparator + followersTxtName);
-		try {
-			fileWriter = new FileWriter(followersTxt, true);
-			buffWriter = new BufferedWriter(fileWriter);
-			for (String followUserId : followUserIds) {
-				buffWriter.write(followUserId);
-				buffWriter.newLine();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				buffWriter.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		FileWriter fileWriter = new FileWriter(followersTxt, true);
+		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
+		for (String followUserId : followUserIds) {
+			buffWriter.write(followUserId);
+			buffWriter.newLine();
 		}
+		buffWriter.close();
 	}
 
 	/**
 	 * Updates the followersTxt file, repacing its content with the given followers. 
 	 * @param localUserId
 	 * @param followers
+	 * @throws IOException 
 	 */
-	private static void updateFollowers(String localUserId, Collection<String> followers) {
+	private static void updateFollowers(String localUserId, Collection<String> followers) throws IOException {
 		// Opens resources and necessary streams
 		File followersTxt = new File(databaseRootDirName + fileSeparator + localUserId + 
 				fileSeparator + followersTxtName);
@@ -216,22 +192,13 @@ public class User {
 		followersTxt.delete();
 		//create new file
 		followersTxt.mkdir();
-		try {
-			fileWriter = new FileWriter(followersTxt, true);
-			buffWriter = new BufferedWriter(fileWriter);
-			for (String followUserId : followers) {
-				buffWriter.write(followUserId);
-				buffWriter.newLine();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				buffWriter.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		FileWriter fileWriter = new FileWriter(followersTxt, true);
+		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
+		for (String followUserId : followers) {
+			buffWriter.write(followUserId);
+			buffWriter.newLine();
 		}
+		buffWriter.close();
 	}
 
 	/**********************************************************************************************
@@ -313,8 +280,9 @@ public class User {
 	 * Inserts the followUsers as followers of this user.
 	 * @param localUserId - the localUserId of the user
 	 * @param followUserIds - the userIds of the followUsers
+	 * @throws IOException 
 	 */
-	protected void addFollowers(String localUserId, String[] followUserIds) {
+	protected void addFollowers(String localUserId, String[] followUserIds) throws IOException {
 		User.insertFollowers(localUserId, followUserIds);
 		Collections.addAll(this.followers, followUserIds);
 	}
@@ -323,8 +291,9 @@ public class User {
 	 * Removes the followUsers as followers from this user.
 	 * @param localUserId - the localUserId of the user
 	 * @param followUserIds - the userIds of the followUsers
+	 * @throws IOException 
 	 */
-	protected void removeFollowers(String localUserId, String[] followUserIds) {
+	protected void removeFollowers(String localUserId, String[] followUserIds) throws IOException {
 		//from memory
 		for (String followUserId : followUserIds) {
 			followers.remove(followUserId);
@@ -382,12 +351,25 @@ public class User {
 	 * Inserts the photos with the given names to this user.
 	 * @param localUserId
 	 * @param photoNames
-	 * @param photosPath 
-	 * @param delete - if delete == true, deletes the photos from the original folder.
+	 * @param photosPath
+	 * @throws IOException 
 	 */
-	protected void addPhotos(String localUserId, String[] photoNames, File photosPath, 
-			boolean delete) {
-		photos.addAll(Photo.insertAll(localUserId, photoNames, photosPath, delete));
+	protected void addPhotos(String localUserId, File photosPath) throws IOException {
+		photos.addAll(Photo.insertAll(localUserId, photosPath));
+	}
+
+	/**
+	 * Inserts the photos with the given names to this user.
+	 * @param localUserId
+	 * @param copiedUserId - the userId of the user where photos the photos are copied from.
+	 * @param copiedUser - the user where photos the photos are copied from.
+	 * @throws IOException 
+	 * 
+	 */
+	protected void copyPhotos(String localUserId, String copiedUserId, User copiedUser) throws IOException {
+		File localUserDir = new File(databaseRootDirName + fileSeparator + localUserId);
+		File copiedUserDir = new File(databaseRootDirName + fileSeparator + copiedUser);
+		photos.addAll(Photo.insertAll(copiedUser.getPhotos(), localUserDir, copiedUserDir));
 	}
 
 	/**
@@ -412,9 +394,10 @@ public class User {
 	 * @param commenterUserId - the userId of the commenterUser
 	 * @param comment - the comment to be made
 	 * @param photoName - the name of the commentedUser's photo
+	 * @throws IOException 
 	 */
 	protected void addComment(String commentedUserId, String commenterUserId, String comment, 
-			String photoName) {
+			String photoName) throws IOException {
 		this.getPhoto(photoName).addComment(commentedUserId, commenterUserId, comment, photoName);
 	}
 
@@ -444,8 +427,9 @@ public class User {
 	 * @param likedUserId - the userId of the likedUser
 	 * @param likerUserId - the userId of the likerUser 
 	 * @param photoName - the name of this user's photo
+	 * @throws IOException 
 	 */
-	protected void addLike(String likedUserId, String likerUserId, String photoName) {
+	protected void addLike(String likedUserId, String likerUserId, String photoName) throws IOException {
 		getPhoto(photoName).addLike(likedUserId, likerUserId, photoName);
 	}
 
@@ -454,8 +438,9 @@ public class User {
 	 * @param dislikedUserId - the userId of the dislikedUser
 	 * @param dislikerUserId - the userId of the dislikerUser 
 	 * @param photoName - the name of this user's photo
+	 * @throws IOException 
 	 */
-	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) {
+	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) throws IOException {
 		getPhoto(photoName).addDislike(dislikedUserId, dislikerUserId, photoName);
 	}
 
@@ -493,5 +478,19 @@ public class User {
 		sb.append(" ");
 		sb.append(password);
 		return sb.toString();
+	}
+
+	/**
+	 * Get the names of all the photos of this user
+	 * @return
+	 */
+	protected String[] getPhotoNames() {
+		String[] photoNames = new String[photos.size()];
+		int i = 0;
+		for (Photo photo : photos) {
+			photoNames[i] = photo.getName();
+			i++;
+		}
+		return photoNames;
 	}
 }

@@ -15,7 +15,7 @@ import java.net.UnknownHostException;
  * @author Miguel Dias 46427
  *
  */
-protected class ClientNetworkHandler {
+public class ClientNetworkHandler {
 	private String addr;
 	private int port;
 	private Socket socket;
@@ -36,7 +36,7 @@ protected class ClientNetworkHandler {
 
 		this.socket = new Socket(addr, port);
 		outStream = new ObjectOutputStream(socket.getOutputStream());
-		System.out.println("no cliente, depois de se ligar pela socket");
+		System.out.println("In the client, after connecting through the socket");
 	}
 
 	/**

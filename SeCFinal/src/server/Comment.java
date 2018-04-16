@@ -1,15 +1,8 @@
 package server;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -29,36 +22,33 @@ public class Comment {
 	 */
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static final String commentsTxtName = "comments.txt";
-	private static FileReader fileReader;
-	private static BufferedReader buffReader;
-
+	
 	/**
 	 * Finds all the comments in the photo's directory and loads them into memory.
 	 * @param photoDirectorie
 	 * @return comments
+	 * @throws IOException 
 	 */
-	protected static Queue<Comment> findAll(File photoDirectorie) {
+	protected static Queue<Comment> findAll(File photoDirectorie) throws IOException {
 		//create the buffers for reading from the file and the Queue
 		Queue<Comment> comments = new LinkedList<>();
 		File commentsTxt = new File(photoDirectorie + fileSeparator + commentsTxtName);
-		try {
-			fileReader = new FileReader(commentsTxt);
+		FileReader fileReader;
+		BufferedReader buffReader = null;
+		fileReader = new FileReader(commentsTxt);
 
-			buffReader = new BufferedReader(fileReader);
-			String line;
-			/*
-			 * get all the info to load each comment to memory 
-			 * (commenterUserId and the comment)
-			 * Reads the current comments from the commentsTxt file
-			 */
-			while ((line = buffReader.readLine()) != null) {
-				comments.add(Comment.find(line));
-			}
-			fileReader.close();
-			buffReader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
+		buffReader = new BufferedReader(fileReader);
+		String line;
+		/*
+		 * get all the info to load each comment to memory 
+		 * (commenterUserId and the comment)
+		 * Reads the current comments from the commentsTxt file
+		 */
+		while ((line = buffReader.readLine()) != null) {
+			comments.add(Comment.find(line));
 		}
+		fileReader.close();
+		buffReader.close();
 		return comments;
 	}
 
@@ -84,14 +74,31 @@ public class Comment {
 	private static Comment load(String commenterUserId, String comment) {
 		return new Comment(commenterUserId, comment);
 	}
-	
+
 	/**********************************************************************************************
 	 * insert and update variables and methods
 	 **********************************************************************************************
 	 */
-	private static FileWriter fileWriter;
-	private static BufferedWriter buffWriter;
 	private static String databaseRootDirName = "database";
+
+	/**
+	 * Creates an empty commentsTxt file.
+	 * @param photoDir - the directory where the commentsTxt file will be created.
+	 * @throws IOException 
+	 */
+	public static void insertAll(File photoDir) throws IOException {
+		new File(photoDir + fileSeparator + commentsTxtName).createNewFile();
+	}
+	
+	/**
+	 * Copies the commentsTxt from the photo's source folder to the destiny folder.
+	 * @param srcFile - the source file.
+	 * @param dstDir - the path to the source folder.
+	 * @throws IOException 
+	 */
+	public static void insertAll(File srcFile, File dstDir) throws IOException {
+		Files.copy(srcFile.toPath(), dstDir.toPath(), StandardCopyOption.REPLACE_EXISTING);
+	}
 	
 	/**
 	 * Inserts a comment made by the commenterUser
@@ -100,29 +107,44 @@ public class Comment {
 	 * @param commenterUserId
 	 * @param photoName - the name of the commentedUser's photo
 	 * @return comment
+	 * @throws IOException 
 	 */
-	public static Comment insert(String comment, String commentedUserId, String commenterUserId, 
-			String photoName) {
+	public static Comment insert(String commentedUserId, String commenterUserId, String comment, 
+			String photoName) throws IOException {
 		String line = commenterUserId + ":" + comment;
 		File commentsTxt = new File(databaseRootDirName + fileSeparator + commentedUserId + 
-				photoName.split("\\.")[0] + commentsTxtName);
-		try {
-			fileWriter = new FileWriter(commentsTxt, true);
-		buffWriter = new BufferedWriter(fileWriter);
+				fileSeparator + photoName.split("\\.")[0] + fileSeparator + commentsTxtName);
+		FileWriter fileWriter = new FileWriter(commentsTxt, true);
+		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
 		buffWriter.write(line);
 		buffWriter.newLine();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				buffWriter.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		buffWriter.close();
 		return new Comment(commenterUserId, comment);
 	}
-	
+
+	/**
+	 * Creates a deep copy of the given Queue<Comment>.
+	 * @param copiedComments - the comments to be copied.
+	 * @return copyComments - the copy of copiedComments.
+	 */
+	public static Queue<Comment> deepCopy(Queue<Comment> copiedComments) {
+		//make a deep copy of each photo and add it to copyPhotos.
+		Queue<Comment> copyComments = new LinkedList<>();
+		for (Comment copiedPhoto : copiedComments) {
+			copyComments.add(deepCopy(copiedPhoto));
+		}
+		return copyComments;
+	}
+
+	/**
+	 * Creates a deep copy of the given Comment.
+	 * @param copiedComment - the comment to be copied.
+	 * @return copyComment - the copy of copiedComment.
+	 */
+	private static Comment deepCopy(Comment copiedComment) {
+		return new Comment(copiedComment.getCommenterUserid(), copiedComment.getComment());
+	}
+
 	/**********************************************************************************************
 	 * Comment variables , methods and constructors
 	 **********************************************************************************************
@@ -149,7 +171,7 @@ public class Comment {
 	 * 
 	 * @return the user id of this user
 	 */
-	protected String getUserid() {
+	protected String getCommenterUserid() {
 		return this.commenterUserId;
 	}
 
@@ -166,7 +188,7 @@ public class Comment {
 	 */
 	public String toString() {
 		StringBuilder sb = new StringBuilder(commenterUserId);
-		sb.append(" ");
+		sb.append(":");
 		sb.append(comment);
 		return sb.toString();
 	}

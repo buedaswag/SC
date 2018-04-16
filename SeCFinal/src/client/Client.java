@@ -18,15 +18,15 @@ public class Client {
 	private static String pass;
 	private static String serverAddress;
 	private static ClientNetworkHandler handlerTCP;
-	private static String filePath = new String("repositorio");
+	private static String filePath = new String("repository");
 	private static String allGood = "ok";
 	private static Pattern ipPattern = Pattern
 			.compile("^(([01]?\\d\\d?|" + "2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
 
-	protected static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException {
+	public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException {
 		// Verifica validade dos argumentos
 		if (!checkArgs(args)) {
-			System.out.println("Argumentos invalidos!");
+			System.out.println("Invalid arguments!");
 			return;
 		}
 
@@ -100,7 +100,7 @@ public class Client {
 			break;
 		}
 		default: {
-			System.out.println("Operacao nao reconhecida!");
+			System.out.println("Operation not recognized!");
 			break;
 		}
 
@@ -168,7 +168,7 @@ public class Client {
 					}
 				}
 			}
-			System.out.println("Fotos enviadas com sucesso!");
+			System.out.println("Photos successfully sent!");
 		} else
 			System.out.println(error);
 	}
@@ -200,7 +200,7 @@ public class Client {
 		 */
 		String error = handlerTCP.receive();
 		if (error.equals(allGood))
-			System.out.println("Comentario enviado com sucesso!");
+			System.out.println("Comment successfully sent!");
 		else
 			System.out.println(error);
 	}
@@ -230,7 +230,7 @@ public class Client {
 		 */
 		String error = handlerTCP.receive();
 		if (error.equals(allGood))
-			System.out.println("Like enviado com sucesso!");
+			System.out.println("Like successfully sent!");
 		else
 			System.out.println(error);
 	}
@@ -261,7 +261,7 @@ public class Client {
 		 */
 		String error = handlerTCP.receive();
 		if (error.equals(allGood))
-			System.out.println("Dislike enviado com sucesso!");
+			System.out.println("Dislike successfully sent!");
 		else
 			System.out.println(error);
 	}
@@ -374,7 +374,7 @@ public class Client {
 		 */
 		String error = handlerTCP.receive();
 		if (error.equals(allGood))
-			System.out.println("Comments, likes and dislikes successfully " + "listed!");
+			System.out.println("Comments, likes and dislikes successfully listed!");
 		else
 			System.out.println(error);
 	}
