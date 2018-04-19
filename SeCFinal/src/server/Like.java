@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -89,12 +90,12 @@ public class Like {
 	
 	/**
 	 * Copies the likesTxt from the photo's source folder to the destiny folder.
-	 * @param srcFile - the source file.
-	 * @param dstDir - the path to the source folder.
+	 * @param srcPath - the source path.
+	 * @param dstPath - the path to the destiny file.
 	 * @throws IOException 
 	 */
-	public static void insertAll(File srcFile, File dstDir) throws IOException {
-		Files.copy(srcFile.toPath(), dstDir.toPath(), StandardCopyOption.REPLACE_EXISTING);
+	public static void insertAll(Path srcPath, Path dstPath) throws IOException {
+		Files.copy(srcPath, dstPath, StandardCopyOption.REPLACE_EXISTING);
 	}
 	
 	/**

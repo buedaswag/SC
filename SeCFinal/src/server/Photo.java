@@ -3,6 +3,8 @@ package server;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -144,14 +146,15 @@ public class Photo {
 		//the Collection to be returned
 		Collection<Photo> photos = Photo.deepCopy(copiedPhotos);
 		//copy the files
-		for (File photoDir : copiedUserDir.listFiles()) {
+		for (File photoDir : copiedUserDir.listFiles(File::isDirectory)) {
 			Photo.insert(photoDir, localUserDir);
 		}
 		return photos;
 	}
 
 	/**
-	 * Move photo from temporary folder to the corresponding user's folder.
+	 * Move photo (and corresponding commentsTxt, likesTxt and dislikesTxt) from temporary folder 
+	 * to the corresponding user's folder.
 	 * @param photoFileOrigin - the the photo file inside the origin folder
 	 * @param localUserDirName - the name of the directory of the localUser
 	 * @throws IOException 
@@ -178,28 +181,35 @@ public class Photo {
 	/**
 	 * Copies the files from the photo's source folder to the destiny folder.
 	 * @param srcDir - the path to the source folder.
-	 * @param dstDir - the path to the source folder.
+	 * @param dstDir - the path to the destiny folder.
 	 * @return photo - the inserted photo.
 	 * @throws IOException 
 	 */
 	private static void insert(File srcDir, File dstDir) throws IOException {
+		//create the destiny directory for the photo
+		File dstPhotoDir = new File(
+				dstDir.getPath() + fileSeparator +
+				srcDir.getName()); 
+		dstPhotoDir.mkdir();
 		//for each file in the srcDir
 		File[] files = srcDir.listFiles();
 		for (File file : files) {
 			String fileName = file.getName();
+			Path srcPath = file.toPath();
+			Path dstPath = Paths.get(dstPhotoDir.getPath() + fileSeparator + file.getName());
 			switch (fileName) {
 			case commentsTxtName:
-				Comment.insertAll(file, dstDir);
+				Comment.insertAll(srcPath, dstPath);
 				break;
 			case dislikesTxtName:
-				Like.insertAll(file, dstDir);
+				Like.insertAll(srcPath, dstPath);
 				break;
 			case likesTxtName:
-				Dislike.insertAll(file, dstDir);
+				Dislike.insertAll(srcPath, dstPath);
 				break;
 				//the file is the photo
 			default:
-				Files.copy(file.toPath(), dstDir.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				Files.copy(srcPath, dstPath, StandardCopyOption.REPLACE_EXISTING);
 				break;
 			}
 		}

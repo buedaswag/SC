@@ -2,6 +2,7 @@ package server;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -92,12 +93,12 @@ public class Comment {
 	
 	/**
 	 * Copies the commentsTxt from the photo's source folder to the destiny folder.
-	 * @param srcFile - the source file.
-	 * @param dstDir - the path to the source folder.
+	 * @param srcPath - the source path.
+	 * @param dstPath - the path to the destiny file.
 	 * @throws IOException 
 	 */
-	public static void insertAll(File srcFile, File dstDir) throws IOException {
-		Files.copy(srcFile.toPath(), dstDir.toPath(), StandardCopyOption.REPLACE_EXISTING);
+	public static void insertAll(Path srcPath, Path dstPath) throws IOException {
+		Files.copy(srcPath, dstPath, StandardCopyOption.REPLACE_EXISTING);
 	}
 	
 	/**

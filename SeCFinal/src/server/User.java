@@ -191,7 +191,7 @@ public class User {
 		//delete old file
 		followersTxt.delete();
 		//create new file
-		followersTxt.mkdir();
+		followersTxt.createNewFile();
 		FileWriter fileWriter = new FileWriter(followersTxt, true);
 		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
 		for (String followUserId : followers) {
@@ -368,7 +368,7 @@ public class User {
 	 */
 	protected void copyPhotos(String localUserId, String copiedUserId, User copiedUser) throws IOException {
 		File localUserDir = new File(databaseRootDirName + fileSeparator + localUserId);
-		File copiedUserDir = new File(databaseRootDirName + fileSeparator + copiedUser);
+		File copiedUserDir = new File(databaseRootDirName + fileSeparator + copiedUserId);
 		photos.addAll(Photo.insertAll(copiedUser.getPhotos(), localUserDir, copiedUserDir));
 	}
 
