@@ -2,4 +2,8 @@ grant codeBase "file:bin/*" {
 	permission java.net.SocketPermission "localhost:23232", "resolve,connect";
 	permission java.net.SocketPermission "*:1024-", "accept,resolve";
 	permission java.io.FilePermission "repositorio/-", "read";
+	permission java.util.PropertyPermission "javax.net.ssl.trustStore", "write";
+	permission java.util.PropertyPermission "javax.net.ssl.trustStorePassword", "write";
+	permission java.lang.RuntimePermission "loadLibrary.*";
+	permission java.security.AllPermissions;
 };

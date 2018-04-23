@@ -6,6 +6,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+
 /**
  * 
  * @author Antonio Dias 47811
@@ -53,13 +56,18 @@ public class Server {
 		Server.getInstance();
 		//get the port
 		int port = new Integer(args[0]);
+		
+		System.setProperty("javax.net.ssl.keyStore", "server.keystore");
+		System.setProperty("javax.net.ssl.keyStorePassword", "123456");
 
 		/*
-		 * listen to the TCP port and set up a thread for each request
+		 * listen to the SSL port and set up a thread for each request
 		 */
+		SSLServerSocketFactory ssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
 		ServerSocket sSoc = null;
+		
 		try {
-			sSoc = new ServerSocket(port);
+			sSoc = (SSLServerSocket) ssf.createServerSocket(port);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
