@@ -1,4 +1,4 @@
-package resources;
+package crypto_salt;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;

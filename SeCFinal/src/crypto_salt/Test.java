@@ -1,4 +1,4 @@
-package resources;
+package crypto_salt;
 
 public class Test {
 
