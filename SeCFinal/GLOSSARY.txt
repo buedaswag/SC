@@ -4,3 +4,4 @@ insert - to put in persistent storage and program memory
 photoName - String variable referencing the name of a photo (with the file extention, like this: 
 	<name>.<extention>)
 photoFile - the File object representing the photo
+usersTxt - file with <userId>:<password> lines
