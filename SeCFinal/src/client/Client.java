@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.regex.Pattern;
+
+import server.ALSO;
+import server.THE;
+
 import java.net.InetAddress;
 
 /**
@@ -22,7 +26,10 @@ public class Client {
 	private static String allGood = "ok";
 	private static Pattern ipPattern = Pattern
 			.compile("^(([01]?\\d\\d?|" + "2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
-
+	private static final String addUser = "addUser";
+	private static final String removeUser = "removeUser";
+	private static final String updatePassword = "updatePassword";
+	
 	public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException {
 		// Verifica validade dos argumentos
 		if (!checkArgs(args)) {
@@ -112,7 +119,9 @@ public class Client {
 		handlerTCP.endConnection();
 	}
 
-	// ================== OPERATIONS ================== //
+	// ================== MANUSERS OPERATIONS ================== //
+	
+	// ================== SERVER OPERATIONS ================== //
 
 	/**
 	 * Try´s to authenticate the user
@@ -414,40 +423,77 @@ public class Client {
 	}
 
 	/**
-	 * Check if the arguments passed are valid
-	 * 
-	 * @param args
-	 *            the arguments
+	 * Check if the arguments passed are valid for the Server or the ManUsers.
+	 * @param args - the arguments.
 	 * @return True if the arguments are valid, False otherwise
 	 */
+	//TODO test
 	protected static boolean checkArgs(String[] args) {
 		// Checks the ip address and port for validity
 		if (!checkAddressPort(args[3]))
 			return false;
-		// check the option parameter
-		if (args[4].charAt(0) != '-')
-			return false;
-
-		// check option and the arguments length
-		int num = args.length;
-		if (num < 4)
-			return false;
-
-		char opt = args[4].charAt(1);
-
-		// Check if the number of arguments corresponds to the given operation
-		if (opt == 'a' || opt == 'l' || opt == 'g' || opt == 'f' || opt == 'r')
-			if (num != 6)
+		// checks if the commands are for the Server or the ManUsers.
+		if (args[4].charAt(0) == '-') {
+			//for the Server
+			// check option and the arguments length
+			int num = args.length;
+			if (num < 4) {
 				return false;
-			else if (opt == 'i' || opt == 'L' || opt == 'D')
-				if (num != 7)
+			}
+			char opt = args[4].charAt(1);	
+			// Check if the number of arguments corresponds to the given operation
+			if (opt == 'a' || opt == 'l' || opt == 'g' || opt == 'f' || opt == 'r') {
+				if (num != 6) {
 					return false;
-				else if (opt == 'c')
-					if (num != 8)
+				} else if (opt == 'i' || opt == 'L' || opt == 'D') {
+					if (num != 7) {
 						return false;
-					else
-						return true;
+					} else if (opt == 'c') {
+						if (num != 8) {
+							return false;
+						} else {
+							return true;
+						}
+					}
+				}
+			}
+		} else {
+			//for the ManUsers
+			return checkArgsManUsers(args);
+		}
 		return true;
+	}
+
+	/**
+	 * Checks the validity of the given args to communicate with ManUsers.
+	 * @return true if the given arguments are valid, false otherwise.
+	 */
+	private static boolean checkArgsManUsers(String[] args) {
+		String operation = args[4];
+		int messageLength = args.length - 3;
+		switch (operation) {
+		case addUser: {
+			if (message.length == 3) {
+				addUser(message[1], message[2]);
+			} else {
+				System.out.println("Invalid arguments for addUser.");
+			}
+		}
+		case removeUser: {ALSO NEEDS THE PASSWORD
+			if (message.length == 2) {
+				removeUser(message[1]);
+			} else {
+				System.out.println("Invalid arguments for removeUser.");
+			}
+		}
+		case updatePassword: {
+			if (message.length == 4) {
+				updatePassword(message[1], message[2], message[3]);
+			} else {
+				System.out.println("Invalid arguments for changePassword.");
+			}
+		}
+		}
 	}
 
 	/**

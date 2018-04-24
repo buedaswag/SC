@@ -58,20 +58,15 @@ class ServerThread extends Thread {
 			} catch (ClassNotFoundException e1) {
 				e1.printStackTrace();
 			}
-			//TODO wrong password
 			authenticate(localUserId, password);
-
 			// Execute the requested operation
 			executeOperation(localUserId, args, inStream);
-
 			// close stream and socket
 			inStream.close();
 			socket.close();
-
 			//close the thread
 			System.out.println("thread: closing");
 			return;
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -189,6 +184,9 @@ class ServerThread extends Thread {
 			result = Server.getInstance().copyPhotos(localUserId, copiedUserId);
 			sendError(result);
 			break;
+		}
+		default: {
+			System.out.println("Unknown operation.");
 		}
 		}
 	}

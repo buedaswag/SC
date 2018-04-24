@@ -5,3 +5,4 @@ photoName - String variable referencing the name of a photo (with the file exten
 	<name>.<extention>)
 photoFile - the File object representing the photo
 usersTxt - file with <userId>:<password> lines
+usersTxtContent - the String[] representation of the usersTxt file content.
