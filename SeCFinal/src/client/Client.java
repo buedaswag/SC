@@ -36,25 +36,37 @@ public class Client {
 			System.out.println("Invalid arguments!");
 			return;
 		}
-
 		// Registers the session variables
 		userID = args[1];
 		pass = args[2];
 		serverAddress = args[3];
-		char option = args[4].charAt(1);
-
+		String option = args[4];
 		handlerTCP = new ClientNetworkHandler(serverAddress);
-
 		// Authenticates the user and does the operation he asked for
-		authenticate(userID, pass);
 		switch (option) {
-		// === ADD PHOTOS (-a)
-		case 'a': {
+		case addUser: {
+			String[] message = {addUser, userID, pass};
+			handlerTCP.send(message);
+			break;
+		}
+		case removeUser: {
+			String[] message = {removeUser, userID, pass};
+			handlerTCP.send(message);
+			break;
+		}
+		case updatePassword: {
+			String[] message = {updatePassword, userID, pass, args[5]};
+			handlerTCP.send(message);
+			break;
+		}
+		case "-a": {
+			authenticate(userID, pass);
 			addPhotos("a", args[5]);
 			break;
 		}
 		// === ADDS A COMMENT (-c)
-		case 'c': {
+		case "-c": {
+			authenticate(userID, pass);
 			String comment = args[5];
 			String user = args[6];
 			String photo = args[7];
@@ -62,46 +74,53 @@ public class Client {
 			break;
 		}
 		// === LIKES A PHOTO (-L)
-		case 'L': {
+		case "-L": {
+			authenticate(userID, pass);
 			String user = args[5];
 			String photo = args[6];
 			addLike(user, photo);
 			break;
 		}
 		// === DISLIKES A PHOTO (-D)
-		case 'D': {
+		case "-D": {
+			authenticate(userID, pass);
 			String dislikedUser = args[5];
 			String photo = args[6];
 			addDislike(dislikedUser, photo);
 			break;
 		}
 		// === ADDS FOLLOWERS (-f)
-		case 'f': {
+		case "-f": {
+			authenticate(userID, pass);
 			String followers = args[5];
 			addFollowers(followers);
 			break;
 		}
 		// === REMOVES FOLLOWERS (-r)
-		case 'r': {
+		case "r": {
+			authenticate(userID, pass);
 			String followersToRemove = args[5];
 			removeFollowers(followersToRemove);
 			break;
 		}
 		// === LISTS PHOTOS (-l)
-		case 'l': {
+		case "l": {
+			authenticate(userID, pass);
 			String userToList = args[5];
 			listPhotos(userToList);
 			break;
 		}
 		// === GET INFO (-i)
-		case 'i': {
+		case "-i": {
+			authenticate(userID, pass);
 			String userToList = args[5];
 			String photo = args[6];
 			getInfo(userToList, photo);
 			break;
 		}
 		// === SAVE PHOTOS (-g)
-		case 'g': {
+		case "-g": {
+			authenticate(userID, pass);
 			String copiedUserser = args[5];
 			savePhotos(copiedUserser);
 			break;
@@ -110,7 +129,6 @@ public class Client {
 			System.out.println("Operation not recognized!");
 			break;
 		}
-
 		}
 
 		// print the message received from the server
@@ -470,30 +488,27 @@ public class Client {
 	 */
 	private static boolean checkArgsManUsers(String[] args) {
 		String operation = args[4];
-		int messageLength = args.length - 3;
 		switch (operation) {
 		case addUser: {
-			if (message.length == 3) {
-				addUser(message[1], message[2]);
-			} else {
-				System.out.println("Invalid arguments for addUser.");
+			if (args.length == 5) {
+				return true;
 			}
+			break;
 		}
-		case removeUser: {ALSO NEEDS THE PASSWORD
-			if (message.length == 2) {
-				removeUser(message[1]);
-			} else {
-				System.out.println("Invalid arguments for removeUser.");
+		case removeUser: {
+			if (args.length == 5) {
+				return true;
 			}
+			break;
 		}
 		case updatePassword: {
-			if (message.length == 4) {
-				updatePassword(message[1], message[2], message[3]);
-			} else {
-				System.out.println("Invalid arguments for changePassword.");
+			if (args.length == 6) {
+				return true;
 			}
+			break;
 		}
 		}
+		return false;
 	}
 
 	/**
@@ -514,7 +529,6 @@ public class Client {
 		} catch (ArrayIndexOutOfBoundsException e) {
 			return false;
 		}
-
 		// check the port
 		if (port < 0 || port > 65535)
 			return false;

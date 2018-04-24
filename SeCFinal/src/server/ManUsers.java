@@ -133,8 +133,8 @@ public class ManUsers {
 				System.out.println("Invalid arguments for addUser.");
 			}
 		}
-		case removeUser: {ALSO NEEDS THE PASSWORD
-			if (message.length == 2) {
+		case removeUser: {
+			if (message.length == 3) {
 				removeUser(message[1]);
 			} else {
 				System.out.println("Invalid arguments for removeUser.");
@@ -176,6 +176,7 @@ public class ManUsers {
 	 * @param localUserId
 	 * @throws IOException 
 	 */
+	//TODO check password
 	public static void removeUser(String localUserId) throws IOException {
 		//get the String[] representation of the usersTxt file
 		Collection<String> usersTxtContent = fileToStringCollection(usersTxt);

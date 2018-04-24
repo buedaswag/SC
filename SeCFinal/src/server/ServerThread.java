@@ -133,7 +133,6 @@ class ServerThread extends Thread {
 			String comment = newArgs[0];
 			String commentedUserId = newArgs[1];
 			String photoName = newArgs[2];
-
 			/*
 			 * ask the server to add this comment,
 			 * and sends an error message if the localUser is not a follower
