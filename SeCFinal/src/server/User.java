@@ -135,12 +135,13 @@ public class User {
 	
 	/**
 	 * Creates and inserts a new user with the given credentials. Ciphers the password.
-	 * This method is only used by ManUsers.
+	 * This method is only used by ManUsers. Protects the file with a MAC.
 	 * @param localUserId
 	 * @param password
 	 * @return
 	 * @throws IOException 
 	 */
+	//TODO MAC PROTECT THE FILE
 	public static void insert(String localUserId, String password) throws IOException {
 		FileWriter fileWriter = new FileWriter(usersTxt, true);
 		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
@@ -149,6 +150,7 @@ public class User {
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
+		//TODO MAC PROTECT THE FILE
 		//create localUser's directory
 		String localUserDirName = databaseRootDirName + fileSeparator + localUserId;
 		File localUserDir = new File(localUserDirName);
@@ -214,6 +216,7 @@ public class User {
 	 * @param usersTxtContent - the content of the usersTxt file before the removal.
 	 * @throws IOException 
 	 */
+	//TODO MAC PROTECT THE FILE
 	protected static void remove(String localUserId, Collection<String> usersTxtContent) 
 			throws IOException {
 		//delete old file
@@ -227,6 +230,7 @@ public class User {
 			buffWriter.newLine();
 		}
 		buffWriter.close();
+		//TODO MAC PROTECT THE FILE
 		removeAllFollower(localUserId, usersTxtContent);
 		//delete the user folder and all its files and sub-directories
 		String userDirName = databaseRootDirName + fileSeparator + localUserId;
@@ -248,7 +252,6 @@ public class User {
 	 * @param usersTxtContent - the content of the usersTxt file before the removal.
 	 * @throws IOException 
 	 */
-	//TODO CIPHER THE FILE
 	protected static void updatePassword(String localUserId, String newPassword, Collection<String> usersTxtContent) 
 			throws IOException {
 		//delete old file
