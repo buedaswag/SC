@@ -8,6 +8,10 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 /**
  * 
  * @author Antonio Dias 47811
@@ -30,11 +34,16 @@ public class ClientNetworkHandler {
 	 * @throws IOException
 	 */
 	protected ClientNetworkHandler(String serverAddress) throws IOException {
+		System.setProperty("javax.net.ssl.trustStore", "client.keystore");
+		System.setProperty("javax.net.ssl.trustStorePassword", "123456");
+		
 		String[] param = serverAddress.split(":");
 		addr = param[0];
 		port = Integer.parseInt(param[1]);
 
-		this.socket = new Socket(addr, port);
+		SocketFactory ssf = SSLSocketFactory.getDefault();
+		this.socket = (SSLSocket) ssf.createSocket(addr, port);
+		
 		outStream = new ObjectOutputStream(socket.getOutputStream());
 		System.out.println("In the client, after connecting through the socket");
 	}

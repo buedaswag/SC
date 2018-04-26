@@ -7,4 +7,6 @@ grant codeBase "file:bin/*" {
 	permission java.io.FilePermission "database/-", "read,write,delete";
 	permission java.util.PropertyPermission "user.dir", "read";
 	permission java.util.PropertyPermission "file.separator", "read";
+	permission java.util.PropertyPermission "javax.net.ssl.keyStore", "write";
+	permission java.util.PropertyPermission "javax.net.ssl.keyStorePassword", "write";
 };

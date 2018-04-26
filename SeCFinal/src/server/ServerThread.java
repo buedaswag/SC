@@ -213,7 +213,7 @@ class ServerThread extends Thread {
 		 */
 		FileOutputStream fos;
 		byte[] buffer = new byte[1024];
-		int filesize = 0, read = 0, remaining = 0, totalRead = 0;
+		int filesize = 0, read = 0, remaining = 0;
 
 		for (String name : newArgs) {
 			/*
@@ -232,13 +232,11 @@ class ServerThread extends Thread {
 			remaining = filesize;
 			while((read = inStream.read(buffer, 0, 
 					Math.min(buffer.length, remaining))) > 0) {
-				totalRead += read;
 				remaining -= read;
 				fos.write(buffer, 0, read);
 			}
 			//close FileOutputStream, reset variavles
 			fos.close();
-			totalRead = 0;
 		}
 		return photosPath;
 	}

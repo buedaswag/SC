@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.regex.Pattern;
-import java.net.InetAddress;
 
 /**
  * 
@@ -115,7 +114,7 @@ public class Client {
 	// ================== OPERATIONS ================== //
 
 	/**
-	 * Try´s to authenticate the user
+	 * Tryï¿½s to authenticate the user
 	 * 
 	 * @param userID
 	 *            the userid
@@ -487,6 +486,6 @@ public class Client {
 	 * @return
 	 */
 	private static boolean validateIP(String ip) {
-		return ipPattern.matcher(ip).matches();
+		return ipPattern.matcher(ip).matches() || ip.equals("localhost");
 	}
 }
