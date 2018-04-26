@@ -9,9 +9,23 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+
+import crypto_ponto4.Crypto;
 
 /**
  * Represents a like made by likerUser in a Photo
@@ -26,6 +40,7 @@ public class Like {
 	 */
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static final String likesTxtName = "likes.txt";
+	private static final String likesSigName = "likes.txt.sig";
 	private static FileReader fileReader;
 	private static BufferedReader buffReader;
 
@@ -34,11 +49,31 @@ public class Like {
 	 * @param photoDirectorie
 	 * @return likes
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
+	 * @throws ClassNotFoundException 
 	 */
-	protected static Queue<Like> findAll(File photoDirectorie) throws IOException {
+	protected static Queue<Like> findAll(File photoDirectorie) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
 		//create the buffers for reading from the file and the Queue
 		Queue<Like> likes = new LinkedList<>();
 		File likesTxt = new File(photoDirectorie + fileSeparator + likesTxtName);
+		File likesSig = new File(photoDirectorie + fileSeparator + likesSigName);
+		
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.getInstance().decipherFile(likesTxt, sk);
+		if(likesSig.exists()) {
+			boolean isValid = Crypto.getInstance().checkSignature(likesTxt, likesSig);
+			if(!isValid)
+				throw new SecurityException("ERROR: Invalid file signature!");
+		}
 		fileReader = new FileReader(likesTxt);
 		buffReader = new BufferedReader(fileReader);
 		String line;
@@ -52,6 +87,7 @@ public class Like {
 		}
 		fileReader.close();
 		buffReader.close();
+		Crypto.getInstance().cipherFile(likesTxt, sk);
 		return likes;
 	}
 
@@ -105,8 +141,18 @@ public class Like {
 	 * @param photoName
 	 * @return like
 	 * @throws IOException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws BadPaddingException 
+	 * @throws SignatureException 
 	 */
-	protected static Like insert(String likedUserId, String likerUserId, String photoName) throws IOException {
+	protected static Like insert(String likedUserId, String likerUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		String line = likerUserId;
 		File likesTxt = new File(
 				databaseRootDirName + fileSeparator + 
@@ -118,6 +164,9 @@ public class Like {
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.getInstance().signFile(likesTxt);
+		Crypto.getInstance().cipherFile(likesTxt, sk);
 		return new Like(likerUserId);
 	}
 	

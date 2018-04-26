@@ -1,13 +1,12 @@
 package crypto_ponto4;
 
-import java.awt.RenderingHints.Key;
-import java.io.DataInputStream;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -15,6 +14,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -25,13 +26,27 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 public class Crypto {
 
+	private static Crypto crypto = null;
+	private static SecretKey SECRET_KEY = null;
+	private static PrivateKey PRIVATE_KEY = null;
+	
 	private static File secretKeyDir = new File("secret_key");
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static File secretKeyFile = new File(secretKeyDir + fileSeparator + "secretKey.key");
+	
+	public static Crypto getInstance() throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
+		if(crypto == null)
+			crypto = new Crypto();
+		return crypto;
+	}
+	
+	private Crypto () throws UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, IOException {
+		SECRET_KEY = getSecretKey();
+		PRIVATE_KEY = privateKey("server","myKeys.keystore");
+	}
 
 	/**  Gets the secret key from the server, stored in the secretKeyDir. If it doesnt exist creates one
 	 * 
@@ -149,13 +164,12 @@ public class Crypto {
 		byte[] outputBytes = c.doFinal(inputBytes);
 
 		// o ficheiro a retornar
-		File ficheiroDecifrado = new File("servidor\\decifrado.txt");
-		FileOutputStream outputStream = new FileOutputStream(ficheiroDecifrado);
+		FileOutputStream outputStream = new FileOutputStream(ficheiroADecifrar);
 		// escreve conteudo cifrado para o ficheiro a retornar
 		outputStream.write(outputBytes);
 
-		fis.close();
 		outputStream.close();
+		fis.close();
 
 
 
@@ -180,9 +194,10 @@ public class Crypto {
 		kstore.load(kfile, "123456".toCharArray());
 		Certificate cert = kstore.getCertificate(alias);
 
+		PublicKey pk = cert.getPublicKey();
 		kfile.close();
-
-		return cert.getPublicKey();
+		
+		return pk;
 
 	}
 
@@ -205,9 +220,12 @@ public class Crypto {
 		// entrar na loja com a password correta
 		kstore.load(kfile, "123456".toCharArray());
 
+		
+		PrivateKey pk = (PrivateKey) kstore.getKey(alias, "123456".toCharArray());
+		
 		kfile.close();
 
-		return (PrivateKey) kstore.getKey(alias, "123456".toCharArray());
+		return pk;
 
 	}
 
@@ -253,25 +271,52 @@ public class Crypto {
 
 	}
 
-	public static void signFile(File fileToSign, PrivateKey privateKey) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException {
-
+	public static void signFile(File fileToSign) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, SignatureException, UnrecoverableKeyException, KeyStoreException, CertificateException {
+		// create signature engine
+		Signature s = Signature.getInstance("SHA1withRSA");
+		s.initSign(privateKey("server", "myKeys.keystore"));
+		
+		//read data from the given file
 		FileInputStream fis = new FileInputStream(fileToSign);
+		BufferedInputStream bufin = new BufferedInputStream(fis);
+		byte[] buffer = new byte[1024];
+		int len;
+		while ((len = bufin.read(buffer)) >= 0) {
+		    s.update(buffer, 0, len);
+		};
+		bufin.close();
+		
+		byte[] realSig = s.sign();
+		
+		// writes the signature file
+		FileOutputStream sigfos = new FileOutputStream(fileToSign + ".sig");
+		sigfos.write(realSig);
+		sigfos.close();
+	}
+	
+	public boolean checkSignature(File f, File sig) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, ClassNotFoundException, InvalidKeyException, SignatureException, UnrecoverableKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		
+		// gets the data from the plaintext file
+		FileInputStream sigfis = new FileInputStream(f);
+		byte[] sigToVerify = new byte[sigfis.available()]; 
+		sigfis.read(sigToVerify);
+		sigfis.close();
+		
+		Signature s = Signature.getInstance("SHA1withRSA");
+		PublicKey pk = getPublicKey("server", "myKeys.keystore");
+		s.initVerify(pk);
+		
+		FileInputStream datafis = new FileInputStream(sig);
+		BufferedInputStream bufin = new BufferedInputStream(datafis);
 
-		Cipher c =  Cipher.getInstance("RSA");
-		c.init(Cipher.ENCRYPT_MODE, privateKey);
-
-		byte[] inputBytes = new byte[(int) fileToSign.length()];
-
-		fis.read(inputBytes);
-
-		byte[] outputBytes = c.doFinal(inputBytes);
-
-		FileOutputStream fos = new FileOutputStream(fileToSign + ".sig");
-		fos.write(outputBytes);
-
-		fos.close();
-		fis.close();
-
+		byte[] buffer = new byte[1024];
+		int len;
+		while (bufin.available() != 0) {
+		    len = bufin.read(buffer);
+		    s.update(buffer, 0, len);
+		}
+		bufin.close();
+		return s.verify(sigToVerify);
 	}
 
 

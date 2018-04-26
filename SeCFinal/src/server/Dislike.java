@@ -9,8 +9,22 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+
+import crypto_ponto4.Crypto;
 
 /**
  * Represents a dislike made by dislikerUser in a Photo
@@ -25,21 +39,41 @@ public class Dislike {
 	 */
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static final String dislikesTxtName = "dislikes.txt";
+	private static final String dislikesSigName = "dislikes.txt.sig";
+	private static FileReader fileReader;
+	private static BufferedReader buffReader;
 	
 	/**
-	 * Finds all the disdislikes in the photo's directory and loads them into memory.
+	 * Finds all the dislikes in the photo's directory and loads them into memory.
 	 * @param photoDirectorie
-	 * @return disdislikes
+	 * @return dislikes
 	 * @throws IOException 
+	 * @throws NoSuchProviderException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws BadPaddingException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws InvalidKeyException 
+	 * @throws SignatureException 
+	 * @throws ClassNotFoundException 
 	 */
-	protected static Queue<Dislike> findAll(File photoDirectorie) throws IOException {
+	protected static Queue<Dislike> findAll(File photoDirectorie) throws IOException, InvalidKeyException, UnrecoverableKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, NoSuchProviderException, ClassNotFoundException, SignatureException {
 		//create the buffers for reading from the file and the Queue
 		Queue<Dislike> dislikes = new LinkedList<>();
 		File dislikesTxt = new File(photoDirectorie + fileSeparator + dislikesTxtName);
-		FileReader fileReader;
-		BufferedReader buffReader = null;
+		File dislikesSig = new File(photoDirectorie + fileSeparator + dislikesSigName);
+		
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.getInstance().decipherFile(dislikesTxt, sk);
+		if(dislikesSig.exists()) {
+			boolean isValid = Crypto.getInstance().checkSignature(dislikesTxt, dislikesSig);
+			if(!isValid)
+				throw new SecurityException("ERROR: Invalid file signature!");
+		}
 		fileReader = new FileReader(dislikesTxt);
-
 		buffReader = new BufferedReader(fileReader);
 		String line;
 		/*
@@ -52,6 +86,7 @@ public class Dislike {
 		}
 		fileReader.close();
 		buffReader.close();
+		Crypto.getInstance().cipherFile(dislikesTxt, sk);
 		return dislikes;
 	}
 
@@ -105,19 +140,32 @@ public class Dislike {
 	 * @param photoName
 	 * @return dislike
 	 * @throws IOException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws BadPaddingException 
+	 * @throws SignatureException 
 	 */
-	protected static Dislike insert(String dislikedUserId, String dislikerUserId, String photoName) throws IOException {
+	protected static Dislike insert(String dislikedUserId, String dislikerUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		String line = dislikerUserId;
-		File likesTxt = new File(
+		File dislikesTxt = new File(
 				databaseRootDirName + fileSeparator + 
 				dislikedUserId + fileSeparator + 
 				photoName.split("\\.")[0] + fileSeparator + 
 				dislikesTxtName);
-		FileWriter fileWriter = new FileWriter(likesTxt, true);
+		FileWriter fileWriter = new FileWriter(dislikesTxt, true);
 		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
+		Crypto.getInstance().signFile(dislikesTxt);
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.cipherFile(dislikesTxt, sk);
 		return new Dislike(dislikerUserId);
 	}
 	

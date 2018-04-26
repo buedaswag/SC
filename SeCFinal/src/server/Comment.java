@@ -4,8 +4,22 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+
+import crypto_ponto4.Crypto;
 
 /**
  * 
@@ -23,17 +37,38 @@ public class Comment {
 	 */
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static final String commentsTxtName = "comments.txt";
+	private static final String commentsSigName = "comments.txt.sig";
 	
 	/**
 	 * Finds all the comments in the photo's directory and loads them into memory.
 	 * @param photoDirectorie
 	 * @return comments
 	 * @throws IOException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws BadPaddingException 
+	 * @throws SignatureException 
+	 * @throws ClassNotFoundException 
 	 */
-	protected static Queue<Comment> findAll(File photoDirectorie) throws IOException {
+	protected static Queue<Comment> findAll(File photoDirectorie) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
 		//create the buffers for reading from the file and the Queue
 		Queue<Comment> comments = new LinkedList<>();
 		File commentsTxt = new File(photoDirectorie + fileSeparator + commentsTxtName);
+		File commentsSig = new File(photoDirectorie + fileSeparator + commentsSigName);
+		
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.getInstance().decipherFile(commentsTxt, sk);
+		if(commentsSig.exists()) {
+			boolean isValid = Crypto.getInstance().checkSignature(commentsTxt, commentsSig);
+			if(!isValid)
+				throw new SecurityException("ERROR: Invalid file signature!");
+		}
 		FileReader fileReader;
 		BufferedReader buffReader = null;
 		fileReader = new FileReader(commentsTxt);
@@ -50,6 +85,7 @@ public class Comment {
 		}
 		fileReader.close();
 		buffReader.close();
+		Crypto.getInstance().cipherFile(commentsTxt, sk);
 		return comments;
 	}
 
@@ -109,9 +145,19 @@ public class Comment {
 	 * @param photoName - the name of the commentedUser's photo
 	 * @return comment
 	 * @throws IOException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws BadPaddingException 
+	 * @throws SignatureException 
 	 */
 	public static Comment insert(String commentedUserId, String commenterUserId, String comment, 
-			String photoName) throws IOException {
+			String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		String line = commenterUserId + ":" + comment;
 		File commentsTxt = new File(databaseRootDirName + fileSeparator + commentedUserId + 
 				fileSeparator + photoName.split("\\.")[0] + fileSeparator + commentsTxtName);
@@ -120,6 +166,9 @@ public class Comment {
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
+		Crypto.getInstance().signFile(commentsTxt);
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.cipherFile(commentsTxt, sk);
 		return new Comment(commenterUserId, comment);
 	}
 
