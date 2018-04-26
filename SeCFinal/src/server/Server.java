@@ -97,12 +97,13 @@ public class Server {
 			if (users.get(localUserId).getPassword().equals(password)) {
 				return true;
 			} else {
+				System.out.println("Wrong password!");
 				return false;
 			}
 		}
-		// Case 2: user doesn't exist, adds him to the database and program memory
-		users.put(localUserId, User.insert(localUserId, password));
-		return true;
+		// Case 2: user doesn't exist, print an error
+		System.out.println("Unregistered user!");
+		return false;
 	}
 
 	/**

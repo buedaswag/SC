@@ -52,26 +52,22 @@ class ServerThread extends Thread {
 				localUserId = (String) inStream.readObject();
 				password = (String) inStream.readObject();
 				System.out.println("thread: after receiving the password and the localUserId");
-				authenticate(localUserId, password);
 				// get the arguments for the operation
 				args = (String[]) inStream.readObject();
 			} catch (ClassNotFoundException e1) {
 				e1.printStackTrace();
 			}
-			//TODO wrong password
-			authenticate(localUserId, password);
-
-			// Execute the requested operation
-			executeOperation(localUserId, args, inStream);
-
-			// close stream and socket
-			inStream.close();
-			socket.close();
-
+			//TODO print a response on the client.
+			if (authenticate(localUserId, password)) {
+				// Execute the requested operation
+				executeOperation(localUserId, args, inStream);
+				// close stream and socket
+				inStream.close();
+				socket.close();
+			}
 			//close the thread
 			System.out.println("thread: closing");
 			return;
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -92,10 +88,11 @@ class ServerThread extends Thread {
 	 * 
 	 * @param localUserId
 	 * @param password
+	 * @return 
 	 * @throws IOException
 	 */
-	private void authenticate(String localUserId, String password) throws IOException {
-		Server.getInstance().authenticate(localUserId, password);
+	private boolean authenticate(String localUserId, String password) throws IOException {
+		return Server.getInstance().authenticate(localUserId, password);
 	}
 
 	/**
@@ -138,7 +135,6 @@ class ServerThread extends Thread {
 			String comment = newArgs[0];
 			String commentedUserId = newArgs[1];
 			String photoName = newArgs[2];
-
 			/*
 			 * ask the server to add this comment,
 			 * and sends an error message if the localUser is not a follower
@@ -189,6 +185,9 @@ class ServerThread extends Thread {
 			result = Server.getInstance().copyPhotos(localUserId, copiedUserId);
 			sendError(result);
 			break;
+		}
+		default: {
+			System.out.println("Unknown operation.");
 		}
 		}
 	}
