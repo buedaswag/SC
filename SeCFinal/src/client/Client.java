@@ -5,9 +5,6 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 
-import server.ALSO;
-import server.THE;
-
 import java.net.InetAddress;
 
 /**
@@ -97,14 +94,14 @@ public class Client {
 			break;
 		}
 		// === REMOVES FOLLOWERS (-r)
-		case "r": {
+		case "-r": {
 			authenticate(userID, pass);
 			String followersToRemove = args[5];
 			removeFollowers(followersToRemove);
 			break;
 		}
 		// === LISTS PHOTOS (-l)
-		case "l": {
+		case "-l": {
 			authenticate(userID, pass);
 			String userToList = args[5];
 			listPhotos(userToList);

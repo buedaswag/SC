@@ -7,7 +7,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 
@@ -38,6 +42,7 @@ public class User {
 	 * Map if there are no users yet
 	 * @throws IOException 
 	 */
+	//TODO decipher password
 	protected static Map<String, User> findAll () throws IOException {
 		//the Map to be returned
 		Map<String, User> users = new Hashtable<>();
@@ -61,11 +66,11 @@ public class User {
 			 */
 			String line;
 			while ((line = buffReader.readLine()) != null) {
-				// splits the line in the form 'userId:password'
-				String[] userCredentials = line.split(":");
+				// splits the line in the form userId:salt:salted_password_hash
+				String[] userCredentials = getCipheredCredentials(line);
 				//adds the user to the map
 				users.put(userCredentials[0], User.find(userCredentials[0], 
-						userCredentials[1]));
+						userCredentials[1], userCredentials[2]));
 			}
 			buffReader.close();
 		}
@@ -75,11 +80,13 @@ public class User {
 	/**
 	 * Find all the information necessary to load the user with the given credentials to memory
 	 * (followers and photos).
-	 * @param userId - userId and password of the user to be found
+	 * @param userId - userId of the user to be found.
+	 * @param salt - the salt used to cipher the password of the user to be found.
+	 * @param password - the ciphered password of the user to be found.
 	 * @return user - The constructed user with all its information loaded to memory.
 	 * @throws IOException 
 	 */
-	private static User find(String userId, String password) throws IOException {
+	private static User find(String userId, String salt, String password) throws IOException {
 		//the User to be returned
 		User user = null;
 		//get the followers
@@ -87,7 +94,7 @@ public class User {
 		//get the photos
 		Collection<Photo> photos = Photo.findAll(userId);
 		//load the user
-		user = User.load(userId, password, followers, photos);
+		user = User.load(userId, salt, password, followers, photos);
 		return user;
 	}
 
@@ -98,34 +105,27 @@ public class User {
 	 * The Collection will be empty if there are no followers
 	 * @throws IOException 
 	 */
+	//TODO introduce cryptography
 	private static Collection<String> findFollowers(String userId) throws IOException {
 		//get the followersTxt file
 		File followersTxt = new File(databaseRootDirName + fileSeparator + userId + fileSeparator 
 				+ followersTxtName);
 		//the Collection to store the followUserIds
-		Collection<String> followers = new LinkedList<>();
-		FileReader fileReader;
-		BufferedReader buffReader = null;
-		fileReader = new FileReader(followersTxt);
-		buffReader = new BufferedReader(fileReader);
-		String followerUserId;
-		while ((followerUserId = buffReader.readLine()) != null) {
-			followers.add(followerUserId);
-		}
-		buffReader.close();
+		Collection<String> followers = cipheredFileToStringCollection(followersTxt);
 		return followers;
 	}
 
 	/**
 	 * Constructs a User object with the given parameters
 	 * @param userId
-	 * @param password
+	 * @param salt - the salt used to cipher the password of the user to be found.
+	 * @param password - the ciphered password of the user to be found.
 	 * @param followers
 	 * @param photos
 	 */
-	private static User load(String userId, String password, Collection<String> followers,
+	private static User load(String userId, String salt, String password, Collection<String> followers,
 			Collection<Photo> photos) {
-		return new User(userId, password, followers, photos);
+		return new User(userId, salt, password, followers, photos);
 	}
 
 	/**********************************************************************************************
@@ -152,9 +152,12 @@ public class User {
 		//create localUser's directory
 		String localUserDirName = databaseRootDirName + fileSeparator + localUserId;
 		File localUserDir = new File(localUserDirName);
-		localUserDir.mkdir();
-		//create the followersTxt file
-		new File(localUserDirName + fileSeparator + followersTxtName).createNewFile();
+		//in case the directory doesn't exist yet, create it.
+		if (!localUserDir.exists()) {
+			localUserDir.mkdir();
+			//create the followersTxt file
+			new File(localUserDirName + fileSeparator + followersTxtName).createNewFile();
+		}
 	}
 
 	/**
@@ -183,6 +186,7 @@ public class User {
 	 * @param followers
 	 * @throws IOException 
 	 */
+	//TODO introduce cryptography
 	private static void updateFollowers(String localUserId, Collection<String> followers) throws IOException {
 		// Opens resources and necessary streams
 		File followersTxt = new File(databaseRootDirName + fileSeparator + localUserId + 
@@ -197,6 +201,7 @@ public class User {
 			buffWriter.write(followUserId);
 			buffWriter.newLine();
 		}
+		//TODO CIPHER THE FILE
 		buffWriter.close();
 	}
 	
@@ -209,7 +214,7 @@ public class User {
 	 * @param usersTxtContent - the content of the usersTxt file before the removal.
 	 * @throws IOException 
 	 */
-	private static void remove(String localUserId, Collection<String> usersTxtContent) 
+	protected static void remove(String localUserId, Collection<String> usersTxtContent) 
 			throws IOException {
 		//delete old file
 		usersTxt.delete();
@@ -223,11 +228,47 @@ public class User {
 		}
 		buffWriter.close();
 		removeAllFollower(localUserId, usersTxtContent);
+		//delete the user folder and all its files and sub-directories
+		String userDirName = databaseRootDirName + fileSeparator + localUserId;
+		Path rootPath = Paths.get(userDirName);     
+		final List<Path> pathsToDelete = Files.walk(rootPath).sorted(Comparator.reverseOrder()).
+				collect(Collectors.toList());
+		for(Path path : pathsToDelete) {
+		    Files.deleteIfExists(path);
+		}
+	}
+	
+	/**
+	 * Updates the given user's password in the usersTxt file.
+	 * This method is only used by ManUsers. Deletes the old usersTxt and creates a new one with 
+	 * the content of the old one with the given user's password updated.
+	 * @requires localUser was already removed from usersTxtContent. 
+	 * @param localUserId
+	 * @param newPassword
+	 * @param usersTxtContent - the content of the usersTxt file before the removal.
+	 * @throws IOException 
+	 */
+	//TODO CIPHER THE FILE
+	protected static void updatePassword(String localUserId, String newPassword, Collection<String> usersTxtContent) 
+			throws IOException {
+		//delete old file
+		usersTxt.delete();
+		//create new file without the given user
+		usersTxt.createNewFile();
+		FileWriter fileWriter = new FileWriter(usersTxt, true);
+		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
+		for (String line : usersTxtContent) {
+			buffWriter.write(line);
+			buffWriter.newLine();
+		}
+		buffWriter.close();
+		User.insert(localUserId, newPassword);
 	}
 	
 	/**
 	 * Removes the given user from the followersTxt file of every user in the system.
 	 * This method is only used by ManUsers.
+	 * Deciphers to read and ciphers again 
 	 * @requires localUser was already removed from usersTxt file. 
 	 * @param localUserId - the user to be removed.
 	 * @param usersTxtContent - the content of the usersTxt file before the removal.
@@ -257,9 +298,52 @@ public class User {
 	 * @param password
 	 * @return cipheredPassword
 	 */
+	//TODO
 	private static String cipherPassword(String password) {
-		String cipheredPassword = password;
+		String cipheredPassword = "salt:" + password;
 		return cipheredPassword;
+	}
+	
+	/**
+	 * Deciphers the given file and returns its content as a String[]
+	 * @param file
+	 * @return fileContent - the String[] representation of the given file
+	 * @throws IOException 
+	 */
+	//TODO DECIPHER THE FILE
+	private static Collection<String> cipheredFileToStringCollection(File file) 
+			throws IOException {
+		//get the Collection<String>
+		Collection<String> lines = new LinkedList<>();
+		FileReader fileReader;
+		BufferedReader buffReader = null;
+		/*
+		 * TODO
+		 * DECIPHER THE FILE
+		 * GET THE STRING COLLECTION
+		 * DELETE THE DECYPHERED FILE AND KEEP THE CYPHERED ONE
+		 */
+		fileReader = new FileReader(file);
+		buffReader = new BufferedReader(fileReader);
+		String line;
+		while ((line = buffReader.readLine()) != null) {
+			lines.add(line);
+		}
+		buffReader.close();
+		return lines;
+	}
+	
+	/**
+	 * Deciphers the user's credentials present in the given line according to the default 
+	 * strategy.
+	 * @param line
+	 * @return
+	 */
+	//TODO
+	private static String[] getCipheredCredentials(String line) {
+		//TODO DECIPHER LINE
+		String[] userCredentials = line.split(":");
+		return userCredentials;
 	}
 	
 	/**********************************************************************************************
@@ -267,6 +351,7 @@ public class User {
 	 **********************************************************************************************
 	 */
 	private String userId;
+	private String salt;
 	private String password;
 	private Collection<String> followers;
 	private Collection<Photo> photos;
@@ -287,13 +372,15 @@ public class User {
 	/**
 	 * Constructs a new User object from the given parameters. 
 	 * @param userId
+	 * @param salt
 	 * @param password
 	 * @param followers
 	 * @param photos
 	 */
-	private User(String userId, String password, Collection<String> followers,
+	private User(String userId, String salt, String password, Collection<String> followers,
 			Collection<Photo> photos) {
 		this.userId = userId;
+		this.salt = salt;
 		this.password = password;
 		this.followers = followers;
 		this.photos = photos;
@@ -440,10 +527,18 @@ public class User {
 	protected String getUserId() {
 		return userId;
 	}
+	
+	/**
+	 * 
+	 * @return this user's salt, used to cipher the password.
+	 */
+	protected String getSalt() {
+		return salt;
+	}
 
 	/**
 	 * 
-	 * @return this user's password
+	 * @return this user's salted_password_hash
 	 */
 	protected String getPassword() {
 		return password;

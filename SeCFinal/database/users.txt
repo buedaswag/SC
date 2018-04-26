@@ -1,1 +1,3 @@
-antonio:passantonio
+max:salt:passmax
+miguel:salt:passmiguel
+antonio:salt:newpassantonio

@@ -34,6 +34,9 @@ public class ManUsers {
 	private static final String wrongMac = 
 			"The usersTxt file has a wrong MAC, the file is compromised!";
 	private static final String notMacProtected = "The usersTxt file was not MAC protected";
+	private static final String wrongCredentials = "Wrong credentials!";
+	private static final String existingUser = "This user was already added!";
+	
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		//set up the database
 		if (!setupDatabase()) {
@@ -143,7 +146,6 @@ public class ManUsers {
 		case addUser: {
 			if (message.length == 3) {
 				addUser(message[1], message[2]);
-				System.out.println(addUser + " successfully executed!");
 			} else {
 				System.out.println("Invalid arguments for addUser.");
 			}
@@ -151,8 +153,7 @@ public class ManUsers {
 		}
 		case removeUser: {
 			if (message.length == 3) {
-				removeUser(message[1]);
-				System.out.println(removeUser + " successfully executed!");
+				removeUser(message[1], message[2]);
 			} else {
 				System.out.println("Invalid arguments for removeUser.");
 			}
@@ -161,7 +162,6 @@ public class ManUsers {
 		case updatePassword: {
 			if (message.length == 4) {
 				updatePassword(message[1], message[2], message[3]);
-				System.out.println(updatePassword + " successfully executed!");
 			} else {
 				System.out.println("Invalid arguments for changePassword.");
 			}
@@ -182,27 +182,30 @@ public class ManUsers {
 	 */
 	public static void addUser(String localUserId, String password) throws IOException {
 		//get the String[] representation of the usersTxt file
-		Collection<String> usersTxtContent = fileToStringCollection(usersTxt);
+		Collection<String> usersTxtContent = plainFileToStringCollection(usersTxt);
 		//check if the user was already added
 		for (String line : usersTxtContent) {
 			if (line.startsWith(localUserId)) {
+				System.out.println(existingUser);
 				return;
 			}
 		}
-		//Inserts the user
+		//Inserts the user and ciphers the password.
 		User.insert(localUserId, password);
+		System.out.println(addUser + " successfully executed!");
 	}
 
 	/**
-	 * Removes a line from the usersTxt file, in the format localUserId:salt:salted_password_hash,
-	 * in which localUserId is the given localUserId.
+	 * Removes the user with the given userId from the system, including the usersTxt, the 
+	 * corresponding user folder, and from every followersTxt file.
+	 * Checks if the password given is correct, and does nothing if it's not correct.
 	 * @param localUserId
+	 * @param password
 	 * @throws IOException 
 	 */
-	//TODO check password
-	public static void removeUser(String localUserId) throws IOException {
+	public static void removeUser(String localUserId, String password) throws IOException {
 		//get the String[] representation of the usersTxt file
-		Collection<String> usersTxtContent = fileToStringCollection(usersTxt);
+		Collection<String> usersTxtContent = plainFileToStringCollection(usersTxt);
 		//check if the user was already added
 		String userLine = null;
 		Iterator<String> iterator = usersTxtContent.iterator();
@@ -212,11 +215,14 @@ public class ManUsers {
 				userLine = line;
 			}
 		}
-		if (userLine != null) {
+		if (userLine != null && checkPassword(userLine, password)) {
 			//Removes the user from the collection
 			usersTxtContent.remove(userLine);
-			//removes the user from the file
-			remove(localUserId, usersTxtContent);
+			//removes the user from the system
+			User.remove(localUserId, usersTxtContent);
+			System.out.println(removeUser + " successfully executed!");
+		} else {
+			System.out.println(wrongCredentials);
 		}
 	}
 
@@ -231,22 +237,25 @@ public class ManUsers {
 	 */
 	public static void updatePassword(String localUserId, String oldPassword, String newPassword) throws IOException {
 		//get the String[] representation of the usersTxt file
-		Collection<String> usersTxtContent = fileToStringCollection(usersTxt);
+		Collection<String> usersTxtContent = plainFileToStringCollection(usersTxt);
 		//check if the user was already added
-		for (String line : usersTxtContent) {
+		String userLine = null;
+		Iterator<String> iterator = usersTxtContent.iterator();
+		while (iterator.hasNext() && userLine == null) {
+			String line = iterator.next();
 			if (line.startsWith(localUserId)) {
-				if (checkPassword(line, oldPassword)) {
-					//Removes the user from the collection
-					usersTxtContent.remove(line);
-					//removes the user from the file
-					remove(localUserId, usersTxtContent);
-				} else {
-					return;
-				}
+				userLine = line;
 			}
 		}
-		//Inserts the user
-		insert(localUserId, newPassword);
+		if (userLine != null && checkPassword(userLine, oldPassword)) {
+			//Removes the user from the collection
+			usersTxtContent.remove(userLine);
+			//removes the user from the system
+			User.updatePassword(localUserId, newPassword, usersTxtContent);
+			System.out.println(updatePassword + " successfully executed!");
+		} else {
+			System.out.println(wrongCredentials);
+		}
 	}
 
 	/**
@@ -273,69 +282,21 @@ public class ManUsers {
 	}
 
 	/**
-	 * Inserts the user with the given credentials in the usersTxt file
-	 * @requires there is no user already added with the given localUserId.
-	 * @param localUserId
-	 * @param password
-	 * @param usersTxtContent - the content of the previous file
-	 * @throws IOException 
-	 */
-	private static void insert(String localUserId, String password) throws IOException {
-		FileWriter fileWriter = new FileWriter(usersTxt, true);
-		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
-		//add the line in the usersTxt file corresponding to the user
-		String line = localUserId + ":" + cipher(password);
-		buffWriter.write(line);
-		buffWriter.newLine();
-		buffWriter.close();
-	}
-
-	/**
-	 * Removes a user from the usersTxt file.
-	 * @requires localUser was already removed from usersTxtContent. 
-	 * @param localUserId
-	 * @param usersTxtContent - the content of the usersTxt file before the removal.
-	 * @throws IOException 
-	 */
-	private static void remove(String localUserId, Collection<String> usersTxtContent) 
-			throws IOException {
-		//delete old file
-		usersTxt.delete();
-		//create new file
-		usersTxt.createNewFile();
-		FileWriter fileWriter = new FileWriter(usersTxt, true);
-		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
-		for (String line : usersTxtContent) {
-			buffWriter.write(line);
-			buffWriter.newLine();
-		}
-		buffWriter.close();
-	}
-
-	/**
-	 * Ciphers the given password according to the default strategy.
-	 * The returned string has the format salt:salted_password_hash. 
-	 * @param password
-	 * @return A line containing the salt and the salted password hash.
-	 */
-	//TODO
-	private static String cipher(String password) {
-		// TODO Auto-generated method stub
-		return "salt:" + password;
-	}
-
-	/**
 	 * Deciphers the given file and returns its content as a String[]
 	 * @param file
 	 * @return fileContent - the String[] representation of the given file
 	 * @throws IOException 
 	 */
-	private static Collection<String> fileToStringCollection(File file) 
+	//TODO DECIPHER THE FILE
+	private static Collection<String> plainFileToStringCollection(File file) 
 			throws IOException {
 		//get the Collection<String>
 		Collection<String> lines = new LinkedList<>();
 		FileReader fileReader;
 		BufferedReader buffReader = null;
+		/*
+		 * DECIPHER THE FILE
+		 */
 		fileReader = new FileReader(file);
 		buffReader = new BufferedReader(fileReader);
 		String line;
