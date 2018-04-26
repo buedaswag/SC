@@ -7,7 +7,21 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.*;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+
+import crypto_ponto4.Crypto;
 
 /**
  * 
@@ -37,8 +51,19 @@ public class User {
 	 * @return users - a Map<String, User> containing all the users in the file system, or an empty
 	 * Map if there are no users yet
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
+	 * @throws ClassNotFoundException 
 	 */
-	protected static Map<String, User> findAll () throws IOException {
+	protected static Map<String, User> findAll () throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
 		//the Map to be returned
 		Map<String, User> users = new Hashtable<>();
 		//if databaseRootDir does not exist, create it and the usersTxt file and return the empty map
@@ -79,8 +104,19 @@ public class User {
 	 * @param userId - userId and password of the user to be found
 	 * @return user - The constructed user with all its information loaded to memory.
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
+	 * @throws ClassNotFoundException 
 	 */
-	private static User find(String userId, String password) throws IOException {
+	private static User find(String userId, String password) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
 		//the User to be returned
 		User user = null;
 		//get the followers
@@ -98,11 +134,22 @@ public class User {
 	 * @return followers - a Collection<String> of the followUserIds. 
 	 * The Collection will be empty if there are no followers
 	 * @throws IOException 
+	 * @throws NoSuchProviderException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws BadPaddingException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws InvalidKeyException 
 	 */
-	private static Collection<String> findFollowers(String userId) throws IOException {
+	private static Collection<String> findFollowers(String userId) throws IOException, InvalidKeyException, UnrecoverableKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, NoSuchProviderException {
 		//get the followersTxt file
 		File followersTxt = new File(databaseRootDirName + fileSeparator + userId + fileSeparator 
 				+ followersTxtName);
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.getInstance().decipherFile(followersTxt, sk);
 		//the Collection to store the followUserIds
 		Collection<String> followers = new LinkedList<>();
 		FileReader fileReader;
@@ -114,6 +161,7 @@ public class User {
 			followers.add(followerUserId);
 		}
 		buffReader.close();
+		Crypto.getInstance().cipherFile(followersTxt, sk);
 		return followers;
 	}
 
@@ -164,8 +212,18 @@ public class User {
 	 * @param localUserId
 	 * @param followUserIds
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
 	 */
-	protected static void insertFollowers(String localUserId, String[] followUserIds) throws IOException {
+	protected static void insertFollowers(String localUserId, String[] followUserIds) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		// Opens resources and necessary streams
 		File followersTxt = new File(databaseRootDirName + fileSeparator + localUserId + 
 				fileSeparator + followersTxtName);
@@ -176,6 +234,9 @@ public class User {
 			buffWriter.newLine();
 		}
 		buffWriter.close();
+		Crypto.getInstance().signFile(followersTxt);
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.cipherFile(followersTxt, sk);
 	}
 
 	/**
@@ -281,8 +342,18 @@ public class User {
 	 * @param localUserId - the localUserId of the user
 	 * @param followUserIds - the userIds of the followUsers
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
 	 */
-	protected void addFollowers(String localUserId, String[] followUserIds) throws IOException {
+	protected void addFollowers(String localUserId, String[] followUserIds) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		User.insertFollowers(localUserId, followUserIds);
 		Collections.addAll(this.followers, followUserIds);
 	}
@@ -353,8 +424,17 @@ public class User {
 	 * @param photoNames
 	 * @param photosPath
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
 	 */
-	protected void addPhotos(String localUserId, File photosPath) throws IOException {
+	protected void addPhotos(String localUserId, File photosPath) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
 		photos.addAll(Photo.insertAll(localUserId, photosPath));
 	}
 
@@ -395,9 +475,19 @@ public class User {
 	 * @param comment - the comment to be made
 	 * @param photoName - the name of the commentedUser's photo
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
 	 */
 	protected void addComment(String commentedUserId, String commenterUserId, String comment, 
-			String photoName) throws IOException {
+			String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		this.getPhoto(photoName).addComment(commentedUserId, commenterUserId, comment, photoName);
 	}
 
@@ -428,8 +518,18 @@ public class User {
 	 * @param likerUserId - the userId of the likerUser 
 	 * @param photoName - the name of this user's photo
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
 	 */
-	protected void addLike(String likedUserId, String likerUserId, String photoName) throws IOException {
+	protected void addLike(String likedUserId, String likerUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		getPhoto(photoName).addLike(likedUserId, likerUserId, photoName);
 	}
 
@@ -439,8 +539,18 @@ public class User {
 	 * @param dislikerUserId - the userId of the dislikerUser 
 	 * @param photoName - the name of this user's photo
 	 * @throws IOException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws BadPaddingException 
+	 * @throws SignatureException 
 	 */
-	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) throws IOException {
+	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		getPhoto(photoName).addDislike(dislikedUserId, dislikerUserId, photoName);
 	}
 

@@ -6,8 +6,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+
+import crypto_ponto4.Crypto;
 
 /**
  * 
@@ -27,14 +41,26 @@ public class Photo {
 	private static final String commentsTxtName = "comments.txt";
 	private static final String likesTxtName = "likes.txt";
 	private static final String dislikesTxtName = "dislikes.txt";
+	private static SecretKey SECRET_KEY = null;
 
 	/**
 	 * Finds all the photos in this user's directory and loads them into memory.
 	 * @param userId
 	 * @return
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
+	 * @throws ClassNotFoundException 
 	 */
-	protected static Collection<Photo> findAll(String userId) throws IOException {
+	protected static Collection<Photo> findAll(String userId) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
 		//the Collection to be returned
 		Collection<Photo> photos = new LinkedList<>();
 		//the directories for this user's photos
@@ -60,8 +86,19 @@ public class Photo {
 	 * @param userId
 	 * @param photoDirectorie
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
+	 * @throws ClassNotFoundException 
 	 */
-	private static Photo find(String userId, File photoDirectorie) throws IOException {
+	private static Photo find(String userId, File photoDirectorie) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
 		//the composing elements of the photo to be returned 
 		String photoName = null;
 		long uploadDate = -1;
@@ -82,7 +119,12 @@ public class Photo {
 			case likesTxtName:
 				dislikes = Dislike.findAll(photoDirectorie);
 				break;
-				//the file is the photo
+			case "likes.txt.sig":
+				break;
+			case "dislikes.txt.sig":
+				break;
+			case "comments.txt.sig":
+				break;
 			default:
 				photoName = fileName;
 				uploadDate = file.lastModified();
@@ -118,8 +160,17 @@ public class Photo {
 	 * @param photosPath - the temporary folder
 	 * @return 
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
 	 */
-	protected static Collection<Photo> insertAll(String localUserId, File photosPath) throws IOException {
+	protected static Collection<Photo> insertAll(String localUserId, File photosPath) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
 		//the Collection to be returned
 		Collection<Photo> photos = new LinkedList<>();
 		//the directories for this user's photos
@@ -158,8 +209,17 @@ public class Photo {
 	 * @param photoFileOrigin - the the photo file inside the origin folder
 	 * @param localUserDirName - the name of the directory of the localUser
 	 * @throws IOException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws BadPaddingException 
 	 */
-	private static Photo insert(File photoFileTemp, String localUserDirName) throws IOException {
+	private static Photo insert(File photoFileTemp, String localUserDirName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
 		//name of the photo file inside the temp folder, without the corresponding extension
 		String photoNameNoExtention = photoFileTemp.getName().split("\\.")[0];
 		//create the destiny directory for the photo
@@ -171,6 +231,9 @@ public class Photo {
 				new File(photoDestenyDirName + fileSeparator + photoFileTemp.getName());
 		//move the photo from temp dir to photoDestenyDir
 		photoFileTemp.renameTo(photoInDestiny);
+		//cipher the photo
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.cipherFile(photoInDestiny, sk);
 		//creates the empty likesTxt, dislikesTxt and commentsTxt in this photo's directory.
 		Comment.insertAll(photoDestenyDir);
 		Like.insertAll(photoDestenyDir);
@@ -374,9 +437,19 @@ public class Photo {
 	 * @param commentedUserId - the userId of the commentedUser
 	 * @param commenterUserId - the userId of the commenterUser
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
 	 */
 	protected void addComment(String comment, String commentedUserId, String commenterUserId, 
-			String photoName) throws IOException {
+			String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		comments.add(Comment.insert(comment, commentedUserId, commenterUserId, photoName));
 	}
 
@@ -386,8 +459,18 @@ public class Photo {
 	 * @param likerUserId - the userId of the likerUser
 	 * @param photoName - the name of this user's photo
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
 	 */
-	protected void addLike(String likedUserId, String likerUserId, String photoName) throws IOException {
+	protected void addLike(String likedUserId, String likerUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		likes.add(Like.insert(likedUserId, likerUserId, photoName));
 	}
 
@@ -397,8 +480,18 @@ public class Photo {
 	 * @param dislikerUserId - the userId of the dislikerUser 
 	 * @param photoName - the name of this user's photo
 	 * @throws IOException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws BadPaddingException 
+	 * @throws SignatureException 
 	 */
-	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) throws IOException {
+	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		dislikes.add(Dislike.insert(dislikedUserId, dislikerUserId, photoName));
 	}
 

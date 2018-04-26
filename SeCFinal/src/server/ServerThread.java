@@ -6,7 +6,22 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Arrays;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+
+import crypto_ponto4.Crypto;
 
 //Threads utilizadas para comunicacao com os clientes
 /**
@@ -18,7 +33,6 @@ import java.util.Arrays;
 class ServerThread extends Thread {
 
 	private File tempPath;
-
 
 	private Socket socket;
 	private ObjectInputStream inStream;
@@ -72,7 +86,10 @@ class ServerThread extends Thread {
 			System.out.println("thread: closing");
 			return;
 
-		} catch (IOException e) {
+		} catch (IOException | InvalidKeyException | UnrecoverableKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | KeyStoreException | CertificateException | NoSuchProviderException | SignatureException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -93,8 +110,19 @@ class ServerThread extends Thread {
 	 * @param localUserId
 	 * @param password
 	 * @throws IOException
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws BadPaddingException 
+	 * @throws SignatureException 
+	 * @throws ClassNotFoundException 
 	 */
-	private void authenticate(String localUserId, String password) throws IOException {
+	private void authenticate(String localUserId, String password) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
 		Server.getInstance().authenticate(localUserId, password);
 	}
 
@@ -105,9 +133,20 @@ class ServerThread extends Thread {
 	 * or
 	 * ["c","miguel","ferias","que foto tao linda das tuas ferias"]
 	 * @throws IOException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws BadPaddingException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws InvalidKeyException 
+	 * @throws NoSuchProviderException 
+	 * @throws SignatureException 
+	 * @throws ClassNotFoundException 
 	 */
 	private void executeOperation(String localUserId, String[] args, 
-			ObjectInputStream inStream) throws IOException {
+			ObjectInputStream inStream) throws IOException, InvalidKeyException, UnrecoverableKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, NoSuchProviderException, SignatureException, ClassNotFoundException {
 		//get the operation to execute
 		char opt = args[0].charAt(0);
 		String[] newArgs = Arrays.copyOfRange(args, 1, args.length);
@@ -128,7 +167,8 @@ class ServerThread extends Thread {
 				//receives the photos and stores them in the corresponding user's temp folder
 				File photosPath = receivePhotos(localUserId, newArgs, inStream);
 				//add the photos to the server
-				Server.getInstance().addPhotos(localUserId, newArgs, photosPath);
+				Server.getInstance().addPhotos(localUserId, photosPath);
+
 			}
 			break;
 		}
@@ -195,13 +235,22 @@ class ServerThread extends Thread {
 
 	/**
 	 * Receives the photos from the TCP port and stores them in the
-	 * given user's temp folder
+	 * given user's temp folder, and then ciphers them.
 	 * @param localUserId
 	 * @param newArgs
 	 * @throws IOException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws BadPaddingException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws InvalidKeyException 
 	 */
+	//TODO and then ciphers them
 	private File receivePhotos(String localUserId, String[] newArgs, 
-			ObjectInputStream inStream) throws IOException {
+			ObjectInputStream inStream) throws IOException, InvalidKeyException, UnrecoverableKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException {
 		//create path for this user and for his/her photos
 		File localUserIdPath = new File (tempPath + fileSeparator + localUserId);
 		localUserIdPath.mkdir();
@@ -220,7 +269,8 @@ class ServerThread extends Thread {
 			 * create FileOutputStream that writes to this user's 
 			 * photo temp directory
 			 */
-			fos = new FileOutputStream(photosPath + fileSeparator + name);
+			File photo = new File(photosPath + fileSeparator + name);
+			fos = new FileOutputStream(photo);
 
 			//read the file size
 			filesize = inStream.readInt();
