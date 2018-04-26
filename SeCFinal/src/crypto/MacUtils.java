@@ -23,8 +23,8 @@ public class MacUtils
 	private static final String alias = "seckey";
 	private static final String ksFile = "myKeys.keystore";
 	private static final String ksPassword = "123456";
-	private static final String fileUsers = "passwords.txt";
-	private static final String fileUsersMac = "passwords.mac.txt";
+	private static final String fileUsers = "database\\users.txt";
+	private static final String fileUsersMac = "database\\users.mac.txt";
 	private static final String ERROR_MAC = "ERROR: an illegal change on the " + fileUsers + " file has been detected!";
 	private static final String WARNING_NO_MAC = "WARNING: MAC file not found. A new one will be created.";
 	
@@ -58,6 +58,10 @@ public class MacUtils
 	 * @requires !isMacProtected
 	 */
 	public static void macProtect(String password) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException, InvalidKeyException, InvalidKeySpecException {
+		// deletes any previous MAC files
+		File f = new File(fileUsersMac);
+		f.delete();
+		
 		// create and load key from keystore
 		SecretKey key = generateSecretKey(password);
 		
