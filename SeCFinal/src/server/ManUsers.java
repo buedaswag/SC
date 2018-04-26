@@ -25,6 +25,7 @@ public class ManUsers {
 	private static String databaseRootDirName = "database";
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static String usersTxtName = "users.txt";
+	private static File databaseRootDir = new File(databaseRootDirName);
 	private static File usersTxt = new File(databaseRootDirName + fileSeparator + usersTxtName);
 	private static ObjectInputStream inStream;
 	private static final String addUser = "addUser";
@@ -34,8 +35,8 @@ public class ManUsers {
 			"The usersTxt file has a wrong MAC, the file is compromised!";
 	private static final String notMacProtected = "The usersTxt file was not MAC protected";
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
-		//set up the usersTxt file
-		if (!setupUsersTxt()) {
+		//set up the database
+		if (!setupDatabase()) {
 			//the file was compromised
 			return;
 		}
@@ -52,6 +53,7 @@ public class ManUsers {
 			System.exit(-1);
 		}
 		while (true) {
+			System.out.println("ManUsers: Wating for connections...");
 			Socket inSoc = sSoc.accept();
 			//setup the object stream o communicate with the client
 			inStream = new ObjectInputStream(inSoc.getInputStream());
@@ -63,16 +65,28 @@ public class ManUsers {
 	}
 
 	/**
+	 * Sets up the database and returns true if everything went well, false otherwise.
 	 * Checks if the usersTxt file exists and creates it if it doesn't.
 	 * Checks the MAC protection of the file, 
 	 * adds it if the file is not protected (printing a warning message), 
 	 * or terminates immediately if the MAC is wrong (printing a warning message).
 	 * @throws IOException 
 	 */
-	private static boolean setupUsersTxt() throws IOException {
+	private static boolean setupDatabase() throws IOException {
+		//if databaseRootDir does not exist, create it and the usersTxt file and protect the file.
+		if (!databaseRootDir.exists()) {
+			databaseRootDir.mkdir();
+			usersTxt.createNewFile();
+			macProtect(usersTxt);
+			return true;
+		} 
+		//if the database exists but not the usersTxt
 		if (!usersTxt.exists()) {
 			usersTxt.createNewFile();
+			macProtect(usersTxt);
+			return true;
 		}
+		//if both the database and the usersTxt exist, check the file for MAC protection. 
 		if (isMacProtected(usersTxt)) {
 			return checkMac(usersTxt);
 		} else {
@@ -88,7 +102,7 @@ public class ManUsers {
 	// TODO
 	private static void macProtect(File file) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	/**
@@ -129,23 +143,32 @@ public class ManUsers {
 		case addUser: {
 			if (message.length == 3) {
 				addUser(message[1], message[2]);
+				System.out.println(addUser + " successfully executed!");
 			} else {
 				System.out.println("Invalid arguments for addUser.");
 			}
+			break;
 		}
 		case removeUser: {
 			if (message.length == 3) {
 				removeUser(message[1]);
+				System.out.println(removeUser + " successfully executed!");
 			} else {
 				System.out.println("Invalid arguments for removeUser.");
 			}
+			break;
 		}
 		case updatePassword: {
 			if (message.length == 4) {
 				updatePassword(message[1], message[2], message[3]);
+				System.out.println(updatePassword + " successfully executed!");
 			} else {
 				System.out.println("Invalid arguments for changePassword.");
 			}
+			break;
+		}
+		default: {
+			System.out.println("Woops! operation not supported");
 		}
 		}
 	}
@@ -167,7 +190,7 @@ public class ManUsers {
 			}
 		}
 		//Inserts the user
-		insert(localUserId, password);
+		User.insert(localUserId, password);
 	}
 
 	/**
@@ -181,13 +204,19 @@ public class ManUsers {
 		//get the String[] representation of the usersTxt file
 		Collection<String> usersTxtContent = fileToStringCollection(usersTxt);
 		//check if the user was already added
-		for (String line : usersTxtContent) {
+		String userLine = null;
+		Iterator<String> iterator = usersTxtContent.iterator();
+		while (iterator.hasNext() && userLine == null) {
+			String line = iterator.next();
 			if (line.startsWith(localUserId)) {
-				//Removes the user from the collection~
-				usersTxtContent.remove(line);
-				//removes the user from the file
-				remove(localUserId, usersTxtContent);
+				userLine = line;
 			}
+		}
+		if (userLine != null) {
+			//Removes the user from the collection
+			usersTxtContent.remove(userLine);
+			//removes the user from the file
+			remove(localUserId, usersTxtContent);
 		}
 	}
 
@@ -239,7 +268,7 @@ public class ManUsers {
 		for (int i = 0; i < saltLength; i++) {
 			salt[i] = Byte.parseByte(saltStrings[i]);     
 		}
-		*/
+		 */
 		return true;
 	}
 

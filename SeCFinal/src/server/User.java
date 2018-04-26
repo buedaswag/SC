@@ -31,9 +31,9 @@ public class User {
 
 	/**
 	 * Finds all the users in the file system and loads them into memory.
-	 * @requires databaseRootDir.exists()
-	 * @requires usersTxt.exists()
-	 * @requires when a user is registered, a folder must be created for him
+	 * @requires databaseRootDir.exists().
+	 * @requires usersTxt.exists().
+	 * @requires when a user is registered, a folder must be created for him.
 	 * @return users - a Map<String, User> containing all the users in the file system, or an empty
 	 * Map if there are no users yet
 	 * @throws IOException 
@@ -41,11 +41,10 @@ public class User {
 	protected static Map<String, User> findAll () throws IOException {
 		//the Map to be returned
 		Map<String, User> users = new Hashtable<>();
-		//if databaseRootDir does not exist, create it and the usersTxt file and return the empty map
+		//if databaseRootDir does not exist, raise an exeption
 		if (!databaseRootDir.exists()) {
-			databaseRootDir.mkdir();
-			usersTxt.createNewFile();
-			return users;
+			throw new java.lang.UnsupportedOperationException(
+					"There are no users registered! you need to run ManUsers first!");
 		}
 		//if databaseRootDir only has the usersTxt file, there are no users. Return the empty Map
 		if (databaseRootDir.list().length > 1) {
@@ -130,22 +129,23 @@ public class User {
 	}
 
 	/**********************************************************************************************
-	 * insert and update variables and methods
+	 * insert, update and remove variables and methods
 	 **********************************************************************************************
 	 */
 	
 	/**
-	 * Creates and inserts a new user with the given credentials
+	 * Creates and inserts a new user with the given credentials. Ciphers the password.
+	 * This method is only used by ManUsers.
 	 * @param localUserId
 	 * @param password
 	 * @return
 	 * @throws IOException 
 	 */
-	protected static User insert(String localUserId, String password) throws IOException {
+	public static void insert(String localUserId, String password) throws IOException {
 		FileWriter fileWriter = new FileWriter(usersTxt, true);
 		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
 		//add the line in the usersTxt file corresponding to the user
-		String line = localUserId + ":" + password;
+		String line = localUserId + ":" + cipherPassword(password);
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
@@ -155,8 +155,6 @@ public class User {
 		localUserDir.mkdir();
 		//create the followersTxt file
 		new File(localUserDirName + fileSeparator + followersTxtName).createNewFile();
-		//create the new user
-		return new User(localUserId, password);
 	}
 
 	/**
@@ -179,7 +177,8 @@ public class User {
 	}
 
 	/**
-	 * Updates the followersTxt file, repacing its content with the given followers. 
+	 * Updates the followersTxt file of the given user, 
+	 * replacing its content with the given followers. 
 	 * @param localUserId
 	 * @param followers
 	 * @throws IOException 
@@ -200,7 +199,69 @@ public class User {
 		}
 		buffWriter.close();
 	}
+	
+	/**
+	 * Removes the given user from the usersTxt file, removes the user's folder and removes 
+	 * the user as follower of any user that currently has him as a follower.
+	 * This method is only used by ManUsers.
+	 * @requires localUser was already removed from usersTxtContent. 
+	 * @param localUserId
+	 * @param usersTxtContent - the content of the usersTxt file before the removal.
+	 * @throws IOException 
+	 */
+	private static void remove(String localUserId, Collection<String> usersTxtContent) 
+			throws IOException {
+		//delete old file
+		usersTxt.delete();
+		//create new file without the given user
+		usersTxt.createNewFile();
+		FileWriter fileWriter = new FileWriter(usersTxt, true);
+		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
+		for (String line : usersTxtContent) {
+			buffWriter.write(line);
+			buffWriter.newLine();
+		}
+		buffWriter.close();
+		removeAllFollower(localUserId, usersTxtContent);
+	}
+	
+	/**
+	 * Removes the given user from the followersTxt file of every user in the system.
+	 * This method is only used by ManUsers.
+	 * @requires localUser was already removed from usersTxt file. 
+	 * @param localUserId - the user to be removed.
+	 * @param usersTxtContent - the content of the usersTxt file before the removal.
+	 * @throws IOException 
+	 */
+	private static void removeAllFollower(String localUserId, Collection<String> usersTxtContent) 
+			throws IOException {
+		String userId = null;
+		//remove the localUser from the followersTxt file of every user.
+		for (String line : usersTxtContent) {
+			//the user to remove from.
+			userId = line.split(":")[0];
+			Collection<String> followers = findFollowers(userId);
+			followers.remove(localUserId);
+			updateFollowers(userId, followers);
+		}
+	}
 
+	/**********************************************************************************************
+	 * cipher variables , methods and constructors
+	 **********************************************************************************************
+	 */
+	
+	/**
+	 * Ciphers the password and returnes a ciphered password in the format:
+	 * salt:salted_password_hash
+	 * @param password
+	 * @return cipheredPassword
+	 */
+	private static String cipherPassword(String password) {
+		String cipheredPassword = password;
+		return cipheredPassword;
+	}
+	
 	/**********************************************************************************************
 	 * User variables , methods and constructors
 	 **********************************************************************************************
