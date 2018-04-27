@@ -49,7 +49,7 @@ public class ManUsers {
 	private static final String wrongCredentials = "Wrong credentials!";
 	private static final String existingUser = "This user was already added!";
 	
-	public static void main(String[] args) throws IOException, ClassNotFoundException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
+	public static void main(String[] args) throws Exception {
 		//set up the database
 		if (!setupDatabase()) {
 			//the file was compromised
@@ -157,18 +157,9 @@ public class ManUsers {
 	 * Executes the operation requested by the user in the given message
 	 * @param message - the operation parameters in the format 
 	 * 		["operationName", "parameter1", ... , "parameterN"]
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
+	 * @throws Exception 
 	 */
-	private static void executeOperation(String[] message) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
+	private static void executeOperation(String[] message) throws Exception {
 		String operation = message[0];
 		switch (operation) {
 		case addUser: {
@@ -229,18 +220,9 @@ public class ManUsers {
 	 * Checks if the password given is correct, and does nothing if it's not correct.
 	 * @param localUserId
 	 * @param password
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
+	 * @throws Exception 
 	 */
-	public static void removeUser(String localUserId, String password) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
+	public static void removeUser(String localUserId, String password) throws Exception {
 		//get the String[] representation of the usersTxt file
 		Collection<String> usersTxtContent = plainFileToStringCollection(usersTxt);
 		//check if the user was already added
