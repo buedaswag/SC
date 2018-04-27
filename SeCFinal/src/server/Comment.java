@@ -8,8 +8,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import javax.crypto.SecretKey;
-
 import crypto.Crypto;
+import crypto.SignUtils;
 
 /**
  * 
@@ -27,6 +27,7 @@ public class Comment {
 	 */
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static final String commentsTxtName = "comments.txt";
+	private static final String commentsSigName = "comments.txt.sig";
 	
 	/**
 	 * Finds all the comments in the photo's directory and loads them into memory.
@@ -38,8 +39,19 @@ public class Comment {
 		//create the buffers for reading from the file and the Queue
 		Queue<Comment> comments = new LinkedList<>();
 		File commentsTxt = new File(photoDirectorie + fileSeparator + commentsTxtName);
+		File commentsSig = new File(photoDirectorie + fileSeparator + commentsSigName);
 		SecretKey sk = Crypto.getInstance().getSecretKey();
 		Crypto.getInstance().decipherFile(commentsTxt, sk);
+		if(!commentsSig.exists()) {
+			BufferedReader br = new BufferedReader(new FileReader (commentsTxt));
+			if(br.readLine() != null)
+				SignUtils.writeSignature(commentsTxt);
+			br.close();
+		}
+		else
+			if(!SignUtils.verifySignature(commentsTxt, commentsSig)) {
+				throw new Exception("ERROR: a comments file has been compromised!");
+			}
 		FileReader fileReader;
 		BufferedReader buffReader = null;
 		fileReader = new FileReader(commentsTxt);

@@ -15,6 +15,8 @@ import java.util.Queue;
 import javax.crypto.SecretKey;
 
 import crypto.Crypto;
+import crypto.Crypto;
+import crypto.SignUtils;
 
 /**
  * Represents a dislike made by dislikerUser in a Photo
@@ -43,9 +45,19 @@ public class Dislike {
 		//create the buffers for reading from the file and the Queue
 		Queue<Dislike> dislikes = new LinkedList<>();
 		File dislikesTxt = new File(photoDirectorie + fileSeparator + dislikesTxtName);
+		File dislikesSig = new File(photoDirectorie + fileSeparator + dislikesSigName);
 		
 		SecretKey sk = Crypto.getInstance().getSecretKey();
-		Crypto.getInstance().decipherFile(dislikesTxt, sk);;
+		Crypto.getInstance().decipherFile(dislikesTxt, sk);
+		if(!dislikesSig.exists()) {
+			BufferedReader br = new BufferedReader(new FileReader (dislikesTxt));
+			if(br.readLine() != null)
+				SignUtils.writeSignature(dislikesTxt);
+			br.close();
+		}
+		else
+			if(!SignUtils.verifySignature(dislikesTxt, dislikesSig))
+				throw new Exception("ERROR: a dislikes file has been compromised!");
 		fileReader = new FileReader(dislikesTxt);
 		buffReader = new BufferedReader(fileReader);
 		String line;

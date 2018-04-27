@@ -154,7 +154,7 @@ public class Crypto {
 		FileInputStream fis = new FileInputStream(ficheiroADecifrar);
 
 		Cipher c = Cipher.getInstance("AES");
-		c.init(Cipher.DECRYPT_MODE, k);    //SecretKeySpec é subclasse de secretKey
+		c.init(Cipher.DECRYPT_MODE, k);    //SecretKeySpec ï¿½ subclasse de secretKey
 
 		byte[] inputBytes = new byte[(int) ficheiroADecifrar.length()];
 

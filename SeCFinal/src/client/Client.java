@@ -137,7 +137,7 @@ public class Client {
 	// ================== SERVER OPERATIONS ================== //
 
 	/**
-	 * Try´s to authenticate the user
+	 * Tryï¿½s to authenticate the user
 	 * 
 	 * @param userID
 	 *            the userid
@@ -542,6 +542,6 @@ public class Client {
 	 * @return
 	 */
 	private static boolean validateIP(String ip) {
-		return ipPattern.matcher(ip).matches() || ip.equals("localhost");
+		return (ipPattern.matcher(ip).matches() || ip.equals("localhost"));
 	}
 }

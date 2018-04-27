@@ -14,6 +14,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.*;
@@ -25,6 +26,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import crypto.Crypto;
+import crypto.Crypto;
+import crypto.SignUtils;
 
 /**
  * 
@@ -42,6 +45,7 @@ public class User {
 	private static String databaseRootDirName = "database";
 	private static String usersTxtName = "users.txt";
 	private static String followersTxtName = "followers.txt";
+	private static String followersSigName = "followers.sig.txt";
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static File usersTxt = new File(databaseRootDirName + fileSeparator + usersTxtName);
 	private static File databaseRootDir = new File(databaseRootDirName);
@@ -116,23 +120,25 @@ public class User {
 	 * @param userId - the user whose followers are to be found
 	 * @return followers - a Collection<String> of the followUserIds. 
 	 * The Collection will be empty if there are no followers
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
+	 * @throws Exception 
 	 */
 	//TODO introduce cryptography
-	private static Collection<String> findFollowers(String userId) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
+	private static Collection<String> findFollowers(String userId) throws Exception {
 		//get the followersTxt file
 		File followersTxt = new File(databaseRootDirName + fileSeparator + userId + fileSeparator 
 				+ followersTxtName);
-		//the Collection to store the followUserIds
+		File followersSig = new File(databaseRootDirName + fileSeparator + userId + fileSeparator 
+				+ followersSigName);
+		if(!followersSig.exists()) {
+			BufferedReader br = new BufferedReader(new FileReader (followersTxt));
+			if(br.readLine() != null)
+				SignUtils.writeSignature(followersTxt);
+			br.close();
+		}
+		else
+			if(!SignUtils.verifySignature(followersTxt, followersSig))
+				throw new Exception("ERROR: a followers file has been compromised!");
+
 		Collection<String> followers = cipheredFileToStringCollection(followersTxt);
 		return followers;
 	}
@@ -258,20 +264,11 @@ public class User {
 	 * @requires localUser was already removed from usersTxtContent. 
 	 * @param localUserId
 	 * @param usersTxtContent - the content of the usersTxt file before the removal.
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
+	 * @throws Exception 
 	 */
 	//TODO MAC PROTECT THE FILE
 	protected static void remove(String localUserId, Collection<String> usersTxtContent) 
-			throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
+			throws Exception {
 		//delete old file
 		usersTxt.delete();
 		//create new file without the given user
@@ -328,19 +325,10 @@ public class User {
 	 * @requires localUser was already removed from usersTxt file. 
 	 * @param localUserId - the user to be removed.
 	 * @param usersTxtContent - the content of the usersTxt file before the removal.
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
+	 * @throws Exception 
 	 */
 	private static void removeAllFollower(String localUserId, Collection<String> usersTxtContent) 
-			throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
+			throws Exception {
 		String userId = null;
 		//remove the localUser from the followersTxt file of every user.
 		for (String line : usersTxtContent) {
@@ -541,7 +529,7 @@ public class User {
 	}
 
 	/**
-	 * adds a single follower to this User´s followers list
+	 * adds a single follower to this Userï¿½s followers list
 	 * 
 	 * @requires the follower has been added to this user's persistent storage
 	 * @param follower - the follower to be added
@@ -551,7 +539,7 @@ public class User {
 	}
 
 	/**
-	 * removes a single followers to this User´s followers list
+	 * removes a single followers to this Userï¿½s followers list
 	 * 
 	 * @param follower - the follower to be removed
 	 */
