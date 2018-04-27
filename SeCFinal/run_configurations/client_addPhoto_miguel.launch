@@ -8,7 +8,7 @@
 </listAttribute>
 <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="client.Client"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="PhotoShare miguel passmiguel 127.0.0.1:23232 addUser"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="PhotoShare miguel passmiguel 127.0.0.1:23232 -a ferias.webp,casa.JPG"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="SeCFinal"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Djava.manager -Djava.server.policy=client.policy"/>
 </launchConfiguration>
