@@ -141,6 +141,8 @@ public class MacUtils {
 		// calculate MAC from the existing plaintext file
 		Mac mac = Mac.getInstance("HmacSHA256");
 		KeyStore ks = KeyStore.getInstance("JCEKS");
+		File file = new File(keystoreName);
+		System.out.println(file.canRead());
 		FileInputStream fis;
 		fis = new FileInputStream(keystoreName);
 		ks.load(fis, keystorePassword.toCharArray());
