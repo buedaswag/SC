@@ -27,6 +27,7 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 
 import cryptoUtils.MacUtils;
+import cryptoUtils.PasswordUtils;
 
 /**
  * 
@@ -298,9 +299,16 @@ public class ManUsers {
 		}
 	}
 
-	private static boolean checkPassword(String userLine, String oldPassword) {
-		// TODO Auto-generated method stub
-		return false;
+	private static boolean checkPassword(String userLine, String oldPassword) throws NoSuchAlgorithmException {
+		// Case 1 : the user exists
+		String[] vars = userLine.split(":");
+		String sal = vars[1];
+		String hash = vars[2];
+		if (PasswordUtils.isExpectedPassword(oldPassword, sal, hash))
+			return true;
+		else {
+			return false;
+		}
 	}
 
 	/**
