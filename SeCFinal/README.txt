@@ -10,6 +10,7 @@ Sandbox configuration for JVM (client):
 
 Run configurations for Use Case testing:
 
+Servidor:
 UC1 -a
 	Normal function
 		$PhotoShare miguel passmiguel 127.0.0.1:23232 -a ferias.webp,casa.JPG
@@ -74,3 +75,14 @@ UC9 -i
 		$PhotoShare antonio passantonio 127.0.0.1:23232 -i antonio bug.jpg
 	Error function - user lol doesnt exist
 		$PhotoShare antonio passantonio 127.0.0.1:23232 -i lol nada.jpg
+
+ManUsers
+UC1 addUser
+	Normal function
+		$PhotoShare miguel passmiguel 127.0.0.1:23232 addUser
+UC2 removeUser
+	Normal function
+		$PhotoShare miguel passmiguel 127.0.0.1:23232 removeUser
+UC2 updatePassword
+	Normal function
+		$PhotoShare miguel passmiguel 127.0.0.1:23232 updatePassword newpassmiguel		

@@ -67,7 +67,6 @@ class ServerThread extends Thread {
 				localUserId = (String) inStream.readObject();
 				password = (String) inStream.readObject();
 				System.out.println("thread: after receiving the password and the localUserId");
-				authenticate(localUserId, password);
 				// get the arguments for the operation
 				args = (String[]) inStream.readObject();
 			} catch (ClassNotFoundException e1) {
@@ -76,19 +75,18 @@ class ServerThread extends Thread {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			//TODO wrong password
-			authenticate(localUserId, password);
-
-			// Execute the requested operation
-			executeOperation(localUserId, args, inStream);
-
-			// close stream and socket
-			inStream.close();
-			socket.close();
-
+			//TODO print a response on the client.
+			if (authenticate(localUserId, password)) {
+				// Execute the requested operation
+				executeOperation(localUserId, args, inStream);
+				// close stream and socket
+				inStream.close();
+				socket.close();
+			}
 			//close the thread
 			System.out.println("thread: closing");
 			return;
+
 
 		} catch (IOException | InvalidKeyException | UnrecoverableKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | KeyStoreException | CertificateException | NoSuchProviderException | SignatureException e) {
 			e.printStackTrace();
@@ -97,7 +95,6 @@ class ServerThread extends Thread {
 			e.printStackTrace();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 
@@ -117,9 +114,14 @@ class ServerThread extends Thread {
 	 * @param localUserId
 	 * @param password
 	 * @throws Exception 
+	 * @return 
+
 	 */
-	private void authenticate(String localUserId, String password) throws Exception {
-		Server.getInstance().authenticate(localUserId, password);
+
+
+	private boolean authenticate(String localUserId, String password) throws Exception {
+		return Server.getInstance().authenticate(localUserId, password);
+
 	}
 
 	/**
@@ -163,7 +165,6 @@ class ServerThread extends Thread {
 			String comment = newArgs[0];
 			String commentedUserId = newArgs[1];
 			String photoName = newArgs[2];
-
 			/*
 			 * ask the server to add this comment,
 			 * and sends an error message if the localUser is not a follower
@@ -215,6 +216,9 @@ class ServerThread extends Thread {
 			sendError(result);
 			break;
 		}
+		default: {
+			System.out.println("Unknown operation.");
+		}
 		}
 	}
 
@@ -247,7 +251,7 @@ class ServerThread extends Thread {
 		 */
 		FileOutputStream fos;
 		byte[] buffer = new byte[1024];
-		int filesize = 0, read = 0, remaining = 0, totalRead = 0;
+		int filesize = 0, read = 0, remaining = 0;
 
 		for (String name : newArgs) {
 			/*
@@ -267,13 +271,11 @@ class ServerThread extends Thread {
 			remaining = filesize;
 			while((read = inStream.read(buffer, 0, 
 					Math.min(buffer.length, remaining))) > 0) {
-				totalRead += read;
 				remaining -= read;
 				fos.write(buffer, 0, read);
 			}
 			//close FileOutputStream, reset variavles
 			fos.close();
-			totalRead = 0;
 		}
 		return photosPath;
 	}

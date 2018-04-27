@@ -14,12 +14,17 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.*;
 
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import crypto.Crypto;
+
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+
 
 /**
  * 
@@ -68,13 +73,18 @@ public class Server {
 		Server.getInstance();
 		//get the port
 		int port = new Integer(args[0]);
+		
+		System.setProperty("javax.net.ssl.keyStore", "server.keystore");
+		System.setProperty("javax.net.ssl.keyStorePassword", "123456");
 
 		/*
-		 * listen to the TCP port and set up a thread for each request
+		 * listen to the SSL port and set up a thread for each request
 		 */
+		SSLServerSocketFactory ssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
 		ServerSocket sSoc = null;
+		
 		try {
-			sSoc = new ServerSocket(port);
+			sSoc = (SSLServerSocket) ssf.createServerSocket(port);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
@@ -104,12 +114,13 @@ public class Server {
 			if (users.get(localUserId).getPassword().equals(password)) {
 				return true;
 			} else {
+				System.out.println("Wrong password!");
 				return false;
 			}
 		}
-		// Case 2: user doesn't exist, adds him to the database and program memory
-		users.put(localUserId, User.insert(localUserId, password));
-		return true;
+		// Case 2: user doesn't exist, print an error
+		System.out.println("Unregistered user!");
+		return false;
 	}
 
 	/**
@@ -255,8 +266,17 @@ public class Server {
 	 * @param followUserIds - the userIds of the followUsers
 	 * @return allGood if it all went well, alreadyFollower otherwise
 	 * @throws IOException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws CertificateException 
+	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
 	 */
-	protected String removeFollowers(String localUserId, String[] followUserIds) throws IOException {
+	protected String removeFollowers(String localUserId, String[] followUserIds) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
 		// get the user with the given credentials
 		User localUser = users.get(localUserId);
 		// check if any of the followUsers is not a follower of the localUser

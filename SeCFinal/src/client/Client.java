@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.regex.Pattern;
-import java.net.InetAddress;
 
 /**
  * 
@@ -22,32 +21,47 @@ public class Client {
 	private static String allGood = "ok";
 	private static Pattern ipPattern = Pattern
 			.compile("^(([01]?\\d\\d?|" + "2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
-
+	private static final String addUser = "addUser";
+	private static final String removeUser = "removeUser";
+	private static final String updatePassword = "updatePassword";
+	
 	public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException {
 		// Verifica validade dos argumentos
 		if (!checkArgs(args)) {
 			System.out.println("Invalid arguments!");
 			return;
 		}
-
 		// Registers the session variables
 		userID = args[1];
 		pass = args[2];
 		serverAddress = args[3];
-		char option = args[4].charAt(1);
-
+		String option = args[4];
 		handlerTCP = new ClientNetworkHandler(serverAddress);
-
 		// Authenticates the user and does the operation he asked for
-		authenticate(userID, pass);
 		switch (option) {
-		// === ADD PHOTOS (-a)
-		case 'a': {
+		case addUser: {
+			String[] message = {addUser, userID, pass};
+			handlerTCP.send(message);
+			break;
+		}
+		case removeUser: {
+			String[] message = {removeUser, userID, pass};
+			handlerTCP.send(message);
+			break;
+		}
+		case updatePassword: {
+			String[] message = {updatePassword, userID, pass, args[5]};
+			handlerTCP.send(message);
+			break;
+		}
+		case "-a": {
+			authenticate(userID, pass);
 			addPhotos("a", args[5]);
 			break;
 		}
 		// === ADDS A COMMENT (-c)
-		case 'c': {
+		case "-c": {
+			authenticate(userID, pass);
 			String comment = args[5];
 			String user = args[6];
 			String photo = args[7];
@@ -55,46 +69,53 @@ public class Client {
 			break;
 		}
 		// === LIKES A PHOTO (-L)
-		case 'L': {
+		case "-L": {
+			authenticate(userID, pass);
 			String user = args[5];
 			String photo = args[6];
 			addLike(user, photo);
 			break;
 		}
 		// === DISLIKES A PHOTO (-D)
-		case 'D': {
+		case "-D": {
+			authenticate(userID, pass);
 			String dislikedUser = args[5];
 			String photo = args[6];
 			addDislike(dislikedUser, photo);
 			break;
 		}
 		// === ADDS FOLLOWERS (-f)
-		case 'f': {
+		case "-f": {
+			authenticate(userID, pass);
 			String followers = args[5];
 			addFollowers(followers);
 			break;
 		}
 		// === REMOVES FOLLOWERS (-r)
-		case 'r': {
+		case "-r": {
+			authenticate(userID, pass);
 			String followersToRemove = args[5];
 			removeFollowers(followersToRemove);
 			break;
 		}
 		// === LISTS PHOTOS (-l)
-		case 'l': {
+		case "-l": {
+			authenticate(userID, pass);
 			String userToList = args[5];
 			listPhotos(userToList);
 			break;
 		}
 		// === GET INFO (-i)
-		case 'i': {
+		case "-i": {
+			authenticate(userID, pass);
 			String userToList = args[5];
 			String photo = args[6];
 			getInfo(userToList, photo);
 			break;
 		}
 		// === SAVE PHOTOS (-g)
-		case 'g': {
+		case "-g": {
+			authenticate(userID, pass);
 			String copiedUserser = args[5];
 			savePhotos(copiedUserser);
 			break;
@@ -103,7 +124,6 @@ public class Client {
 			System.out.println("Operation not recognized!");
 			break;
 		}
-
 		}
 
 		// print the message received from the server
@@ -112,7 +132,9 @@ public class Client {
 		handlerTCP.endConnection();
 	}
 
-	// ================== OPERATIONS ================== //
+	// ================== MANUSERS OPERATIONS ================== //
+	
+	// ================== SERVER OPERATIONS ================== //
 
 	/**
 	 * Try´s to authenticate the user
@@ -414,40 +436,74 @@ public class Client {
 	}
 
 	/**
-	 * Check if the arguments passed are valid
-	 * 
-	 * @param args
-	 *            the arguments
+	 * Check if the arguments passed are valid for the Server or the ManUsers.
+	 * @param args - the arguments.
 	 * @return True if the arguments are valid, False otherwise
 	 */
+	//TODO test
 	protected static boolean checkArgs(String[] args) {
 		// Checks the ip address and port for validity
 		if (!checkAddressPort(args[3]))
 			return false;
-		// check the option parameter
-		if (args[4].charAt(0) != '-')
-			return false;
-
-		// check option and the arguments length
-		int num = args.length;
-		if (num < 4)
-			return false;
-
-		char opt = args[4].charAt(1);
-
-		// Check if the number of arguments corresponds to the given operation
-		if (opt == 'a' || opt == 'l' || opt == 'g' || opt == 'f' || opt == 'r')
-			if (num != 6)
+		// checks if the commands are for the Server or the ManUsers.
+		if (args[4].charAt(0) == '-') {
+			//for the Server
+			// check option and the arguments length
+			int num = args.length;
+			if (num < 4) {
 				return false;
-			else if (opt == 'i' || opt == 'L' || opt == 'D')
-				if (num != 7)
+			}
+			char opt = args[4].charAt(1);	
+			// Check if the number of arguments corresponds to the given operation
+			if (opt == 'a' || opt == 'l' || opt == 'g' || opt == 'f' || opt == 'r') {
+				if (num != 6) {
 					return false;
-				else if (opt == 'c')
-					if (num != 8)
+				} else if (opt == 'i' || opt == 'L' || opt == 'D') {
+					if (num != 7) {
 						return false;
-					else
-						return true;
+					} else if (opt == 'c') {
+						if (num != 8) {
+							return false;
+						} else {
+							return true;
+						}
+					}
+				}
+			}
+		} else {
+			//for the ManUsers
+			return checkArgsManUsers(args);
+		}
 		return true;
+	}
+
+	/**
+	 * Checks the validity of the given args to communicate with ManUsers.
+	 * @return true if the given arguments are valid, false otherwise.
+	 */
+	private static boolean checkArgsManUsers(String[] args) {
+		String operation = args[4];
+		switch (operation) {
+		case addUser: {
+			if (args.length == 5) {
+				return true;
+			}
+			break;
+		}
+		case removeUser: {
+			if (args.length == 5) {
+				return true;
+			}
+			break;
+		}
+		case updatePassword: {
+			if (args.length == 6) {
+				return true;
+			}
+			break;
+		}
+		}
+		return false;
 	}
 
 	/**
@@ -468,7 +524,6 @@ public class Client {
 		} catch (ArrayIndexOutOfBoundsException e) {
 			return false;
 		}
-
 		// check the port
 		if (port < 0 || port > 65535)
 			return false;
@@ -487,6 +542,6 @@ public class Client {
 	 * @return
 	 */
 	private static boolean validateIP(String ip) {
-		return ipPattern.matcher(ip).matches();
+		return ipPattern.matcher(ip).matches() || ip.equals("localhost");
 	}
 }

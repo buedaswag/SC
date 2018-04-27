@@ -1,12 +1,10 @@
-package crypto_salt;
+package crypto;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.Random;
-
-import javax.crypto.SecretKeyFactory;
+import java.util.Base64;
 import javax.crypto.spec.PBEKeySpec;
 
 /**
@@ -15,7 +13,7 @@ import javax.crypto.spec.PBEKeySpec;
  * still considered robust and <a href="https://security.stackexchange.com/a/6415/12614"> recommended by NIST </a>.
  * The hashed value has 128 bits.
  */
-public class Passwords {
+public class PasswordUtils {
 
 	private static final SecureRandom RANDOM = new SecureRandom();
 	private static final int ITERATIONS = 10000;
@@ -48,17 +46,15 @@ public class Passwords {
 		PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH);
 
 		Arrays.fill(password.toCharArray(), Character.MIN_VALUE);
-		try {
-			
+		try {		
 			MessageDigest md = MessageDigest.getInstance("SHA-256");
 	        md.update(password.getBytes());
-
 			return md.digest();
-
-		} catch (NoSuchAlgorithmException e) {
+		}
+		catch (NoSuchAlgorithmException e) {
 			throw new AssertionError("Error while hashing a password: " + e.getMessage(), e);
-
-		} finally {
+		}
+		finally {
 			spec.clearPassword();
 		}
 
@@ -73,13 +69,21 @@ public class Passwords {
 	 * @param expectedHash the expected hashed value of the password
 	 *
 	 * @return true if the given password and salt match the hashed value, false otherwise
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public static boolean isExpectedPassword(String password, byte[] salt, byte[] expectedHash) {
-		byte[] pwdHash = hash(password, salt);
-		Arrays.fill(password.toCharArray(), Character.MIN_VALUE);
-		if (pwdHash.length != expectedHash.length) return false;
-		for (int i = 0; i < pwdHash.length; i++) {
-			if (pwdHash[i] != expectedHash[i]) return false;
+	public static boolean isExpectedPassword(String password, String salt, String expectedHash) throws NoSuchAlgorithmException {
+		// parses the arguments into the proper datatypes for comparison
+		int saltInt = Integer.parseInt(salt);
+		byte[] saltBytes = BigInteger.valueOf(saltInt).toByteArray();
+		// generates an hashcode based on the user's input
+		String passHash = Base64.getEncoder().encodeToString(hash(password, saltBytes));
+		
+		// compares the expected and generated hashcodes
+		if(passHash.length() != expectedHash.length())
+			return false;
+		for(int i = 0; i < passHash.length(); i++) {
+			if(passHash.charAt(i) != expectedHash.charAt(i))
+				return false;
 		}
 		return true;
 	}
