@@ -18,7 +18,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
-import crypto_ponto4.Crypto;
+import crypto.Crypto;
 
 /**
  * 
