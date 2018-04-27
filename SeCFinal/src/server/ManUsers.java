@@ -19,6 +19,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+
 import crypto.MacUtils;
 
 /**
@@ -58,9 +61,12 @@ public class ManUsers {
 		/*
 		 * listen to the TCP port and take care of each request
 		 */
+		System.setProperty("javax.net.ssl.keyStore", "server.keystore");
+		System.setProperty("javax.net.ssl.keyStorePassword", "123456");
+		SSLServerSocketFactory ssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
 		ServerSocket sSoc = null;
 		try {
-			sSoc = new ServerSocket(port);
+			sSoc = (SSLServerSocket) ssf.createServerSocket(port);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
