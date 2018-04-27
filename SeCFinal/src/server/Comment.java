@@ -27,7 +27,6 @@ public class Comment {
 	 */
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static final String commentsTxtName = "comments.txt";
-	private static final String commentsSigName = "comments.txt.sig";
 	
 	/**
 	 * Finds all the comments in the photo's directory and loads them into memory.
@@ -41,12 +40,6 @@ public class Comment {
 		File commentsTxt = new File(photoDirectorie + fileSeparator + commentsTxtName);
 		SecretKey sk = Crypto.getInstance().getSecretKey();
 		Crypto.getInstance().decipherFile(commentsTxt, sk);
-//		if(commentsSig.exists()) {
-//			Crypto.getInstance();
-//			boolean isValid = Crypto.verify(commentsTxt, commentsSig);
-//			if(!isValid)
-//				throw new SecurityException("ERROR: Invalid file signature!");
-//		}
 		FileReader fileReader;
 		BufferedReader buffReader = null;
 		fileReader = new FileReader(commentsTxt);
@@ -129,12 +122,13 @@ public class Comment {
 		String line = commenterUserId + ":" + comment;
 		File commentsTxt = new File(databaseRootDirName + fileSeparator + commentedUserId + 
 				fileSeparator + photoName.split("\\.")[0] + fileSeparator + commentsTxtName);
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.getInstance().decipherFile(commentsTxt, sk);
 		FileWriter fileWriter = new FileWriter(commentsTxt, true);
 		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
-		SecretKey sk = Crypto.getInstance().getSecretKey();
 		Crypto.getInstance().cipherFile(commentsTxt, sk);
 		return new Comment(commenterUserId, comment);
 	}

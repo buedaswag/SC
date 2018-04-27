@@ -46,12 +46,6 @@ public class Dislike {
 		
 		SecretKey sk = Crypto.getInstance().getSecretKey();
 		Crypto.getInstance().decipherFile(dislikesTxt, sk);;
-//		if(dislikesSig.exists()) {
-//			Crypto.getInstance();
-//			boolean isValid = Crypto.verify(dislikesTxt, dislikesSig);
-//			if(!isValid)
-//				throw new SecurityException("ERROR: Invalid file signature!");
-//		}
 		fileReader = new FileReader(dislikesTxt);
 		buffReader = new BufferedReader(fileReader);
 		String line;
@@ -127,13 +121,13 @@ public class Dislike {
 				dislikedUserId + fileSeparator + 
 				photoName.split("\\.")[0] + fileSeparator + 
 				dislikesTxtName);
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.getInstance().decipherFile(dislikesTxt, sk);
 		FileWriter fileWriter = new FileWriter(dislikesTxt, true);
 		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
-		//Crypto.sign(dislikesTxt);
-		SecretKey sk = Crypto.getInstance().getSecretKey();
 		Crypto.getInstance().cipherFile(dislikesTxt, sk);
 		return new Dislike(dislikerUserId);
 	}

@@ -46,12 +46,6 @@ public class Like {
 		
 		SecretKey sk = Crypto.getInstance().getSecretKey();
 		Crypto.getInstance().decipherFile(likesTxt, sk);;
-//		if(likesSig.exists()) {
-//			Crypto.getInstance();
-//			boolean isValid = Crypto.verify(likesTxt, likesSig);
-//			if(!isValid)
-//				throw new SecurityException("ERROR: Invalid file signature!");
-//		}
 		fileReader = new FileReader(likesTxt);
 		buffReader = new BufferedReader(fileReader);
 		String line;
@@ -127,13 +121,13 @@ public class Like {
 				likedUserId + fileSeparator + 
 				photoName.split("\\.")[0] + fileSeparator + 
 				likesTxtName);
+		SecretKey sk = Crypto.getInstance().getSecretKey();
+		Crypto.getInstance().decipherFile(likesTxt, sk);
 		FileWriter fileWriter = new FileWriter(likesTxt, true);
 		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
-		SecretKey sk = Crypto.getInstance().getSecretKey();
-		//Crypto.sign(likesTxt);
 		Crypto.getInstance().cipherFile(likesTxt, sk);
 		return new Like(likerUserId);
 	}
