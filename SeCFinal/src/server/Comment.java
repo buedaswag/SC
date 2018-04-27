@@ -43,8 +43,16 @@ public class Comment {
 		File commentsSig = new File(photoDirectorie + fileSeparator + commentsSigName);
 		SecretKey sk = Crypto.getInstance().getSecretKey();
 		Crypto.getInstance().decipherFile(commentsTxt, sk);
-		if(!commentsSig.exists())
-			SignUtils.writeSignature(commentsTxt);
+		if(!commentsSig.exists()) {
+			BufferedReader br = new BufferedReader(new FileReader (commentsTxt));
+			if(br.readLine() != null)
+				SignUtils.writeSignature(commentsTxt);
+			br.close();
+		}
+		else
+			if(!SignUtils.verifySignature(commentsTxt, commentsSig)) {
+				throw new Exception("ERROR: a comments file has been compromised!");
+			}
 		FileReader fileReader;
 		BufferedReader buffReader = null;
 		fileReader = new FileReader(commentsTxt);

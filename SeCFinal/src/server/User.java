@@ -22,6 +22,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import crypto.Crypto;
+import crypto.SignUtils;
 
 /**
  * 
@@ -39,6 +40,7 @@ public class User {
 	private static String databaseRootDirName = "database";
 	private static String usersTxtName = "users.txt";
 	private static String followersTxtName = "followers.txt";
+	private static String followersSigName = "followers.txt.sig";
 	private static String fileSeparator = System.getProperty("file.separator");
 	private static File usersTxt = new File(databaseRootDirName + fileSeparator + usersTxtName);
 	private static File databaseRootDir = new File(databaseRootDirName);
@@ -111,24 +113,26 @@ public class User {
 	 * @param userId - the user whose followers are to be found
 	 * @return followers - a Collection<String> of the followUserIds. 
 	 * The Collection will be empty if there are no followers
-	 * @throws IOException 
-	 * @throws NoSuchProviderException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws BadPaddingException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws InvalidKeyException 
+	 * @throws Exception 
 	 */
-	private static Collection<String> findFollowers(String userId) throws IOException, InvalidKeyException, UnrecoverableKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, NoSuchProviderException {
+	private static Collection<String> findFollowers(String userId) throws Exception {
 		//get the followersTxt file
 		File followersTxt = new File(databaseRootDirName + fileSeparator + userId + fileSeparator 
 				+ followersTxtName);
+		File followersSig = new File(databaseRootDirName + fileSeparator + userId + fileSeparator 
+				+ followersSigName);
 		SecretKey sk = Crypto.getInstance().getSecretKey();
 		Crypto.getInstance().decipherFile(followersTxt, sk);
-		//the Collection to store the followUserIds
+		if(!followersSig.exists()) {
+			BufferedReader br = new BufferedReader(new FileReader (followersTxt));
+			if(br.readLine() != null)
+				SignUtils.writeSignature(followersTxt);
+			br.close();
+		}
+		else
+			if(!SignUtils.verifySignature(followersTxt, followersSig))
+				throw new Exception("ERROR: a followers file has been compromised!");
+
 		Collection<String> followers = new LinkedList<>();
 		FileReader fileReader;
 		BufferedReader buffReader = null;

@@ -1,4 +1,4 @@
-package crypto_ponto4;
+package crypto;
 
 public class CipherManager {
 	

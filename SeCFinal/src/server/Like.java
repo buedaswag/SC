@@ -15,6 +15,7 @@ import java.util.Queue;
 import javax.crypto.SecretKey;
 
 import crypto.Crypto;
+import crypto.SignUtils;
 
 /**
  * Represents a like made by likerUser in a Photo
@@ -43,9 +44,18 @@ public class Like {
 		//create the buffers for reading from the file and the Queue
 		Queue<Like> likes = new LinkedList<>();
 		File likesTxt = new File(photoDirectorie + fileSeparator + likesTxtName);
-		
+		File likesSig = new File(photoDirectorie + fileSeparator + likesSigName);
 		SecretKey sk = Crypto.getInstance().getSecretKey();
-		Crypto.getInstance().decipherFile(likesTxt, sk);;
+		Crypto.getInstance().decipherFile(likesTxt, sk);
+		if(!likesSig.exists()) {
+			BufferedReader br = new BufferedReader(new FileReader (likesTxt));
+			if(br.readLine() != null)
+				SignUtils.writeSignature(likesTxt);
+			br.close();
+		}
+		else
+			if(!SignUtils.verifySignature(likesTxt, likesSig))
+				throw new Exception("ERROR: a likes file has been compromised!");
 		fileReader = new FileReader(likesTxt);
 		buffReader = new BufferedReader(fileReader);
 		String line;
