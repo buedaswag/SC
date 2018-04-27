@@ -3,10 +3,9 @@ package crypto_ponto4;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -271,53 +270,38 @@ public class Crypto {
 
 	}
 
-	public static void signFile(File fileToSign) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, SignatureException, UnrecoverableKeyException, KeyStoreException, CertificateException {
-		// create signature engine
-		Signature s = Signature.getInstance("SHA1withRSA");
-		s.initSign(privateKey("server", "myKeys.keystore"));
+	public static void SignFile(File fileToSign) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException, IOException {
 		
-		//read data from the given file
+		Signature dsa = Signature.getInstance("MD5withRSA"); 
+		dsa.initSign(PRIVATE_KEY);
+		
 		FileInputStream fis = new FileInputStream(fileToSign);
 		BufferedInputStream bufin = new BufferedInputStream(fis);
 		byte[] buffer = new byte[1024];
 		int len;
 		while ((len = bufin.read(buffer)) >= 0) {
-		    s.update(buffer, 0, len);
-		};
+		    dsa.update(buffer, 0, len);
+		}
+		
 		bufin.close();
 		
-		byte[] realSig = s.sign();
-		
-		// writes the signature file
-		FileOutputStream sigfos = new FileOutputStream(fileToSign + ".sig");
-		sigfos.write(realSig);
-		sigfos.close();
+		byte[] realSig = dsa.sign();
+		File newFile = new File("servidor_teste\\assinado.sig");
+		FileOutputStream fos = new FileOutputStream(newFile);
+		fos.write(realSig);
+		fos.close();
 	}
 	
-	public boolean checkSignature(File f, File sig) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, ClassNotFoundException, InvalidKeyException, SignatureException, UnrecoverableKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public static void checkSignature(File fileToCheck) throws IOException, NoSuchAlgorithmException, InvalidKeyException, KeyStoreException, CertificateException {
 		
-		// gets the data from the plaintext file
-		FileInputStream sigfis = new FileInputStream(f);
+		FileInputStream sigfis = new FileInputStream(fileToCheck);
 		byte[] sigToVerify = new byte[sigfis.available()]; 
 		sigfis.read(sigToVerify);
 		sigfis.close();
 		
-		Signature s = Signature.getInstance("SHA1withRSA");
-		PublicKey pk = getPublicKey("server", "myKeys.keystore");
-		s.initVerify(pk);
+		Signature sig = Signature.getInstance("MD5withRSA"); 
+		sig.initVerify(getPublicKey("server", "myKeys.keystore"));
 		
-		FileInputStream datafis = new FileInputStream(sig);
-		BufferedInputStream bufin = new BufferedInputStream(datafis);
-
-		byte[] buffer = new byte[1024];
-		int len;
-		while (bufin.available() != 0) {
-		    len = bufin.read(buffer);
-		    s.update(buffer, 0, len);
-		}
-		bufin.close();
-		return s.verify(sigToVerify);
 	}
-
-
+	
 }

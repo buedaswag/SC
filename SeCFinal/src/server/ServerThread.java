@@ -71,6 +71,9 @@ class ServerThread extends Thread {
 				args = (String[]) inStream.readObject();
 			} catch (ClassNotFoundException e1) {
 				e1.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			//TODO wrong password
 			authenticate(localUserId, password);
@@ -91,6 +94,9 @@ class ServerThread extends Thread {
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -109,20 +115,9 @@ class ServerThread extends Thread {
 	 * 
 	 * @param localUserId
 	 * @param password
-	 * @throws IOException
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws BadPaddingException 
-	 * @throws SignatureException 
-	 * @throws ClassNotFoundException 
+	 * @throws Exception 
 	 */
-	private void authenticate(String localUserId, String password) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
+	private void authenticate(String localUserId, String password) throws Exception {
 		Server.getInstance().authenticate(localUserId, password);
 	}
 
@@ -132,21 +127,10 @@ class ServerThread extends Thread {
 	 * ["a","sex.JPG","drugs.img","leagueOfLegends.png"]
 	 * or
 	 * ["c","miguel","ferias","que foto tao linda das tuas ferias"]
-	 * @throws IOException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws BadPaddingException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws InvalidKeyException 
-	 * @throws NoSuchProviderException 
-	 * @throws SignatureException 
-	 * @throws ClassNotFoundException 
+	 * @throws Exception 
 	 */
 	private void executeOperation(String localUserId, String[] args, 
-			ObjectInputStream inStream) throws IOException, InvalidKeyException, UnrecoverableKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, NoSuchProviderException, SignatureException, ClassNotFoundException {
+			ObjectInputStream inStream) throws Exception {
 		//get the operation to execute
 		char opt = args[0].charAt(0);
 		String[] newArgs = Arrays.copyOfRange(args, 1, args.length);

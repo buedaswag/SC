@@ -9,20 +9,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.security.InvalidKeyException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SignatureException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import crypto_ponto4.Crypto;
@@ -48,32 +37,21 @@ public class Like {
 	 * Finds all the likes in the photo's directory and loads them into memory.
 	 * @param photoDirectorie
 	 * @return likes
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws SignatureException 
-	 * @throws ClassNotFoundException 
+	 * @throws Exception 
 	 */
-	protected static Queue<Like> findAll(File photoDirectorie) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
+	protected static Queue<Like> findAll(File photoDirectorie) throws Exception {
 		//create the buffers for reading from the file and the Queue
 		Queue<Like> likes = new LinkedList<>();
 		File likesTxt = new File(photoDirectorie + fileSeparator + likesTxtName);
-		File likesSig = new File(photoDirectorie + fileSeparator + likesSigName);
 		
 		SecretKey sk = Crypto.getInstance().getSecretKey();
-		Crypto.getInstance().decipherFile(likesTxt, sk);
-		if(likesSig.exists()) {
-			boolean isValid = Crypto.getInstance().checkSignature(likesTxt, likesSig);
-			if(!isValid)
-				throw new SecurityException("ERROR: Invalid file signature!");
-		}
+		Crypto.getInstance().decipherFile(likesTxt, sk);;
+//		if(likesSig.exists()) {
+//			Crypto.getInstance();
+//			boolean isValid = Crypto.verify(likesTxt, likesSig);
+//			if(!isValid)
+//				throw new SecurityException("ERROR: Invalid file signature!");
+//		}
 		fileReader = new FileReader(likesTxt);
 		buffReader = new BufferedReader(fileReader);
 		String line;
@@ -140,19 +118,9 @@ public class Like {
 	 * @param likerUserId
 	 * @param photoName
 	 * @return like
-	 * @throws IOException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws BadPaddingException 
-	 * @throws SignatureException 
+	 * @throws Exception 
 	 */
-	protected static Like insert(String likedUserId, String likerUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
+	protected static Like insert(String likedUserId, String likerUserId, String photoName) throws Exception {
 		String line = likerUserId;
 		File likesTxt = new File(
 				databaseRootDirName + fileSeparator + 
@@ -165,7 +133,7 @@ public class Like {
 		buffWriter.newLine();
 		buffWriter.close();
 		SecretKey sk = Crypto.getInstance().getSecretKey();
-		Crypto.getInstance().signFile(likesTxt);
+		//Crypto.sign(likesTxt);
 		Crypto.getInstance().cipherFile(likesTxt, sk);
 		return new Like(likerUserId);
 	}

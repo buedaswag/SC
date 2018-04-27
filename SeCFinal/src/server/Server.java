@@ -41,40 +41,18 @@ public class Server {
 	 * system ... TO COMPLETE Inicia o servIdor, criando directorios e ficheiros de
 	 * registo se necessario. Nao cria interfaces de rede; tudo o que diz respeito a
 	 * portos, TCP e outras coisas giras fica ao encargo do handler.
-	 * @throws IOException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws BadPaddingException 
-	 * @throws SignatureException 
-	 * @throws ClassNotFoundException 
+	 * @throws Exception 
 	 */
-	private Server() throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
+	private Server() throws Exception {
 		users = User.findAll();
 	}
 
 	/**
 	 * 
 	 * @return server - The single instance of Class Server
-	 * @throws IOException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws BadPaddingException 
-	 * @throws SignatureException 
-	 * @throws ClassNotFoundException 
+	 * @throws Exception 
 	 */
-	public static Server getInstance() throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
+	public static Server getInstance() throws Exception {
 		if(server == null)
 			server = new Server();
 		return server;
@@ -83,20 +61,9 @@ public class Server {
 	/**
 	 * 
 	 * @param args
-	 * @throws IOException
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws BadPaddingException 
-	 * @throws SignatureException 
-	 * @throws ClassNotFoundException 
+	 * @throws Exception 
 	 */
-	public static void main(String[] args) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
+	public static void main(String[] args) throws Exception {
 		Server.getInstance();
 		//get the port
 		int port = new Integer(args[0]);
@@ -192,20 +159,10 @@ public class Server {
 	 * @param commentedUserId - the userId of the commentedUser
 	 * @param photoName - the name of the commentedUser's photo
 	 * @return allGood if it all went well, needsToBeFollower otherwise
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws SignatureException 
+	 * @throws Exception 
 	 */
 	protected String addComment(String comment, String localUserId, String commentedUserId, 
-			String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
+			String photoName) throws Exception {
 		// get the commented user with the given credentials
 		User commentedUser = users.get(commentedUserId);
 		// check if the localUser is not a follower
@@ -225,19 +182,9 @@ public class Server {
 	 * @param likedUserId - the userId of the likedUser
 	 * @param photoName - the name of the likedUser's photo
 	 * @return allGood if it all went well, needsToBeFollower otherwise
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws SignatureException 
+	 * @throws Exception 
 	 */
-	protected String addLike(String localUserId, String likedUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
+	protected String addLike(String localUserId, String likedUserId, String photoName) throws Exception {
 		// get the liked user with the given credentials
 		User likedUser = users.get(likedUserId);
 		// check if the localUser is not a follower
@@ -257,19 +204,9 @@ public class Server {
 	 * @param dislikedUserId - the userId of the dislikedUser
 	 * @param photoName - the name of the dislikedUser's photo
 	 * @return allGood if it all went well, needsToBeFollower otherwise
-	 * @throws IOException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws BadPaddingException 
-	 * @throws SignatureException 
+	 * @throws Exception 
 	 */
-	protected String addDislike(String localUserId, String dislikedUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
+	protected String addDislike(String localUserId, String dislikedUserId, String photoName) throws Exception {
 		// get the dislikedUser with the given credentials
 		User dislikedUser = users.get(dislikedUserId);
 		// check if the localUser is not a follower

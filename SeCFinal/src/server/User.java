@@ -50,20 +50,9 @@ public class User {
 	 * @requires when a user is registered, a folder must be created for him
 	 * @return users - a Map<String, User> containing all the users in the file system, or an empty
 	 * Map if there are no users yet
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws SignatureException 
-	 * @throws ClassNotFoundException 
+	 * @throws Exception 
 	 */
-	protected static Map<String, User> findAll () throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
+	protected static Map<String, User> findAll () throws Exception {
 		//the Map to be returned
 		Map<String, User> users = new Hashtable<>();
 		//if databaseRootDir does not exist, create it and the usersTxt file and return the empty map
@@ -103,20 +92,9 @@ public class User {
 	 * (followers and photos).
 	 * @param userId - userId and password of the user to be found
 	 * @return user - The constructed user with all its information loaded to memory.
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws SignatureException 
-	 * @throws ClassNotFoundException 
+	 * @throws Exception 
 	 */
-	private static User find(String userId, String password) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
+	private static User find(String userId, String password) throws Exception {
 		//the User to be returned
 		User user = null;
 		//get the followers
@@ -234,7 +212,7 @@ public class User {
 			buffWriter.newLine();
 		}
 		buffWriter.close();
-		Crypto.getInstance().signFile(followersTxt);
+		//Crypto.getInstance().signFile(followersTxt);
 		SecretKey sk = Crypto.getInstance().getSecretKey();
 		Crypto.cipherFile(followersTxt, sk);
 	}
@@ -474,20 +452,10 @@ public class User {
 	 * @param commenterUserId - the userId of the commenterUser
 	 * @param comment - the comment to be made
 	 * @param photoName - the name of the commentedUser's photo
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws SignatureException 
+	 * @throws Exception 
 	 */
 	protected void addComment(String commentedUserId, String commenterUserId, String comment, 
-			String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
+			String photoName) throws Exception {
 		this.getPhoto(photoName).addComment(commentedUserId, commenterUserId, comment, photoName);
 	}
 
@@ -517,19 +485,9 @@ public class User {
 	 * @param likedUserId - the userId of the likedUser
 	 * @param likerUserId - the userId of the likerUser 
 	 * @param photoName - the name of this user's photo
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws SignatureException 
+	 * @throws Exception 
 	 */
-	protected void addLike(String likedUserId, String likerUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
+	protected void addLike(String likedUserId, String likerUserId, String photoName) throws Exception {
 		getPhoto(photoName).addLike(likedUserId, likerUserId, photoName);
 	}
 
@@ -538,19 +496,9 @@ public class User {
 	 * @param dislikedUserId - the userId of the dislikedUser
 	 * @param dislikerUserId - the userId of the dislikerUser 
 	 * @param photoName - the name of this user's photo
-	 * @throws IOException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws BadPaddingException 
-	 * @throws SignatureException 
+	 * @throws Exception 
 	 */
-	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
+	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) throws Exception {
 		getPhoto(photoName).addDislike(dislikedUserId, dislikerUserId, photoName);
 	}
 

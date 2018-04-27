@@ -12,6 +12,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -36,6 +37,7 @@ import javax.crypto.SecretKey;
 public class Server{
 	
 	private final String FICHEIRO_OUT = "servidor_teste\\testfile.txt";
+	private final String FICHEIRO_TESTE = "servidor_teste\\testar.txt";
 
 	public static void main(String[] args) {
 		System.out.println("servidor: main");
@@ -116,51 +118,48 @@ public class Server{
 					saveFile(socket);
 					
 					
-					// ***************************************************
-					// Ponto 1 :
-					SecretKey sk = Crypto.getSecretKey();
-					System.out.println(sk);
+					File f  = new File(FICHEIRO_TESTE);
+					Crypto.getInstance().SignFile(f);
+//					
+//					// ***************************************************
+//					// Ponto 1 :
+//					SecretKey sk = Crypto.getSecretKey();
+//					System.out.println(sk);
+//					
+//				    // Ponto 2:
+//					File f = new File(FICHEIRO_OUT);
+//					Crypto.cipherFile(f, sk);
+//				
+//					//Ponto 3:
+//					// chave publica
+//					PublicKey chavePublica = Crypto.getPublicKey("server", "myKeys.keystore");
+//					//cifra a chave secreta 'k'
+//					byte[] wrapped = Crypto.cipherKey(sk, chavePublica);
+//					//armazena chave num ficheiro "testfile.txt.key"
+//					FileOutputStream fos = new FileOutputStream(FICHEIRO_OUT + ".key");
+//					fos.write(wrapped);
+//					fos.close();
+//					
+//					// SEGUNDA PARTE DO ALGORITMO
+//					// Ponto 1:
+//					File keyFile = new File(f + ".key");
+//					FileInputStream fis = new FileInputStream(keyFile);
+//					byte[] keyEncoded = new byte[(int) keyFile.length()];
+//					fis.read(keyEncoded);
+//					
+//					PrivateKey pk = Crypto.privateKey("server", "myKeys.keystore");
+//					SecretKey skLida = Crypto.decipherKey(keyEncoded, pk);
+//					System.out.println(sk.equals(skLida));
+//					Crypto.decipherFile(f, sk);
+//					// ***************************************************
+//					
+//					// **************************************************
+//				    // Assinar Ficheiro
+//					File ficheiroAAssinar = new File(FICHEIRO_OUT);
+//					//Crypto.signFile(ficheiroAAssinar);
 					
-				    // Ponto 2:
-					File f = new File(FICHEIRO_OUT);
-					Crypto.cipherFile(f, sk);
-				
-					//Ponto 3:
-					// chave publica
-					PublicKey chavePublica = Crypto.getPublicKey("server", "myKeys.keystore");
-					//cifra a chave secreta 'k'
-					byte[] wrapped = Crypto.cipherKey(sk, chavePublica);
-					//armazena chave num ficheiro "testfile.txt.key"
-					FileOutputStream fos = new FileOutputStream(FICHEIRO_OUT + ".key");
-					fos.write(wrapped);
-					fos.close();
-					
-					// SEGUNDA PARTE DO ALGORITMO
-					// Ponto 1:
-					File keyFile = new File(f + ".key");
-					FileInputStream fis = new FileInputStream(keyFile);
-					byte[] keyEncoded = new byte[(int) keyFile.length()];
-					fis.read(keyEncoded);
-					
-					PrivateKey pk = Crypto.privateKey("server", "myKeys.keystore");
-					SecretKey skLida = Crypto.decipherKey(keyEncoded, pk);
-					System.out.println(sk.equals(skLida));
-					Crypto.decipherFile(f, sk);
-					// ***************************************************
-					
-					// **************************************************
-				    // Assinar Ficheiro
-					File ficheiroAAssinar = new File(FICHEIRO_OUT);
-					Crypto.signFile(ficheiroAAssinar);
-					
-				}catch (ClassNotFoundException | UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException | CertificateException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchProviderException e1) {
+				}catch (ClassNotFoundException | InvalidKeyException | UnrecoverableKeyException | NoSuchAlgorithmException | NoSuchProviderException | SignatureException | KeyStoreException | CertificateException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
 					e1.printStackTrace();
-				} catch (BadPaddingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (SignatureException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 
 				outStream.close();

@@ -47,20 +47,9 @@ public class Photo {
 	 * Finds all the photos in this user's directory and loads them into memory.
 	 * @param userId
 	 * @return
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws SignatureException 
-	 * @throws ClassNotFoundException 
+	 * @throws Exception 
 	 */
-	protected static Collection<Photo> findAll(String userId) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
+	protected static Collection<Photo> findAll(String userId) throws Exception {
 		//the Collection to be returned
 		Collection<Photo> photos = new LinkedList<>();
 		//the directories for this user's photos
@@ -85,20 +74,9 @@ public class Photo {
 	 * (photoName, uploadDate, comments, likes and dislikes)
 	 * @param userId
 	 * @param photoDirectorie
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws SignatureException 
-	 * @throws ClassNotFoundException 
+	 * @throws Exception 
 	 */
-	private static Photo find(String userId, File photoDirectorie) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, ClassNotFoundException, SignatureException {
+	private static Photo find(String userId, File photoDirectorie) throws Exception {
 		//the composing elements of the photo to be returned 
 		String photoName = null;
 		long uploadDate = -1;
@@ -118,12 +96,6 @@ public class Photo {
 				break;
 			case likesTxtName:
 				dislikes = Dislike.findAll(photoDirectorie);
-				break;
-			case "likes.txt.sig":
-				break;
-			case "dislikes.txt.sig":
-				break;
-			case "comments.txt.sig":
 				break;
 			default:
 				photoName = fileName;
@@ -233,7 +205,7 @@ public class Photo {
 		photoFileTemp.renameTo(photoInDestiny);
 		//cipher the photo
 		SecretKey sk = Crypto.getInstance().getSecretKey();
-		Crypto.cipherFile(photoInDestiny, sk);
+		Crypto.getInstance().cipherFile(photoInDestiny, sk);
 		//creates the empty likesTxt, dislikesTxt and commentsTxt in this photo's directory.
 		Comment.insertAll(photoDestenyDir);
 		Like.insertAll(photoDestenyDir);
@@ -436,20 +408,10 @@ public class Photo {
 	 * @param comment - the comment to be made
 	 * @param commentedUserId - the userId of the commentedUser
 	 * @param commenterUserId - the userId of the commenterUser
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws SignatureException 
+	 * @throws Exception 
 	 */
 	protected void addComment(String comment, String commentedUserId, String commenterUserId, 
-			String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
+			String photoName) throws Exception {
 		comments.add(Comment.insert(comment, commentedUserId, commenterUserId, photoName));
 	}
 
@@ -458,19 +420,9 @@ public class Photo {
 	 * @param likedUserId - the userId of the likedUser
 	 * @param likerUserId - the userId of the likerUser
 	 * @param photoName - the name of this user's photo
-	 * @throws IOException 
-	 * @throws BadPaddingException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws SignatureException 
+	 * @throws Exception 
 	 */
-	protected void addLike(String likedUserId, String likerUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
+	protected void addLike(String likedUserId, String likerUserId, String photoName) throws Exception {
 		likes.add(Like.insert(likedUserId, likerUserId, photoName));
 	}
 
@@ -479,19 +431,9 @@ public class Photo {
 	 * @param dislikedUserId - the userId of the dislikedUser
 	 * @param dislikerUserId - the userId of the dislikerUser 
 	 * @param photoName - the name of this user's photo
-	 * @throws IOException 
-	 * @throws NoSuchProviderException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws CertificateException 
-	 * @throws KeyStoreException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws BadPaddingException 
-	 * @throws SignatureException 
+	 * @throws Exception 
 	 */
-	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
+	protected void addDislike(String dislikedUserId, String dislikerUserId, String photoName) throws Exception {
 		dislikes.add(Dislike.insert(dislikedUserId, dislikerUserId, photoName));
 	}
 
