@@ -18,6 +18,7 @@ import java.security.NoSuchProviderException;
 import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,7 +28,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import crypto.Crypto;
-import crypto.PasswordUtils;
+import cryptoUtils.MacUtils;
+import cryptoUtils.PasswordUtils;
 import crypto.Crypto;
 import crypto.SignUtils;
 
@@ -165,14 +167,30 @@ public class User {
 	
 	/**
 	 * Creates and inserts a new user with the given credentials. Ciphers the password.
-	 * This method is only used by ManUsers. Protects the file with a MAC.
+	 * This method is only used by ManUsers. checks if the file is mac protected and terminates
+	 * if it's not. Protects the file with a MAC after it writes to it.
 	 * @param localUserId
 	 * @param password
 	 * @return
 	 * @throws IOException 
+	 * @throws KeyStoreException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @return true if it all went well, false if the MAC file was compromised.
+	 * @throws InvalidKeySpecException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
 	 */
 	//TODO MAC PROTECT THE FILE
-	public static void insert(String localUserId, String password) throws IOException {
+	public static boolean insert(String localUserId, String password) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, CertificateException, KeyStoreException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
+		//check MAC
+		if (!MacUtils.getInstance().checkMac()) {
+			return false;
+		}
 		FileWriter fileWriter = new FileWriter(usersTxt, true);
 		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
 		//add the line in the usersTxt file corresponding to the user
@@ -180,16 +198,18 @@ public class User {
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
-		//TODO MAC PROTECT THE FILE
+		//MAC protect the file.
+		MacUtils.getInstance().macProtect();
 		//create localUser's directory
 		String localUserDirName = databaseRootDirName + fileSeparator + localUserId;
 		File localUserDir = new File(localUserDirName);
 		//in case the directory doesn't exist yet, create it.
 		if (!localUserDir.exists()) {
 			localUserDir.mkdir();
-			//create the followersTxt file
-			new File(localUserDirName + fileSeparator + followersTxtName).createNewFile();
+			//create an empty followersTxt file
+			User.insertFollowers(localUserId, new String[0]);
 		}
+		return true;
 	}
 
 	/**
@@ -269,8 +289,12 @@ public class User {
 	 * @throws Exception 
 	 */
 	//TODO MAC PROTECT THE FILE
-	protected static void remove(String localUserId, Collection<String> usersTxtContent) 
+	protected static boolean remove(String localUserId, Collection<String> usersTxtContent) 
 			throws Exception {
+		//check MAC
+		if (!MacUtils.getInstance().checkMac()) {
+			return false;
+		}
 		//delete old file
 		usersTxt.delete();
 		//create new file without the given user
@@ -282,7 +306,8 @@ public class User {
 			buffWriter.newLine();
 		}
 		buffWriter.close();
-		//TODO MAC PROTECT THE FILE
+		//MAC protect the file.
+		MacUtils.getInstance().macProtect();
 		removeAllFollower(localUserId, usersTxtContent);
 		//delete the user folder and all its files and sub-directories
 		String userDirName = databaseRootDirName + fileSeparator + localUserId;
@@ -292,8 +317,9 @@ public class User {
 		for(Path path : pathsToDelete) {
 		    Files.deleteIfExists(path);
 		}
+		return true;
 	}
-	
+
 	/**
 	 * Updates the given user's password in the usersTxt file.
 	 * This method is only used by ManUsers. Deletes the old usersTxt and creates a new one with 
@@ -303,9 +329,23 @@ public class User {
 	 * @param newPassword
 	 * @param usersTxtContent - the content of the usersTxt file before the removal.
 	 * @throws IOException 
+	 * @throws KeyStoreException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws InvalidKeySpecException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
 	 */
-	protected static void updatePassword(String localUserId, String newPassword, Collection<String> usersTxtContent) 
-			throws IOException {
+	protected static boolean updatePassword(String localUserId, String newPassword, Collection<String> usersTxtContent) 
+			throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, CertificateException, KeyStoreException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
+		//check MAC
+		if (!MacUtils.getInstance().checkMac()) {
+			return false;
+		}
 		//delete old file
 		usersTxt.delete();
 		//create new file without the given user
@@ -317,7 +357,9 @@ public class User {
 			buffWriter.newLine();
 		}
 		buffWriter.close();
-		User.insert(localUserId, newPassword);
+		//MAC protect the file.
+		MacUtils.getInstance().macProtect();
+		return User.insert(localUserId, newPassword);
 	}
 	
 	/**

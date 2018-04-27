@@ -15,6 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -24,6 +25,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+
+import cryptoUtils.MacUtils;
 
 /**
  * 
@@ -49,25 +52,23 @@ public class ManUsers {
 	private static final String wrongCredentials = "Wrong credentials!";
 	private static final String existingUser = "This user was already added!";
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws IOException, ClassNotFoundException, 
+	UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, 
+	CertificateException, KeyStoreException, InvalidKeySpecException {
 		//set up the database
-		if (!setupDatabase()) {
+		if (!setupDatabase(args)) {
 			//the file was compromised
 			return;
 		}
-		int port = new Integer(args[0]);
 		//get the port
-		System.setProperty("javax.net.ssl.keyStore", "server.keystore");
-		System.setProperty("javax.net.ssl.keyStorePassword", "123456");
-
-		/*
-		 * listen to the SSL port and set up a thread for each request
-		 */
-		SSLServerSocketFactory ssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-		ServerSocket sSoc = null;
+		int port = new Integer(args[1]);
 		/*
 		 * listen to the TCP port and take care of each request
-		 */ 
+		 */
+		System.setProperty("javax.net.ssl.keyStore", "server.keystore");
+		System.setProperty("javax.net.ssl.keyStorePassword", "123456");
+		SSLServerSocketFactory ssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+		ServerSocket sSoc = null;
 		try {
 			sSoc = (SSLServerSocket) ssf.createServerSocket(port);
 		} catch (IOException e) {
@@ -93,62 +94,37 @@ public class ManUsers {
 	 * adds it if the file is not protected (printing a warning message), 
 	 * or terminates immediately if the MAC is wrong (printing a warning message).
 	 * @throws IOException 
+	 * @throws KeyStoreException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws InvalidKeySpecException 
+	 * @throws SecurityException 
 	 */
-	private static boolean setupDatabase() throws IOException {
+	private static boolean setupDatabase(String[] args) throws IOException, 
+	UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, 
+	CertificateException, KeyStoreException, InvalidKeySpecException {
+		//initialize the mac utils
+		MacUtils macUtils = MacUtils.getInstance();
+		macUtils.init(args[2], args[3], args[4]);
 		//if databaseRootDir does not exist, create it and the usersTxt file and protect the file.
 		if (!databaseRootDir.exists()) {
 			databaseRootDir.mkdir();
 			usersTxt.createNewFile();
-			macProtect(usersTxt);
+			MacUtils.getInstance().macProtect();
 			return true;
 		} 
 		//if the database exists but not the usersTxt
 		if (!usersTxt.exists()) {
 			usersTxt.createNewFile();
-			macProtect(usersTxt);
+			MacUtils.getInstance().macProtect();
 			return true;
 		}
 		//if both the database and the usersTxt exist, check the file for MAC protection. 
-		if (isMacProtected(usersTxt)) {
-			return checkMac(usersTxt);
+		if (MacUtils.getInstance().isMacProtected()) {
+			return MacUtils.getInstance().checkMac();
 		} else {
-			macProtect(usersTxt);
-		}
-		return true;
-	}
-
-	/**
-	 * Protects a file with a MAC.
-	 * @param file
-	 */
-	// TODO
-	private static void macProtect(File file) {
-		// TODO Auto-generated method stub
-
-	}
-
-	/**
-	 * Checks if the MAC protecting a file is correct.
-	 * @param file
-	 * @return
-	 */
-	// TODO
-	private static boolean checkMac(File file) {
-		if (false) {
-			System.out.println(wrongMac);
-		}
-		return true;
-	}
-
-	/**
-	 * Checks if the given file is protected by a MAC
-	 * @param file
-	 * @return
-	 */
-	//TODO
-	private static boolean isMacProtected(File file) {
-		if (false) {
-			System.out.println(notMacProtected);
+			MacUtils.getInstance().macProtect();
 		}
 		return true;
 	}
@@ -157,9 +133,19 @@ public class ManUsers {
 	 * Executes the operation requested by the user in the given message
 	 * @param message - the operation parameters in the format 
 	 * 		["operationName", "parameter1", ... , "parameterN"]
-	 * @throws Exception 
+	 * @throws IOException 
+	 * @throws KeyStoreException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws InvalidKeySpecException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
 	 */
-	private static void executeOperation(String[] message) throws Exception {
+	private static void executeOperation(String[] message) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, CertificateException, KeyStoreException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
 		String operation = message[0];
 		switch (operation) {
 		case addUser: {
@@ -198,10 +184,25 @@ public class ManUsers {
 	 * @param localUserId
 	 * @param password
 	 * @throws IOException 
+	 * @throws KeyStoreException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws InvalidKeySpecException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
 	 */
-	public static void addUser(String localUserId, String password) throws IOException {
+	public static void addUser(String localUserId, String password) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, CertificateException, KeyStoreException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
 		//get the String[] representation of the usersTxt file
 		Collection<String> usersTxtContent = plainFileToStringCollection(usersTxt);
+		////check MAC
+		if (usersTxtContent == null) {
+			System.out.println(addUser + ": " + wrongMac);
+			return;
+		}
 		//check if the user was already added
 		for (String line : usersTxtContent) {
 			if (line.startsWith(localUserId)) {
@@ -210,7 +211,11 @@ public class ManUsers {
 			}
 		}
 		//Inserts the user and ciphers the password.
-		User.insert(localUserId, password);
+		//check MAC
+		if (!User.insert(localUserId, password)) {
+			System.out.println(addUser + ": " + wrongMac);
+			return;
+		}
 		System.out.println(addUser + " successfully executed!");
 	}
 
@@ -220,11 +225,22 @@ public class ManUsers {
 	 * Checks if the password given is correct, and does nothing if it's not correct.
 	 * @param localUserId
 	 * @param password
-	 * @throws Exception 
+	 * @throws IOException 
+	 * @throws KeyStoreException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws InvalidKeySpecException 
 	 */
-	public static void removeUser(String localUserId, String password) throws Exception {
+	public static void removeUser(String localUserId, String password) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, CertificateException, KeyStoreException, InvalidKeySpecException {
 		//get the String[] representation of the usersTxt file
 		Collection<String> usersTxtContent = plainFileToStringCollection(usersTxt);
+		//check MAC
+		if (usersTxtContent == null) {
+			System.out.println(addUser + ": " + wrongMac);
+			return;
+		}
 		//check if the user was already added
 		String userLine = null;
 		Iterator<String> iterator = usersTxtContent.iterator();
@@ -234,11 +250,16 @@ public class ManUsers {
 				userLine = line;
 			}
 		}
+		
 		if (userLine != null && checkPassword(userLine, password)) {
 			//Removes the user from the collection
 			usersTxtContent.remove(userLine);
 			//removes the user from the system
-			User.remove(localUserId, usersTxtContent);
+			//check MAC
+			if (User.remove(localUserId, usersTxtContent)) {
+				System.out.println(removeUser + ": " + wrongMac);
+				return;
+			}
 			System.out.println(removeUser + " successfully executed!");
 		} else {
 			System.out.println(wrongCredentials);
@@ -253,10 +274,25 @@ public class ManUsers {
 	 * @param oldPassword
 	 * @param newPassword
 	 * @throws IOException 
+	 * @throws KeyStoreException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws InvalidKeySpecException 
+	 * @throws BadPaddingException 
+	 * @throws NoSuchProviderException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
 	 */
-	public static void updatePassword(String localUserId, String oldPassword, String newPassword) throws IOException {
+	public static void updatePassword(String localUserId, String oldPassword, String newPassword) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, CertificateException, KeyStoreException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
 		//get the String[] representation of the usersTxt file
 		Collection<String> usersTxtContent = plainFileToStringCollection(usersTxt);
+		//check MAC
+		if (usersTxtContent == null) {
+			System.out.println(addUser + ": " + wrongMac);
+			return;
+		}
 		//check if the user was already added
 		String userLine = null;
 		Iterator<String> iterator = usersTxtContent.iterator();
@@ -270,59 +306,51 @@ public class ManUsers {
 			//Removes the user from the collection
 			usersTxtContent.remove(userLine);
 			//removes the user from the system
-			User.updatePassword(localUserId, newPassword, usersTxtContent);
+			if (User.updatePassword(localUserId, newPassword, usersTxtContent)) {
+				System.out.println(updatePassword + ": " + wrongMac);
+				return;
+			}
 			System.out.println(updatePassword + " successfully executed!");
 		} else {
 			System.out.println(wrongCredentials);
 		}
 	}
 
-	/**
-	 * Checks if the salted hash of the given oldPassword is equal to the one present in the given
-	 * line.
-	 * @param line - the line from the text file
-	 * @param oldPassword
-	 * @return
-	 */
-	//TODO
-	private static boolean checkPassword(String line, String oldPassword) {
-		//public static boolean isExpectedPassword(String password, byte[] salt, byte[] expectedHash)
-		/*
-		byte[] salt = stringToByteArray
-		String saltString = line.split(":")[1];
-		String[] saltStrings = saltString.split("(?!^)");
-		int saltLength = saltString.length();
-		byte[] salt = new byte[saltLength];
-		for (int i = 0; i < saltLength; i++) {
-			salt[i] = Byte.parseByte(saltStrings[i]);     
-		}
-		 */
-		return true;
+	private static boolean checkPassword(String userLine, String oldPassword) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	/**
-	 * Deciphers the given file and returns its content as a String[]
+	 * Returns the given file's content as a String[].
+	 * Checks the file for MAC protection and returns null if the file was compromised.
+	 * Protects the file with a MAC after reading it.
 	 * @param file
 	 * @return fileContent - the String[] representation of the given file
 	 * @throws IOException 
+	 * @throws KeyStoreException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws InvalidKeySpecException 
+	 * @return The Collection<String> with the file content or null if the MAC was wrong.
 	 */
 	//TODO DECIPHER THE FILE
 	private static Collection<String> plainFileToStringCollection(File file) 
-			throws IOException {
+			throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, CertificateException, KeyStoreException, InvalidKeySpecException {
 		//get the Collection<String>
 		Collection<String> lines = new LinkedList<>();
-		FileReader fileReader;
-		BufferedReader buffReader = null;
-		/*
-		 * DECIPHER THE FILE
-		 */
-		fileReader = new FileReader(file);
-		buffReader = new BufferedReader(fileReader);
+		//check MAC
+		MacUtils.getInstance().checkMac();
+		FileReader fileReader = new FileReader(file);
+		BufferedReader buffReader = new BufferedReader(fileReader);
 		String line;
 		while ((line = buffReader.readLine()) != null) {
 			lines.add(line);
 		}
 		buffReader.close();
+		MacUtils.getInstance().macProtect();
 		return lines;
 	}
 }
