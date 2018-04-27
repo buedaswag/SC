@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,6 +27,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import crypto.Crypto;
+import crypto.PasswordUtils;
 import crypto.Crypto;
 import crypto.SignUtils;
 
@@ -84,7 +86,7 @@ public class User {
 			String line;
 			while ((line = buffReader.readLine()) != null) {
 				// splits the line in the form userId:salt:salted_password_hash
-				String[] userCredentials = getCipheredCredentials(line);
+				String[] userCredentials = line.split(":");
 				//adds the user to the map
 				users.put(userCredentials[0], User.find(userCredentials[0], 
 						userCredentials[1], userCredentials[2]));
@@ -353,7 +355,13 @@ public class User {
 	 */
 	//TODO
 	private static String cipherPassword(String password) {
-		String cipheredPassword = "salt:" + password;
+		byte[] salt = PasswordUtils.getNextSalt();
+		byte[] hash = PasswordUtils.hash(password, salt);
+		ByteBuffer wrapped = ByteBuffer.wrap(salt);
+		int numSalt = wrapped.getInt();
+		wrapped = ByteBuffer.wrap(hash);
+		String hashString = Base64.getEncoder().encodeToString(hash);
+		String cipheredPassword =  numSalt + ":" + hashString;
 		return cipheredPassword;
 	}
 	
@@ -401,7 +409,6 @@ public class User {
 	 */
 	//TODO
 	private static String[] getCipheredCredentials(String line) {
-		//TODO DECIPHER LINE
 		String[] userCredentials = line.split(":");
 		return userCredentials;
 	}

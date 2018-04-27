@@ -21,6 +21,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import crypto.Crypto;
+import crypto.PasswordUtils;
 
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -107,13 +108,17 @@ public class Server {
 	 * @param password
 	 * @return true if the user was successfully authenticated or false if the password is wrong.
 	 * @throws IOException 
+	 * @throws NoSuchAlgorithmException 
 	 */
-	protected boolean authenticate(String localUserId, String password) throws IOException{
+	protected boolean authenticate(String localUserId, String password) throws IOException, NoSuchAlgorithmException{
 		// Case 1 : the user exists
 		if (users.containsKey(localUserId)) {
-			if (users.get(localUserId).getPassword().equals(password)) {
+			User u = users.get(localUserId);
+			String salt = u.getSalt();
+			String hash = u.getPassword();
+			if (PasswordUtils.isExpectedPassword(password, salt, hash))
 				return true;
-			} else {
+			else {
 				System.out.println("Wrong password!");
 				return false;
 			}
