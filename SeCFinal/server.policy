@@ -5,6 +5,10 @@ grant codeBase "file:bin/*" {
 	permission java.io.FilePermission "temp/-", "read,write,delete";
 	permission java.io.FilePermission "database", "read,write";
 	permission java.io.FilePermission "database/-", "read,write,delete";
+	permission java.io.FilePermission "secret_key", "read,write,delete";
+	permission java.io.FilePermission "secret_key/-", "read,write,delete";
+	permission java.io.FilePermission "myKeys.keystore", "read,write,delete";
+	permission java.io.FilePermission "myKeys", "read,write,delete";
 	permission java.util.PropertyPermission "user.dir", "read";
 	permission java.util.PropertyPermission "file.separator", "read";
 	permission java.util.PropertyPermission "javax.net.ssl.keyStore", "write";

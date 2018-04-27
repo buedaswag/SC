@@ -1,4 +1,4 @@
-package crypto;
+package cryptoUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
