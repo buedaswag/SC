@@ -1,4 +1,4 @@
-package crypto_ponto4;
+package crypto;
 
 import java.io.BufferedInputStream;
 import java.io.File;
