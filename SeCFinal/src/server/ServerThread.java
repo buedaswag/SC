@@ -1,6 +1,7 @@
 package server;
 
 import java.io.File;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -21,7 +22,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
-import crypto_ponto4.Crypto;
+import crypto.Crypto;
 
 //Threads utilizadas para comunicacao com os clientes
 /**

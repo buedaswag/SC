@@ -1,6 +1,7 @@
 package server;
 
 import java.io.BufferedReader;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
@@ -14,7 +15,7 @@ import java.util.Queue;
 
 import javax.crypto.SecretKey;
 
-import crypto_ponto4.Crypto;
+import crypto.Crypto;
 
 /**
  * Represents a like made by likerUser in a Photo
