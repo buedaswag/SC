@@ -27,6 +27,7 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 
 import cryptoUtils.MacUtils;
+import cryptoUtils.PasswordUtils;
 
 /**
  * 
@@ -51,7 +52,7 @@ public class ManUsers {
 	private static final String notMacProtected = "The usersTxt file was not MAC protected";
 	private static final String wrongCredentials = "Wrong credentials!";
 	private static final String existingUser = "This user was already added!";
-	
+
 	public static void main(String[] args) throws IOException, ClassNotFoundException, 
 	UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, 
 	CertificateException, KeyStoreException, InvalidKeySpecException {
@@ -148,33 +149,33 @@ public class ManUsers {
 	private static void executeOperation(String[] message) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, CertificateException, KeyStoreException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
 		String operation = message[0];
 		switch (operation) {
-		case addUser: {
-			if (message.length == 3) {
-				addUser(message[1], message[2]);
-			} else {
-				System.out.println("Invalid arguments for addUser.");
+			case addUser: {
+				if (message.length == 3) {
+					addUser(message[1], message[2]);
+				} else {
+					System.out.println("Invalid arguments for addUser.");
+				}
+				break;
 			}
-			break;
-		}
-		case removeUser: {
-			if (message.length == 3) {
-				removeUser(message[1], message[2]);
-			} else {
-				System.out.println("Invalid arguments for removeUser.");
+			case removeUser: {
+				if (message.length == 3) {
+					removeUser(message[1], message[2]);
+				} else {
+					System.out.println("Invalid arguments for removeUser.");
+				}
+				break;
 			}
-			break;
-		}
-		case updatePassword: {
-			if (message.length == 4) {
-				updatePassword(message[1], message[2], message[3]);
-			} else {
-				System.out.println("Invalid arguments for changePassword.");
+			case updatePassword: {
+				if (message.length == 4) {
+					updatePassword(message[1], message[2], message[3]);
+				} else {
+					System.out.println("Invalid arguments for changePassword.");
+				}
+				break;
 			}
-			break;
-		}
-		default: {
-			System.out.println("Woops! operation not supported");
-		}
+			default: {
+				System.out.println("Woops! operation not supported");
+			}
 		}
 	}
 
@@ -250,7 +251,7 @@ public class ManUsers {
 				userLine = line;
 			}
 		}
-		
+
 		if (userLine != null && checkPassword(userLine, password)) {
 			//Removes the user from the collection
 			usersTxtContent.remove(userLine);
@@ -316,9 +317,16 @@ public class ManUsers {
 		}
 	}
 
-	private static boolean checkPassword(String userLine, String oldPassword) {
-		// TODO Auto-generated method stub
-		return false;
+	private static boolean checkPassword(String userLine, String oldPassword) throws NoSuchAlgorithmException {
+		// Case 1 : the user exists
+		String[] vars = userLine.split(":");
+		String sal = vars[1];
+		String hash = vars[2];
+		if (PasswordUtils.isExpectedPassword(oldPassword, sal, hash))
+			return true;
+		else {
+			return false;
+		}
 	}
 
 	/**
