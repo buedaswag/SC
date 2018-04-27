@@ -10,8 +10,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import crypto.MacUtils;
 
 /**
  * 
@@ -132,17 +140,29 @@ public class User {
 	 * insert, update and remove variables and methods
 	 **********************************************************************************************
 	 */
-	
+
 	/**
 	 * Creates and inserts a new user with the given credentials. Ciphers the password.
-	 * This method is only used by ManUsers. Protects the file with a MAC.
+	 * This method is only used by ManUsers. checks if the file is mac protected and terminates
+	 * if it's not. Protects the file with a MAC after it writes to it.
 	 * @param localUserId
 	 * @param password
 	 * @return
 	 * @throws IOException 
+	 * @throws KeyStoreException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @return true if it all went well, false if the MAC file was compromised.
+	 * @throws InvalidKeySpecException 
 	 */
 	//TODO MAC PROTECT THE FILE
-	public static void insert(String localUserId, String password) throws IOException {
+	public static boolean insert(String localUserId, String password) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, CertificateException, KeyStoreException, InvalidKeySpecException {
+		//check MAC
+		if (!MacUtils.getInstance().checkMac()) {
+			return false;
+		}
 		FileWriter fileWriter = new FileWriter(usersTxt, true);
 		BufferedWriter buffWriter = new BufferedWriter(fileWriter);
 		//add the line in the usersTxt file corresponding to the user
@@ -150,16 +170,18 @@ public class User {
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
-		//TODO MAC PROTECT THE FILE
+		//MAC protect the file.
+		MacUtils.getInstance().macProtect();
 		//create localUser's directory
 		String localUserDirName = databaseRootDirName + fileSeparator + localUserId;
 		File localUserDir = new File(localUserDirName);
 		//in case the directory doesn't exist yet, create it.
 		if (!localUserDir.exists()) {
 			localUserDir.mkdir();
-			//create the followersTxt file
-			new File(localUserDirName + fileSeparator + followersTxtName).createNewFile();
+			//create an empty followersTxt file
+			User.insertFollowers(localUserId, new String[0]);
 		}
+		return true;
 	}
 
 	/**
@@ -206,7 +228,7 @@ public class User {
 		//TODO CIPHER THE FILE
 		buffWriter.close();
 	}
-	
+
 	/**
 	 * Removes the given user from the usersTxt file, removes the user's folder and removes 
 	 * the user as follower of any user that currently has him as a follower.
@@ -215,10 +237,20 @@ public class User {
 	 * @param localUserId
 	 * @param usersTxtContent - the content of the usersTxt file before the removal.
 	 * @throws IOException 
+	 * @throws InvalidKeySpecException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws KeyStoreException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
 	 */
 	//TODO MAC PROTECT THE FILE
-	protected static void remove(String localUserId, Collection<String> usersTxtContent) 
-			throws IOException {
+	protected static boolean remove(String localUserId, Collection<String> usersTxtContent) 
+			throws IOException, UnrecoverableKeyException, InvalidKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeySpecException {
+		//check MAC
+		if (!MacUtils.getInstance().checkMac()) {
+			return false;
+		}
 		//delete old file
 		usersTxt.delete();
 		//create new file without the given user
@@ -230,7 +262,8 @@ public class User {
 			buffWriter.newLine();
 		}
 		buffWriter.close();
-		//TODO MAC PROTECT THE FILE
+		//MAC protect the file.
+		MacUtils.getInstance().macProtect();
 		removeAllFollower(localUserId, usersTxtContent);
 		//delete the user folder and all its files and sub-directories
 		String userDirName = databaseRootDirName + fileSeparator + localUserId;
@@ -238,10 +271,11 @@ public class User {
 		final List<Path> pathsToDelete = Files.walk(rootPath).sorted(Comparator.reverseOrder()).
 				collect(Collectors.toList());
 		for(Path path : pathsToDelete) {
-		    Files.deleteIfExists(path);
+			Files.deleteIfExists(path);
 		}
+		return true;
 	}
-	
+
 	/**
 	 * Updates the given user's password in the usersTxt file.
 	 * This method is only used by ManUsers. Deletes the old usersTxt and creates a new one with 
@@ -251,9 +285,19 @@ public class User {
 	 * @param newPassword
 	 * @param usersTxtContent - the content of the usersTxt file before the removal.
 	 * @throws IOException 
+	 * @throws KeyStoreException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws InvalidKeySpecException 
 	 */
-	protected static void updatePassword(String localUserId, String newPassword, Collection<String> usersTxtContent) 
-			throws IOException {
+	protected static boolean updatePassword(String localUserId, String newPassword, Collection<String> usersTxtContent) 
+			throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, CertificateException, KeyStoreException, InvalidKeySpecException {
+		//check MAC
+		if (!MacUtils.getInstance().checkMac()) {
+			return false;
+		}
 		//delete old file
 		usersTxt.delete();
 		//create new file without the given user
@@ -265,9 +309,11 @@ public class User {
 			buffWriter.newLine();
 		}
 		buffWriter.close();
-		User.insert(localUserId, newPassword);
+		//MAC protect the file.
+		MacUtils.getInstance().macProtect();
+		return User.insert(localUserId, newPassword);
 	}
-	
+
 	/**
 	 * Removes the given user from the followersTxt file of every user in the system.
 	 * This method is only used by ManUsers.
@@ -294,7 +340,7 @@ public class User {
 	 * cipher variables , methods and constructors
 	 **********************************************************************************************
 	 */
-	
+
 	/**
 	 * Ciphers the password and returnes a ciphered password in the format:
 	 * salt:salted_password_hash
@@ -306,7 +352,7 @@ public class User {
 		String cipheredPassword = "salt:" + password;
 		return cipheredPassword;
 	}
-	
+
 	/**
 	 * Deciphers the given file and returns its content as a String[]
 	 * @param file
@@ -335,7 +381,7 @@ public class User {
 		buffReader.close();
 		return lines;
 	}
-	
+
 	/**
 	 * Deciphers the user's credentials present in the given line according to the default 
 	 * strategy.
@@ -348,7 +394,7 @@ public class User {
 		String[] userCredentials = line.split(":");
 		return userCredentials;
 	}
-	
+
 	/**********************************************************************************************
 	 * User variables , methods and constructors
 	 **********************************************************************************************
@@ -530,7 +576,7 @@ public class User {
 	protected String getUserId() {
 		return userId;
 	}
-	
+
 	/**
 	 * 
 	 * @return this user's salt, used to cipher the password.

@@ -77,6 +77,9 @@ UC9 -i
 		$PhotoShare antonio passantonio 127.0.0.1:23232 -i lol nada.jpg
 
 ManUsers
+	Arguments:
+		$ManUsers port keystore_alias keystore_password mac_password
+		$ManUsers 23232 server 123456 123456
 UC1 addUser
 	Normal function
 		$PhotoShare miguel passmiguel 127.0.0.1:23232 addUser
