@@ -24,20 +24,6 @@ import java.security.cert.CertificateException;
 
 public class SignUtils
 {	
-	/*
-	Function call logic:
-	File testFile = new File("test.txt");
-	decipherFile(testFile)
-	File sigFile = new File("test.txt.sig");
-	if(!sigFile.exists()) {
-		writeSignature(testFile);
-		cipherFile(testFile);
-	}
-	decipherFile(testFile);
-	System.out.println(verifySignature(testFile, sigFile));
-	cipherFile(testFile);
-	
-	*/
 
 	/**
 	 * Writes a signature to a given file
@@ -53,8 +39,8 @@ public class SignUtils
 	public static void writeSignature(File f) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, IOException, CertificateException, SignatureException, InvalidKeyException {
 		
 		// keystore-related variables
-		String alias = "keyrsa";
-		String keystorePath = "myKeys";
+		String alias = "server";
+		String keystorePath = "myKeys.keystore";
 		String password = "123456";
 		
 		// read data from file
@@ -115,13 +101,12 @@ public class SignUtils
 		byte signature[] = (byte[]) ois.readObject();
 		
 		// starts the signature engine
-		FileInputStream kfile = new FileInputStream("myKeys");
+		FileInputStream kfile = new FileInputStream("myKeys.keystore");
 		KeyStore kstore = KeyStore.getInstance("JCEKS");
 		kstore.load(kfile, password.toCharArray());
-		Certificate cert = kstore.getCertificate("keyrsa"); 
+		Certificate cert = kstore.getCertificate("server"); 
 		
 		// verifies the signature
-		System.out.println(data);
 		PublicKey pk = cert.getPublicKey();
 		Signature s = Signature.getInstance("MD5withRSA");
 		s.initVerify(pk);
@@ -132,18 +117,5 @@ public class SignUtils
 		else
 			return false;
 	}
-	
-	/*
-	 
-	Testing methods; encryption and decryption should be done on the top-level class that verifies the signatures
-	private static void cipherFile(File f) throws InvalidKeyException, UnrecoverableKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, NoSuchProviderException, IOException {
-		Crypto.getInstance().cipherFile(f, Crypto.getInstance().getSecretKey());
-	}
-	
-	private static void decipherFile(File f) throws InvalidKeyException, UnrecoverableKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, NoSuchProviderException, IOException {
-		Crypto.getInstance().decipherFile(f, Crypto.getInstance().getSecretKey());
-	}
-	
-	*/
 }
 

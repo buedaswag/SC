@@ -140,6 +140,7 @@ public class Like {
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
+		SignUtils.writeSignature(likesTxt);
 		Crypto.getInstance().cipherFile(likesTxt, sk);
 		return new Like(likerUserId);
 	}

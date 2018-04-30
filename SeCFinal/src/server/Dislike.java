@@ -140,6 +140,7 @@ public class Dislike {
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
+		SignUtils.writeSignature(dislikesTxt);
 		Crypto.getInstance().cipherFile(dislikesTxt, sk);
 		return new Dislike(dislikerUserId);
 	}

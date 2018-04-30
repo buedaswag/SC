@@ -1,3 +1,12 @@
+How were the keystores generated? 
+ PUBLIC AND PRIVATE KEY PAIR : keytool -genkeypair -alias server -keyalg RSA -keysize 2048 -storetype Jceks -keystore myKeys.keystore
+ SECRET KEY FOR MANUSERS :  -genseckey -alias seckey -storetype jceks -keystore myKeys.keystore
+
+CLIENTE
+
+// Importar certificado do servidor
+keytool -importcert -alias server -file server.cer -keystore client.keystore
+
 repository: this folder contains the images that are used to demonstrate this project. 
 
 Sandbox configuration for JVM (server):
@@ -79,7 +88,7 @@ UC9 -i
 ManUsers
 	Arguments:
 		$ManUsers port keystore_alias keystore_password mac_password
-		$ManUsers 23232 server 123456 123456
+		$ManUsers 23232 seckey 123456 123456
 UC1 addUser
 	Normal function
 		$PhotoShare miguel passmiguel 127.0.0.1:23232 addUser

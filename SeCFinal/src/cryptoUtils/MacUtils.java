@@ -166,7 +166,6 @@ public class MacUtils {
 				return false;
 			}
 		}
-		System.out.println("Equal MACs!");
 		return true;
 	}
 

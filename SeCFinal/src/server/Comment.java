@@ -141,6 +141,7 @@ public class Comment {
 		buffWriter.write(line);
 		buffWriter.newLine();
 		buffWriter.close();
+		SignUtils.writeSignature(commentsTxt);
 		Crypto.getInstance().cipherFile(commentsTxt, sk);
 		return new Comment(commenterUserId, comment);
 	}

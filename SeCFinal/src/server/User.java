@@ -207,7 +207,7 @@ public class User {
 		if (!localUserDir.exists()) {
 			localUserDir.mkdir();
 			//create an empty followersTxt file
-			User.insertFollowers(localUserId, new String[0]);
+			new File(localUserDirName + fileSeparator + followersTxtName).createNewFile();
 		}
 		return true;
 	}
@@ -226,8 +226,9 @@ public class User {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws InvalidKeyException 
 	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
 	 */
-	protected static void insertFollowers(String localUserId, String[] followUserIds) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
+	protected static void insertFollowers(String localUserId, String[] followUserIds) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		// Opens resources and necessary streams
 		File followersTxt = new File(databaseRootDirName + fileSeparator + localUserId + 
 				fileSeparator + followersTxtName);
@@ -239,6 +240,7 @@ public class User {
 			buffWriter.write(followUserId);
 			buffWriter.newLine();
 		}
+		SignUtils.writeSignature(followersTxt);
 		buffWriter.close();
 		Crypto.cipherFile(followersTxt, sk);
 	}
@@ -547,8 +549,9 @@ public class User {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws InvalidKeyException 
 	 * @throws UnrecoverableKeyException 
+	 * @throws SignatureException 
 	 */
-	protected void addFollowers(String localUserId, String[] followUserIds) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException {
+	protected void addFollowers(String localUserId, String[] followUserIds) throws IOException, UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchProviderException, BadPaddingException, SignatureException {
 		User.insertFollowers(localUserId, followUserIds);
 		Collections.addAll(this.followers, followUserIds);
 	}
@@ -622,7 +625,7 @@ public class User {
 		return false;
 	}
 
-	/**
+	/** 
 	 * Inserts the photos with the given names to this user.
 	 * @param localUserId
 	 * @param photoNames
